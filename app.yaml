@@ -1,0 +1,34 @@
+application: skojjt
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+default_expiration: "1h"
+
+libraries:
+- name: ssl
+  version: latest
+
+handlers:
+- url: /css
+  static_dir: css
+
+- url: /img
+  static_dir: img
+
+- url: /js
+  static_dir: js
+
+- url: /fonts
+  static_dir: fonts
+
+- url: /admin/.*
+  script: main.app
+  login: admin
+  secure: always
+  
+- url: .*  # This regex directs all routes to main.app
+  script: main.app
+  login: required
+  secure: always
