@@ -1,0 +1,19 @@
+﻿{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+	<div class="main">
+		<form id="newperson" role="form" name="person" method="POST">
+		  <h1>{{userprefs.getname()}}</h1>
+		  <div class="form-group">
+			<input type="checkbox" class="form-control" name="hasAccess" id="hasAccess"
+			{% if userprefs.hasaccess %}checked=""{% endif %}>Har access</input>
+			<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
+			{% if userprefs.hasadminaccess %}checked=""{% endif %}>Har admin access</input>
+		  </div>
+		  <div class="btn-toolbar">  
+		  <button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+		  </div>
+		</form>
+	</div>
+</body>
+</html>

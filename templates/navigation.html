@@ -1,0 +1,7 @@
+<nav class="navbar" role="navigation">
+	<ol class="breadcrumb">
+	{% for bc in breadcrumbs %}
+	<li><a href="{{bc['link']}}">{{bc['text']}}</a></li>
+	{% endfor %}
+	</ol>
+</nav>

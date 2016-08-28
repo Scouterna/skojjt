@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+{% block main %}
+		<div class="table-responsive">
+			<table id="maintable" class="table table-striped display nowrap">
+			  <thead>
+				<tr>
+				  <th><h1>{{heading}}</h1></th>
+				  {% for meeting in meetings %}
+					<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
+				  {% endfor %}
+				</tr>
+			  </thead>
+			  <tbody>
+				{% for item in items %}
+                <tr><td>
+					{% if addlink %}
+						<a href="{{baselink+item.key.urlsafe()}}/">
+					{% endif %}
+						{{ item.getname() }}
+					{% if addlink %}
+						</a>
+					{% endif %}
+				</td>
+				  {% set iperson = loop.index0 %}
+				  {% for meeting in meetings %} {# name is meeting, id is the person #}
+					{% set imeeting = loop.index0 %}
+					<td><input class="attendance-cb checkbox big-checkbox" name="cb{{meeting.key.urlsafe()}}" id="{{item.key.urlsafe()}}" type="checkbox" {% if attendances[imeeting][iperson] %} checked=""{% endif %}/></td>
+			      {% endfor %}
+				</tr>
+			    {% endfor %}
+				{% if meetings %}
+					<tr>
+					<td>
+					</td>
+				{% endif %}
+				{% for meeting in meetings %}
+					<td>
+					<button type="button" class="postattendance btn btn-lg" aria-label="Left Align" id="btn{{meeting.key.urlsafe()}}" >
+						<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+					</button>
+					</td>
+			    {% endfor %}
+				{% if meetings %}
+					</tr>
+				{% endif %}
+              </tbody>
+			</table>
+		</div>
+		{% if showaddmeetings %}
+		<button data-toggle="collapse" data-target="#newmeeting" set-focus="#mname" class="btn btn-info btn-lg togglebutton">Nytt möte</button>
+		<div id="newmeeting" class="collapse">
+		{% include "meetingform.html" %}
+		</div>
+		{% endif %}
+		{% if showaddmember %}
+		<button data-toggle="collapse" data-target="#newmember" set-focus="#namesearch" class="btn btn-lg btn-info togglebutton">Lägg till person</button>
+		<div id="newmember" class="collapse">
+		<h2>Lägg till avdelningsmedlem</h2>
+		<div class="well"><div>Sök namn från registret:</div>
+			<div id="scrollable-dropdown-menu">
+				<input id="namesearch" type="text" placeholder="Namn" autocomplete="off"/>
+			</div>
+			<div id="nameResults"></div>
+		</div>
+		<div class="well">
+		<div class="class="divider-vertical">
+		<a href="newperson" class="btn btn-sm btn-warning">Registrera ny person</a>
+		</div>
+		</div>
+		</div>
+		{% endif %}
+		<!-- a href="./kommunal/" class="btn btn-lg btn-default">Kommunal ansökan</a -->
+		<div>
+			<table id="allowance" class="table table-striped display nowrap">
+			  <thead>
+			  <tr><th>Bidrag</th></tr>
+			  </thead>
+			  <tbody>
+				{% for a in allowance %}
+				<tr><td>{{ a['name'] }}</td><td>{{ a['value'] }}</td></tr>
+				{% endfor %}
+			  </tbody>
+			</table>
+		</div>
+	</div>
+<script>
+$(document).ready(function() {
+	$("#newmeeting").on('shown.bs.collapse', function(){
+		$("#mname")[0].focus();
+	});
+	$("#newmember").on('shown.bs.collapse', function (){
+		$("#namesearch")[0].focus();
+	});
+	$('.togglebutton').click(function(event)
+	{
+		// hack because shown.bs.collapse doesn't trigger with datatable included
+		setTimeout(function() {$(event.target.attributes['set-focus'].value)[0].focus();}, 200);
+	});
+	var maintable = $('#maintable');
+		maintable.dataTable({
+		scrollX:true,
+		scrollY:true,
+		paging:false,
+		ordering:false,
+		info:false,
+		fixedColumns:true,
+		fixedHeader:false, // doesn't work with scrolling
+		searching:false,
+		bScrollCollapse:true,
+		bScrollAutoCss:true,
+		bAutoWidth:true
+		//responsive:true
+    });
+	setTimeout(function (){
+		// hack/fix for webkit to match sizes after css has been applied
+		maintable.fnAdjustColumnSizing();
+	}, 10);
+	$('.attendance-cb').click(function(event) {
+		meeting_url = event.target.name.slice(2);
+		$('#btn'+meeting_url).css('background-color','#fa0');
+	});
+	$('.postattendance').click(function(event) {
+		var button = event.target;
+		if (button.type != 'button') // if you press on the glyphicon inside the button
+			button = event.target.parentNode; // get the parent button instead
+			
+		var meeting_url = button.id.slice(3);
+		var checkboxes = $('input:checkbox[name="cb' + meeting_url + '"]');
+		persons = '';
+		for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (persons.length > 0) persons += ',';
+			if (checkboxes[cb].checked)
+				persons += checkboxes[cb].id;
+		}
+		var fd = new FormData();
+		fd.append('action', 'saveattendance');
+		fd.append('persons', persons);
+		$('#btn'+meeting_url).css('background-color','#FFFF00');
+		$.ajax({
+			url:'./'+meeting_url+"/",
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) { if (data === "ok") $('#btn'+meeting_url).css('background-color','#00FF00');}
+		});
+	});
+	$('#namesearch').on('keyup', function() {
+		var val = $('#namesearch').val();
+		if (val && val.length > 1)
+		{
+			$.ajax({
+				url: '.',
+				type: 'GET',
+				data: 'action=lookupperson&name=' + val,
+				async: true,
+				success: function(data, textStatus, jqXHR) {
+					arr = JSON.parse(data);
+					t = '';
+					$('#tblSearchResults').remove();
+					table = $('<table id="tblSearchResults" class="table table-striped"/>');
+					for (var x in arr)
+					{
+						table.append($('<tr><td><a href="' + arr[x].url + '?action=addperson"> + ' + arr[x].name + '</a></td></tr>'));
+					}
+					$('#nameResults').append(table);
+					return data;
+				}
+			})
+		}
+		else
+		{
+			$('#tblSearchResults').remove();
+		}
+	});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+.breadcrumb > li + li:before {
+	content: "»"
+}
+.breadcrumb {
+padding: 8px 15px;
+margin-bottom: 10px;
+}
+th.rotate {
+height: 80px;
+width: 80px;
+white-space: nowrap;
+}
+th.rotate > div {
+width: 30px;
+transform: rotate(315deg);
+-webkit-transform:rotate(315deg);
+-moz-transform:rotate(315deg);
+-o-transform:rotate(315deg);
+}
+th.rotate > div > span {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 10px;
+}
+
+.main {
+margin: 5px;
+}
+.page-header{
+margin: 10px 0 10px;
+}
+.navbar {
+position: relative;
+min-height: 40px;
+margin-bottom: 5px;
+border: 1px solid transparent;
+}
+
+.btn-lg{
+margin-bottom: 5px;
+}
+.big-checkbox 
+{
+width: 25px; height: 25px;
+}

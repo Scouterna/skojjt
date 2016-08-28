@@ -1,0 +1,113 @@
+﻿{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+{% set hasPerson = True if ep is defined else False %}
+	<div class="main">
+		<form id="newperson" role="form" name="person" method="POST">
+		  <input type="hidden" name="action" value="newperson"/>
+		  <h1>{% if hasPerson %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
+		  {% if not hasPerson or (hasPerson and ep.notInScoutnet) %}
+		  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/organisation/group/home/1137">scoutnet</a> automatiskt!</em>
+		  {% endif %}
+		  <div class="form-group">
+			<label for="firstname">Förnamn</label>
+			<input type="text" class="form-control" placeholder="Förnamn" name="firstname" id="firstname"
+			value="{% if hasPerson %}{{ep.firstname}}{% endif %}"/>
+			<label for="lastname">Efternamn</label>
+			<input type="text" class="form-control" placeholder="Efternamn" name="lastname" id="lastname"
+			value="{% if hasPerson %}{{ep.lastname}}{% endif %}"/>
+		  </div>
+		  <div class="form-group">
+			<label for="birthdate">Födelsedatum</label>
+			<input type="date" class="form-control" name="birthdate" id="birthdate"
+			value="{% if hasPerson %}{{ep.getbirthdatestring()}}{% endif %}"/>
+		  </div>
+		  <div class="form-group">
+		    <label class="radio-inline">
+				<input name="sex" id="female" value="female" type="radio" {% if hasPerson and ep.female %}checked=""{% endif %}>Flicka</input>
+			</label>
+			<label class="radio-inline">
+				<input name="sex" id="male" value="male" type="radio" {% if hasPerson and not ep.female %}checked=""{% endif %}>Pojke</input>
+			</label>
+		  </div>
+		{% if not hasPerson %}
+		  <div class="btn-toolbar">  
+		  <button id="personsubmit" type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+		  </div>
+		{% endif %}
+		</form>
+		<hr/>
+ 		{% if hasPerson and ep.notInScoutnet %}
+		<em>OBS! Personen finns inte i scoutnet</em>
+		<div class="btn-toolbar">
+		{% if not ep.removed %}
+		  <a href="deleteperson" class="btn btn-lg btn-danger">Ta bort</a>
+		{% else %}
+		  <em>Personen är borttagen</em><br/>
+		  <a href="addbackperson" class="btn btn-lg btn-danger">Lägg till igen</a>
+		{% endif %}
+		</div>
+		{% endif %}
+		{% if hasPerson %}
+        <div class="table-responsive">
+			<table class="table table-striped">
+              <thead>
+                <tr>
+                  <th class="col-xs-4 col-sm-4 col-lg-4">Avdelningar</th>
+                  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
+                  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody>
+			    {% for tp in trooppersons %}
+                <tr>
+				<td>
+					{% set troop = tp.troop.get() %}
+					{% set group_key = troop.scoutgroup %}
+					<a href="/start/{{group_key.urlsafe()}}/{{troop.key.urlsafe()}}/">{{tp.gettroopname()}}</a>{% if tp.leader %} - Ledare{% endif %}
+				</td>
+				<td>
+					<a href="removefromtroop?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort från avdelning</a>
+				</td>
+				<td>
+					{% if tp.leader %}<a href="removeasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort som ledare</a>{% else %}<a href="setasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Gör till ledare</a>{% endif %}
+				</td>
+				</tr>
+			    {% endfor %}
+              </tbody>
+			</table>
+		</div>
+		{% endif %}
+	</div>
+	<script>
+	function isFormValid()
+	{
+		if ($("#firstname").val().length < 2)
+			return false;
+		if ($("#lastname").val().length < 2)
+			return false;
+		var bdval = $("#birthdate").val();
+		if (bdval.length == 0)
+			return false;
+		var sex = $('input:radio[name=sex]').filter(":checked").val();
+		if (!sex || sex.length == 0)
+			return false;
+			
+		return true;
+	}
+	function validateForm()
+	{
+		$("#personsubmit").prop('disabled', !isFormValid());
+	}
+	$(document).ready(function () {
+	validateForm();
+	$('#newperson').change(validateForm);
+	$('#newperson').submit({
+		function() {
+			return isFormValid();
+		}
+	});
+	});
+	</script>
+</body>
+</html>

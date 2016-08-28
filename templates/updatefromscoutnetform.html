@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block main %}
+    <h1>Update data from scoutnet</h1>
+	<p>Importen hämtar en csv fil från scoutnet:</p>
+	<pre>https://www.scoutnet.se/reports/groups/members/group_id/&lt;kårid&gt;/download/true/format/excel</pre>
+	<p>Den jämför med vad som finns i skojjts databas, lägger till nya medlemmar och avdelningar</p>
+	<p>Man kan prova importen utan att spara, låt "spara data" vara urklickad.</p>
+	<p>Kår id ser du i för urlen för din kår i scoutnet. Siffran efter group/home</p>
+    <form action="./" method="POST" role="form">
+	<fieldset>
+		<div class="form-group">
+			<label for="signin_username">Användarnamn:</label>
+			<input type="text" name="signin[username]" id="signin_username" class="form-control"/>
+		</div>
+		<div class="form-group">
+			<label for="signin_password">Lösenord:</label>
+			<input type="password" name="signin[password]" id="signin_password" class="form-control"/>
+		</div>
+		<div class="form-group">
+			<label for="groupid">Scoutnets kårid:</label>
+			<input type="text" name="groupid" id="groupid" value="1137" class="form-control"/>
+		</div>
+		<div class="form-group">
+			<label for="commit">Spara data:</label>
+			<input type="checkbox" name="commit" value="commit" class="form-control checkbox"></input>
+		</div>
+		<input type="submit" class="btn btn-lg btn-default" value="Starta import"></input>
+    </fieldset>
+    </form>
+{% endblock %}
