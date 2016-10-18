@@ -96,8 +96,6 @@ def ReimportData(data, commit=False):
 			if commit:
 				tpkeys = TroopPerson.query(TroopPerson.person==person.key).fetch(keys_only=True)
 				ndb.delete_multi(tpkeys)
-			if len(Attendance.query(Attendance.person==person.key).fetch(1, keys_only=True)) == 0:
-				report.append("%s has no attendance, deleting" % (person.getname()))
 				if commit:
 					person.key.delete()
 
@@ -182,23 +180,27 @@ def ImportData():
 
 			
 def DeleteAllData():
-#	entries = Person.query().fetch(1000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = Troop.query().fetch(1000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = ScoutGroup.query().fetch(1000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = Meeting.query().fetch(10000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = Attendance.query().fetch(10000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = TroopPerson.query().fetch(1000, keys_only=True)
-#	ndb.delete_multi(entries)
-#	entries = Semester.query().fetch(1000, keys_only=True)
-#	ndb.delete_multi(entries)
-
+	entries = Person.query().fetch(1000, keys_only=True)
+	ndb.delete_multi(entries)
+	entries = Troop.query().fetch(1000, keys_only=True)
+	ndb.delete_multi(entries)
+	entries = ScoutGroup.query().fetch(1000, keys_only=True)
+	ndb.delete_multi(entries)
+	entries = Meeting.query().fetch(10000, keys_only=True)
+	ndb.delete_multi(entries)
+	entries = TroopPerson.query().fetch(1000, keys_only=True)
+	ndb.delete_multi(entries)
+	entries = Semester.query().fetch(1000, keys_only=True)
+	ndb.delete_multi(entries)
 	ndb.get_context().clear_cache() # clear memcache
 
+def ForceSemesterForAll(activeSemester):
+	for u in UserPrefs.query().fetch(1000):
+		u.activeSemester = activeSemester.key
+		u.put()
+	for m in Meeting.query().fetch(1000):
+		m.semester = activeSemester.key
+		m.put()
 
 def UpdateSchemaTroopPerson():
 	entries = TroopPerson().query().fetch()

@@ -12,13 +12,23 @@ class Semester(ndb.Model):
 
 	@staticmethod
 	def getid(year, ht):
-		return str(year)+str(ht)
+		return str(year) + ("ht" if ht else "vt")
 	
 	@staticmethod
 	def create(year, ht):
 		if year < 2016:
 			raise ValueError("Invalid year %d" % year)
 		return Semester(id=Semester.getid(year, ht), year=year, ht=ht)
+		
+	@staticmethod
+	def getOrCreateCurrent():
+		thisdate = datetime.datetime.now()
+		ht = True if thisdate.month>6 else False
+		semester = Semester.get_by_id(Semester.getid(thisdate.year + 1, ht))
+		if semester == None:
+			semester = Semester.create(thisdate.year + 1, ht)
+			semester.put()
+		return semester
 		
 	def getyear(self):
 		return self.year
@@ -72,6 +82,7 @@ class ScoutGroup(ndb.Model):
 class Troop(ndb.Model):
 	name = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
+	defaultstarttime = ndb.StringProperty(default="18:30")
 
 	@staticmethod
 	def getid(name, scoutgroup_key):
@@ -139,6 +150,7 @@ class Meeting(ndb.Model):
 	troop = ndb.KeyProperty(kind=Troop, required=True)
 	duration = ndb.IntegerProperty(default=90, required=True) #minutes
 	semester = ndb.KeyProperty(kind=Semester, required=True)
+	attendingPersons = ndb.KeyProperty(kind=Person, repeated=True) # list of attending persons' keys
 
 	@staticmethod
 	def overlapsanother(meeting):
@@ -157,8 +169,8 @@ class Meeting(ndb.Model):
 			)
 
 	@staticmethod
-	def gettroopmeetings(troop_key):
-		return Meeting.query(Meeting.troop==troop_key).order(-Meeting.datetime)
+	def gettroopmeetings(troop_key, semester_key):
+		return Meeting.query(Meeting.troop==troop_key, Meeting.semester==semester_key).order(-Meeting.datetime)
 
 	def commit(self):
 		self.put()
@@ -194,18 +206,4 @@ class TroopPerson(ndb.Model):
 
 	def gettroopname(self):
 		return self.troop.get().getname()
-		
-class Attendance(ndb.Model):
-	person = ndb.KeyProperty(kind=Person)
-	meeting = ndb.KeyProperty(kind=Meeting)
-
-	@staticmethod
-	def getid(person_key, meeting_key):
-		return str(person_key.id())+str(meeting_key.id())
-
-	@staticmethod
-	def create(person_key, meeting_key):
-		return Attendance(id=Attendance.getid(person_key, meeting_key),
-			person=person_key,
-			meeting=meeting_key
-			)
+	
