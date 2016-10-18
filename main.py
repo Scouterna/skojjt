@@ -74,11 +74,11 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			return render_template('person.html',
 				heading=section_title,
 				baselink=baselink,
-				breadcrumbs=breadcrumbs)				
+				breadcrumbs=breadcrumbs)
 		elif request.method == "POST":
 			person = Person.createlocal(request.form['firstname'], request.form['lastname'], request.form['birthdate'].replace('-',''), request.form['sex'] == "female")
 			person.scoutgroup = sgroup_key
-			logging.info("created local person %s", person.getname());
+			logging.info("created local person %s", person.getname())
 			person.put()
 			troopperson = TroopPerson.create(troop_key, person.key, False)
 			troopperson.commit()
@@ -112,10 +112,28 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				raise ValueError('Missing troop or person')
 			person_key = ndb.Key(urlsafe=key_url)
 			person = person_key.get()
-			logging.debug("adding person=%s to troop=%d", person.getname(), troop.getname())
+			logging.info("adding person=%s to troop=%d", person.getname(), troop.getname())
 			troopperson = TroopPerson.create(troop_key, person_key, False)
 			troopperson.commit()
 			return redirect(breadcrumbs[-1]['link'])
+		elif action == "newsemester":
+			if scoutgroup == None:
+				raise ValueError('Missing scoutgroup')
+			semester = Semester.getOrCreateCurrent()
+			scoutgroup.activeSemester = semester.key
+			scoutgroup.put()
+			logging.info("Set new semester: %s", semester.getname())
+			#ForceSemesterForAll(semester)
+			return semester.getname()
+		elif action == "setdefaultstarttime":
+			if scoutgroup == None:
+				raise ValueError('Missing scoutgroup')
+			if troop == None:
+				raise ValueError('Missing troop')
+			troop.defaultstarttime = request.args['time']
+			troop.put()
+			logging.info("Set new starttime for %s to %s", troop.getname(), troop.defaultstarttime)
+			return troop.defaultstarttime
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)
@@ -127,14 +145,14 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			if troop == None or scoutgroup == None or key_url == None:
 				raise ValueError('Missing troop or group')
 
-			meeting_key = ndb.Key(urlsafe=key_url)
-			oldattendance = Attendance.query(Attendance.meeting==meeting_key).fetch(keys_only=True)
-			ndb.delete_multi(oldattendance)
+			meeting = ndb.Key(urlsafe=key_url).get()
+			meeting.attendingPersons[:] = [] # clear the list
 			for person_url in request.form["persons"].split(","):
 				#logging.debug("person_url=%s", person_url)
 				if len(person_url) > 0:
 					person_key = ndb.Key(urlsafe=person_url)
-					attendance = Attendance.create(person_key, meeting_key).put()
+					meeting.attendingPersons.append(person_key)
+			meeting.put()
 			return "ok"
 		elif action == "addmeeting" or action == "updatemeeting":
 			mname = request.form['name']
@@ -160,8 +178,6 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		elif action == "deletemeeting":
 			meeting = ndb.Key(urlsafe=key_url).get()
 			logging.debug("deleting meeting=%s", meeting.getname())
-			oldattendance = Attendance.query(Attendance.meeting==meeting.key).fetch(keys_only=True)
-			ndb.delete_multi(oldattendance)
 			meeting.key.delete()
 			return redirect(breadcrumbs[-1]['link'])
 		else:
@@ -194,7 +210,6 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		return render_template('meeting.html',
 			heading=section_title,
 			baselink=baselink,
-			attendances=Attendance.query(Attendance.meeting==meeting.key).fetch(),
 			existingmeeting=meeting,
 			breadcrumbs=breadcrumbs)				
 	else:
@@ -210,7 +225,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 
 		section_title = troop.getname()
 		trooppersons = TroopPerson.query(TroopPerson.troop==troop_key).order(TroopPerson.sortname).fetch()
-		meetings = Meeting.gettroopmeetings(troop_key)
+		meetings = Meeting.gettroopmeetings(troop_key, scoutgroup.activeSemester)
 		
 		attendances = [] # [meeting][person]
 		persons = []
@@ -228,8 +243,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			femaleLeadersAttendenceCount = 0
 			meetingattendance = []
 			for troopperson in trooppersons:
-				att = Attendance.query(Attendance.meeting==meeting.key, Attendance.person==troopperson.person).fetch(keys_only=True)
-				isAttending = len(att) != 0
+				isAttending = troopperson.person in meeting.attendingPersons
 				meetingattendance.append(isAttending)
 				if isAttending:
 					person = personsDict[troopperson.person]
@@ -304,7 +318,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				showaddmeetings=True,
 				showaddmember=True,
 				breadcrumbs=breadcrumbs,
-				allowance=allowance)
+				allowance=allowance,
+				defaultstarttime=troop.defaultstarttime)
 
 @app.route('/persons')
 @app.route('/persons/')
@@ -388,7 +403,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			addlink=True,
 			trooppersons=TroopPerson.query(TroopPerson.person==person.key).fetch(),
 			ep=person,
-			attendances=Attendance.query(Attendance.person==person.key).fetch(), # todo: filter by semester
+			#attendances=Attendance.query(Attendance.person==person.key).fetch(), # todo: filter by semester
 			breadcrumbs=breadcrumbs,
 			username=user.nickname())
 	
@@ -464,17 +479,7 @@ def doimport():
 	ImportData()
 	return redirect('/admin')
 
-@app.route('/admin/reimport')
-def doreimport():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
-		abort(403)
-		return "denied"
-
-	ReimportData()
-	return redirect('/admin')
-	
-@app.route('/admin/delete')
+@app.route('/admin/deleteall')
 def dodelete():
 	user = users.get_current_user()
 	if not UserPrefs.checkandcreate(user, True):

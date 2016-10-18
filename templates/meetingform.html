@@ -24,7 +24,7 @@
   {% if not hasMeeting %}
   <script>
 	$("#mdate").val(getTodaysDateString());
-	$("#starttime").val(getCurrentHalfHourString());
+	$("#starttime").val("{{defaultstarttime}}");
 	$("#mduration").val("90");
   </script>
   {% endif %}
