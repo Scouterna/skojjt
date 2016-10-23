@@ -10,24 +10,21 @@ import logging
 import sys
 
 def unicode_csv_reader(utf8_data):
-	csv_reader = ucsv.reader(utf8_data, delimiter=',', quoting=ucsv.QUOTE_ALL)
+	csv_reader = ucsv.reader(utf8_data, delimiter=',', quoting=ucsv.QUOTE_NONE) # QUOTE_NONE to avoid evaluating strings as numbers
 	for row in csv_reader:
-		yield [cell for cell in row]
+		yield [cell.strip("\"") for cell in row] # QUOTE_NONE will keep quotes
 
-def GetScoutnetMembersCSVData(username, password, groupid='1137'):
+def GetScoutnetMembersCSVData(username, password, groupid):
 	payload = {'signin[username]': username, 'signin[password]': password}
 
 	cj = cookielib.CookieJar()
 	opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 	urllib2.install_opener(opener)
-
 	data = urllib.urlencode(payload)
 	header = {"User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"}
 	req = urllib2.Request('https://www.scoutnet.se/login')
 	req.add_data(data)
-	print("Login request")
 	response = urllib2.urlopen(req)
-	print("after urlopen, response=%s", response)
 	req2 = urllib2.Request('https://www.scoutnet.se/reports/groups/members/group_id/' + groupid + '/download/true/format/csv')
 	response = urllib2.urlopen(req2)
 	return response.read()
@@ -45,6 +42,11 @@ def GetScoutnetDataList(data):
 	ipatrool = 0
 	isex = 0
 	iaktiv = 0
+	iepost = 0
+	ihemtel = 0
+	itelhem = 0
+	imobil = 0
+	
 	for row in reader:
 		if first:
 			first = False
@@ -67,6 +69,14 @@ def GetScoutnetDataList(data):
 					isex = index
 				elif col == "Status":
 					iaktiv = index
+				elif col == "E-post":
+					iepost = index
+				elif col == "Telefon hem":
+					itelhem = index
+				elif col == "Hemtelefon":
+					ihemtel = index
+				elif col == "Mobiltelefon":
+					imobil = index
 
 			#logging.info("fields %d, %d, %d, %d, %d, %d, %d, %d", inr,ifname,ilname,ipnummer,isgroup,itroop,ipatrool,isex)
 			if (inr+1) * ifname * ilname * ipnummer * isgroup * itroop * ipatrool * isex * iaktiv == 0:
@@ -76,17 +86,28 @@ def GetScoutnetDataList(data):
 			m = {}
 			m["group"] = row[isgroup]
 			m["troop"] = row[itroop]
-			m["id"] = row[inr]
+			m["id"] = str(row[inr])
 			m["firstname"] = row[ifname]
 			m["lastname"] = row[ilname]
-			m["personnr"] = row[ipnummer]
+			m["personnr"] = str(row[ipnummer])
 			m["female"] = row[isex]!='Man'
 			m["patrool"] = row[ipatrool]
 			m["active"] = row[iaktiv] == "Aktiv"
+			m["email"] = row[iepost] if iepost != 0 else ""
+			phone = FixCountryPrefix(str(row[ihemtel]) if ihemtel != 0 else "")
+			if phone == "":
+				phone = FixCountryPrefix(str(row[itelhem]) if itelhem != 0 else "") # scoutnet has both "Telefon hem" and "Hemtelefon" pick one!
+			m["phone"] = phone
+			m["mobile"] = FixCountryPrefix(str(row[imobil]) if imobil != 0 else "")
 			result.append(m)
 
 	return result
 
+def FixCountryPrefix(phone):
+	if len(phone) > 8 and phone[0] != '0': # "46 31 123456"
+		return '+' + phone
+	return phone
+	
 def ImportScoutnetAsCSV(filename='members.csv'):
 	data = GetScoutnetMembersCSVData()
 	if data:

@@ -1,9 +1,10 @@
 {% extends "layout.html" %}
 {% block main %}
     <h1>Update data from scoutnet</h1>
-	<p>Importen hämtar en csv fil från scoutnet:</p>
+	<p>Importen hämtar en csv fil från scoutnet (Rapporter / Medlemslistor / Ladda ner):</p>
 	<pre>https://www.scoutnet.se/reports/groups/members/group_id/&lt;kårid&gt;/download/true/format/excel</pre>
 	<p>Den jämför med vad som finns i skojjts databas, lägger till nya medlemmar och avdelningar</p>
+	<p>Ändringar i scoutnet uppdateras vid import (man kan t ex byta namn på personer).</p>
 	<p>Man kan prova importen utan att spara, låt "spara data" vara urklickad.</p>
 	<p>Kår id ser du i för urlen för din kår i scoutnet. Siffran efter group/home</p>
     <form action="./" method="POST" role="form">

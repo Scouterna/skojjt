@@ -2,8 +2,7 @@
 import re
 import codecs
 import datetime
-
-
+from google.appengine.api import users
 from google.appengine.ext import ndb
 
 class Semester(ndb.Model):
@@ -41,30 +40,59 @@ known_nicknames = ['jacob.thoren', 'kattis@famgreen.se', 'magan174', 'dedden1', 
 class UserPrefs(ndb.Model):
 	userid = ndb.StringProperty(required=True)
 	hasaccess = ndb.BooleanProperty(required=True)
+	canimport = ndb.BooleanProperty(required=False)
 	hasadminaccess = ndb.BooleanProperty(default=False, required=True)
 	name = ndb.StringProperty(required=True)
 	activeSemester = ndb.KeyProperty(kind=Semester)
 	
+	def hasAccess(self):
+		return self.hasaccess
+
+	def isAdmin(self):
+		return self.hasaccess and self.hasadminaccess
+
+	def canImport(self):
+		return self.hasaccess and self.canimport
+	
 	def getname(self):
 		return self.name
 	
+	@staticmethod
+	def current():
+		cu = users.get_current_user()
+		return UserPrefs.getorcreate(cu)
+
+	@staticmethod
+	def getorcreate(user):
+		usersresult = UserPrefs.query(UserPrefs.userid==user.user_id()).fetch()
+		if len(usersresult) == 0:
+			user = UserPrefs.create(user, user.nickname() in known_nicknames)
+			user.put()
+		else:
+			user = usersresult[0]
+		return user
+
 	@staticmethod
 	def create(user, access=False):
 		return UserPrefs(userid = user.user_id(), name=user.nickname(), hasaccess=access)
 		
 	@staticmethod
 	def checkandcreate(user, admin=False):
-		users = UserPrefs.query(UserPrefs.userid==user.user_id()).fetch()
-		if len(users) == 0:
+		usersresult = UserPrefs.query(UserPrefs.userid==user.user_id()).fetch()
+		if len(usersresult) == 0:
 			user = UserPrefs.create(user, user.nickname() in known_nicknames)
 			user.put()
 		else:
-			user = users[0]
+			user = usersresult[0]
 		return user.hasaccess if not admin else user.hasadminaccess
 
+# kår
 class ScoutGroup(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	activeSemester = ndb.KeyProperty(kind=Semester)
+	organisationsnummer = ndb.StringProperty()
+	foreningsID = ndb.StringProperty()
+	kommunID = ndb.StringProperty(default="1480")
 	
 	@staticmethod
 	def getid(name):
@@ -73,16 +101,18 @@ class ScoutGroup(ndb.Model):
 	@staticmethod
 	def create(name):
 		if len(name) < 2:
-			raise ValueError("Invalid name %s" % name)
+			raise ValueError("Invalid name %s" % (name))
 		return ScoutGroup(id = ScoutGroup.getid(name), name=name)
 		
 	def getname(self):
 		return self.name
 
+# avdelning
 class Troop(ndb.Model):
 	name = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
 	defaultstarttime = ndb.StringProperty(default="18:30")
+	rapportID = ndb.IntegerProperty()
 
 	@staticmethod
 	def getid(name, scoutgroup_key):
@@ -99,28 +129,34 @@ class Person(ndb.Model):
 	firstname = ndb.StringProperty(required=True)
 	lastname = ndb.StringProperty(required=True)
 	birthdate = ndb.DateProperty(required=True)
+	personnr = ndb.StringProperty()
 	female = ndb.BooleanProperty(required=True)
 	troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops 
 	patrool = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
 	notInScoutnet = ndb.BooleanProperty()
 	removed = ndb.BooleanProperty()
+	email = ndb.StringProperty()
+	phone = ndb.StringProperty()
+	mobile = ndb.StringProperty()
 
 	@staticmethod
-	def create(id, firstname, lastname, birthdatestr, female):
+	def create(id, firstname, lastname, personnr, female):
 		return Person(id=id,
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodatetime(birthdatestr),
-			female=female)
+			birthdate=Person.persnumbertodatetime(personnr),
+			female=female,
+			personnr=personnr)
 
 	@staticmethod
-	def createlocal(firstname, lastname, birthdatestr, female):
+	def createlocal(firstname, lastname, personnr, female):
 		return Person(
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodatetime(birthdatestr),
+			birthdate=Person.persnumbertodatetime(personnr),
 			female=female,
+			personnr=personnr,
 			notInScoutnet=True)
 	
 	@staticmethod

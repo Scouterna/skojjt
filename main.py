@@ -5,7 +5,9 @@ import datetime
 import urllib
 import json
 import scoutnet
+from dakdata import *
 from google.appengine.api import users
+import random
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
 from werkzeug import secure_filename
@@ -23,14 +25,13 @@ sys.setdefaultencoding('utf8')
 
 @app.route('/')
 def home():
-	user = users.get_current_user()
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	return render_template('index.html',
 						   heading='Hem',
 						   items=[],
 						   breadcrumbs=breadcrumbs,
 						   showstart=True,
-						   username=user.nickname(),
+						   user=UserPrefs.current(),
 						   signout_url=users.create_logout_url('/'))
 
 @app.route('/start')
@@ -42,8 +43,8 @@ def home():
 @app.route('/start/<sgroup_url>/<troop_url>/<key_url>', methods = ['POST', 'GET'])
 @app.route('/start/<sgroup_url>/<troop_url>/<key_url>/', methods = ['POST', 'GET'])
 def start(sgroup_url=None, troop_url=None, key_url=None):
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user):
+	user = UserPrefs.current()
+	if not user.hasAccess():
 		abort(403)
 		return "denied"
 		
@@ -201,7 +202,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			addlink=True,
 			items=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100),
 			breadcrumbs=breadcrumbs)
-	elif key_url!=None: # assuming this is a meeting for now
+	elif key_url!=None and key_url!="dak":
 		meeting = ndb.Key(urlsafe=key_url).get()
 		section_title = meeting.getname()
 		baselink += key_url + "/"
@@ -282,11 +283,44 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 					sumMaleLeadersAttendenceCount += maleLeadersAttendenceCount
 					sumFemaleLeadersAttendenceCount += femaleLeadersAttendenceCount
 
-		if key_url == "kommunal":
-			result = render_template('gbgkommun.xml', meetings=meetings, troop=troop, trooppersons=trooppersons)
+		if key_url == "dak":
+			dak = DakData()
+			dak.foereningsNamn = scoutgroup.getname()
+			dak.foreningsID = scoutgroup.foreningsID
+			dak.organisationsnummer = scoutgroup.organisationsnummer
+			dak.kommunID = scoutgroup.kommunID
+			dak.kort.NamnPaaKort = troop.getname()
+			# hack generate an "unique" id, if there is none
+			if troop.rapportID == None or troop.rapportID == 0:
+				troop.rapportID = random.randint(100, 1000000)
+				troop.put()
+
+			dak.kort.NaervarokortNummer = str(troop.rapportID)
+			
+			for tp in trooppersons:
+				p = personsDict[tp.person]
+				if tp.leader:
+					dak.kort.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+				else:
+					dak.kort.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+				
+			for m in meetings:
+				sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
+				for tp in trooppersons:
+					isAttending = tp.person in m.attendingPersons
+					if isAttending:
+						p = personsDict[tp.person]
+						if tp.leader:
+							sammankomst.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+						else:
+							sammankomst.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+				
+				dak.kort.Sammankomster.append(sammankomst)
+			
+			result = render_template('dak.xml', dak=dak)
 			response = make_response(result)
 			response.headers['Content-Type'] = 'application/xml'
-			response.headers['Content-Disposition'] = 'attachment; filename=gbgkommun-' + troop.getname() + '.xml'
+			response.headers['Content-Disposition'] = 'attachment; filename=dak-' + dak.kort.NamnPaaKort + '.xml'
 			return response
 		else:
 			allowance = []
@@ -329,8 +363,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 @app.route('/persons/<sgroup_url>/<person_url>/')
 @app.route('/persons/<sgroup_url>/<person_url>/<action>')
 def persons(sgroup_url=None, person_url=None, action=None):
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user):
+	user = UserPrefs.current()
+	if not user.hasAccess():
 		abort(403)
 		return "denied"
 
@@ -377,7 +411,6 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			abort(404)
 			return ""
 		
-		
 	# render main pages
 	if scoutgroup==None:
 		return render_template('index.html', 
@@ -386,7 +419,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			addlink=True,
 			items=ScoutGroup.query().fetch(),
 			breadcrumbs=breadcrumbs,
-			username=user.nickname())
+			username=user.getname())
 	elif person==None:
 		section_title = 'Personer'
 		return render_template('index.html',
@@ -395,7 +428,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			addlink=True,
 			items=Person.query(Person.scoutgroup==sgroup_key).order(Person.firstname, Person.lastname).fetch(),
 			breadcrumbs=breadcrumbs,
-			username=user.nickname())
+			username=user.getname())
 	else:
 		return render_template('person.html',
 			heading=section_title,
@@ -405,27 +438,53 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			ep=person,
 			#attendances=Attendance.query(Attendance.person==person.key).fetch(), # todo: filter by semester
 			breadcrumbs=breadcrumbs,
-			username=user.nickname())
+			username=user.getname())
 	
+@app.route('/import')
+@app.route('/import/', methods = ['POST', 'GET'])
+def import_():
+	user = UserPrefs.current()
+	if not user.canImport():
+		abort(403)
+		return "denied"
 
+	breadcrumbs = [{'link':'/', 'text':'Hem'},
+				   {'link':'/import', 'text':'Import'}]
+
+	if request.method == 'POST':
+		commit = 'commit' in request.form.values()
+		username = request.form.get('signin[username]')
+		password = request.form.get('signin[password]')
+		groupid = request.form.get('groupid')
+		logging.info("commit=%d, username=%s, password=%s, groupid=%s", commit, username, password, groupid)
+		data = scoutnet.GetScoutnetMembersCSVData(username, password, groupid)
+		importer = ScoutnetImporter()
+		importer.commit = commit
+		result = importer.DoImport(data)
+		return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
+	else:
+		return render_template('updatefromscoutnetform.html', breadcrumbs=breadcrumbs)
+	return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, showstart=True, username=user.getname())
+	
+	
 @app.route('/admin')
 @app.route('/admin/')
 def admin():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user):
+	user = UserPrefs.current()
+	if not user.isAdmin():
 		abort(403)
 		return "denied"
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/admin', 'text':'Admin'}]
-	return render_template('admin.html', heading="Admin", breadcrumbs=breadcrumbs, showstart=True, username=user.nickname())
+	return render_template('admin.html', heading="Admin", breadcrumbs=breadcrumbs, showstart=True, username=user.getname())
 
 @app.route('/admin/access/')
 @app.route('/admin/access/<userprefs_url>')
 @app.route('/admin/access/<userprefs_url>/', methods = ['POST', 'GET'])
 def adminaccess(userprefs_url=None):
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
+	user = UserPrefs.current()
+	if not user.isAdmin():
 		abort(403)
 		return "denied"
 
@@ -454,6 +513,7 @@ def adminaccess(userprefs_url=None):
 			logging.info('request.form=%s', str(request.form))
 			userprefs.hasaccess = request.form.get('hasAccess') == 'on'
 			userprefs.hasadminaccess = request.form.get('hasAdminAccess') == 'on'
+			userprefs.canimport = request.form.get('canImport') == 'on'
 			userprefs.put()
 			return redirect(breadcrumbs[-1]['link'])
 		else:
@@ -468,21 +528,11 @@ def adminaccess(userprefs_url=None):
 				breadcrumbs=breadcrumbs)
 	
 	abort(404)
-	
-@app.route('/admin/import')
-def doimport():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
-		abort(403)
-		return "denied"
 
-	ImportData()
-	return redirect('/admin')
-
-@app.route('/admin/deleteall')
+@app.route('/admin/deleteall/')
 def dodelete():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
+	user = UserPrefs.current()
+	if not user.isAdmin():
 		abort(403)
 		return "denied"
 
@@ -492,8 +542,8 @@ def dodelete():
 
 @app.route('/admin/updateschemas')
 def doupdateschemas():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
+	user = UserPrefs.current()
+	if not user.isAdmin():
 		abort(403)
 		return "denied"
 
@@ -503,8 +553,8 @@ def doupdateschemas():
 @app.route('/admin/backup')
 @app.route('/admin/backup/')
 def dobackup():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
+	user = UserPrefs.current()
+	if not user.isAdmin():
 		abort(403)
 		return "denied"
 
@@ -514,30 +564,6 @@ def dobackup():
 	response.headers['Content-Disposition'] = 'attachment; filename=skojjt-backup-' + str(thisdate.isoformat()) + '.xml'
 	return response
 	
-	
-@app.route('/admin/reimportcsv/', methods=['GET', 'POST'])
-def reimportcsv():
-	user = users.get_current_user()
-	if not UserPrefs.checkandcreate(user, True):
-		abort(403)
-		return "denied"
-
-	breadcrumbs = [{'link':'/', 'text':'Hem'}]
-	breadcrumbs.append({'link':'/admin/', 'text':'Admin'})
-	breadcrumbs.append({'link':'/admin/reimportcsv/', 'text':'Reimport'})
-	if request.method == 'POST':
-		commit = 'commit' in request.form.values()
-		username = request.form.get('signin[username]')
-		password = request.form.get('signin[password]')
-		groupid = request.form.get('groupid')
-		logging.info("commit=%d, username=%s, password=%s, groupid=%s", commit, username, password, groupid)
-		data = scoutnet.GetScoutnetMembersCSVData(username, password, groupid)
-		result = ReimportData(data, commit)
-		return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
-	else:
-		return render_template('updatefromscoutnetform.html', breadcrumbs=breadcrumbs)
-
-
 @app.errorhandler(404)
 def page_not_found(e):
 	return render_template('notfound.html'), 404

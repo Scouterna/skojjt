@@ -6,14 +6,21 @@
 		<div class="container">
 		<div class="jumbotron">
 		  <div class="btn-toolbar">
-			<h2 class=>Välkommen {{username}}</h2>
-			<a href="/start" class="btn btn-lg btn-primary">Närvaroregistrering</a>
-			<a href="/persons" class="btn btn-lg btn-default">Personregister</a>
+			<h2 class=>Välkommen {{user.getname()}}</h2>
+			<a href="/start/" class="btn btn-lg btn-primary">Närvaroregistrering</a>
+			<a href="/persons/" class="btn btn-lg btn-default">Personregister</a>
 		  </div>
 		<hr/>
+		  {% if user.canImport() %}
 		  <div class="btn-toolbar">
-			<a href="/admin" class="btn btn-lg btn-default">Admin</a>
+			<a href="/import/" class="btn btn-lg btn-default">Import</a>
 		  </div>
+		  {% endif %}
+		  {% if user.isAdmin() %}
+		  <div class="btn-toolbar">
+			<a href="/admin/" class="btn btn-lg btn-default">Admin</a>
+		  </div>
+		  {% endif %}
 		</div>
 		</div>
 		{% else %}
@@ -25,7 +32,7 @@
 				  <th class="col-xs-4 col-sm-2 col-lg-1">Namn</th>
 				  {% for meeting in meetings %}
 					<th class="col-xs-1 col-sm-1 col-lg-1 rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
-				{% endfor %}
+				  {% endfor %}
 				</tr>
 			  </thead>
 			  <tbody>
