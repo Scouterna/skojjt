@@ -7,6 +7,8 @@
 		  <div class="form-group">
 			<input type="checkbox" class="form-control" name="hasAccess" id="hasAccess"
 			{% if userprefs.hasaccess %}checked=""{% endif %}>Har access</input>
+			<input type="checkbox" class="form-control" name="canImport" id="canImport"
+			{% if userprefs.canimport %}checked=""{% endif %}>Kan importera</input>
 			<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
 			{% if userprefs.hasadminaccess %}checked=""{% endif %}>Har admin access</input>
 		  </div>

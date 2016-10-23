@@ -37,6 +37,17 @@
 		{% endif %}
 		</form>
 		<hr/>
+		<div class="form-group">
+			{% if ep.mobile != "" %}
+				<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
+			{% endif %}
+			{% if ep.phone != "" %}
+				<label for="tele">Telefon:</label><a href="tel:{{ep.phone}}">{{ep.phone}}</a>
+			{% endif %}
+			{% if ep.email != "" %}
+				<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
+			{% endif %}
+		</div>
  		{% if hasPerson and ep.notInScoutnet %}
 		<em>OBS! Personen finns inte i scoutnet</em>
 		<div class="btn-toolbar">
