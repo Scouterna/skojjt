@@ -453,11 +453,9 @@ def import_():
 
 	if request.method == 'POST':
 		commit = 'commit' in request.form.values()
-		username = request.form.get('signin[username]')
-		password = request.form.get('signin[password]')
+		api_key = request.form.get('apikey')
 		groupid = request.form.get('groupid')
-		logging.info("commit=%d, username=%s, password=%s, groupid=%s", commit, username, password, groupid)
-		data = scoutnet.GetScoutnetMembersCSVData(username, password, groupid)
+		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
 		importer = ScoutnetImporter()
 		importer.commit = commit
 		result = importer.DoImport(data)

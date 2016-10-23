@@ -90,7 +90,7 @@ class ScoutnetImporter:
 			self.report.append("Error, too little data length=%d" % len(data))
 			return report
 			
-		list = scoutnet.GetScoutnetDataList(StringIO.StringIO(data))
+		list = scoutnet.GetScoutnetDataListJson(data)
 		self.report.append("antal personer=%d" % (len(list)-1))
 		if len(list) < 1:
 			self.report.append("Error, too few rows=%d" % len(list))
