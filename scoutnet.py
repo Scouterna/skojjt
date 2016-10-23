@@ -8,6 +8,8 @@ import codecs
 import ucsv
 import logging
 import sys
+import json
+
 
 def unicode_csv_reader(utf8_data):
 	csv_reader = ucsv.reader(utf8_data, delimiter=',', quoting=ucsv.QUOTE_NONE) # QUOTE_NONE to avoid evaluating strings as numbers
@@ -28,6 +30,40 @@ def GetScoutnetMembersCSVData(username, password, groupid):
 	req2 = urllib2.Request('https://www.scoutnet.se/reports/groups/members/group_id/' + groupid + '/download/true/format/csv')
 	response = urllib2.urlopen(req2)
 	return response.read()
+
+def GetScoutnetMembersAPIJsonData(groupid, api_key):
+	req2 = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
+	response = urllib2.urlopen(req2)
+	return response.read()
+	
+def GetValueFromJsonObject(p, key):
+	if key in p:
+		return p[key]['value']
+	return ''
+	
+def GetScoutnetDataListJson(json_data):
+	j = json.loads(json_data)
+	result = []
+	for pid in j['data']:
+		p = j['data'][pid]
+		m = {}
+		m["group"] = GetValueFromJsonObject(p, 'group')
+		m["troop"] = GetValueFromJsonObject(p, 'unit')
+		m["id"] = int(pid) # must be int
+		m["firstname"] = GetValueFromJsonObject(p, 'first_name')
+		m["lastname"] = GetValueFromJsonObject(p, 'last_name')
+		m["personnr"] = GetValueFromJsonObject(p, 'ssno')
+		m["female"] = GetValueFromJsonObject(p, 'sex') != 'Man'
+		m["patrool"] = GetValueFromJsonObject(p, 'patrol')
+		m["active"] = GetValueFromJsonObject(p, 'status') == 'Aktiv'
+		m["email"] = GetValueFromJsonObject(p, 'email')
+		phone = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_home_phone'))
+		if phone == "":
+			phone = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_telephone_home')) # scoutnet has both "Telefon hem" and "Hemtelefon" pick one!
+		m["phone"] = phone
+		m["mobile"] = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_mobile_phone'))
+		result.append(m)
+	return result
 	
 def GetScoutnetDataList(data):
 	result = []

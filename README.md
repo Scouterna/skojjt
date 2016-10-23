@@ -1,79 +1,41 @@
-## Python Flask Skeleton for Google App Engine
+#Skojjt
+##Närvarorapportering för scouter. 
 
-A skeleton for building Python applications on Google App Engine with the
-[Flask micro framework](http://flask.pocoo.org).
+*av Martin Green/Tynnereds scoutkår.*
 
-See our other [Google Cloud Platform github
-repos](https://github.com/GoogleCloudPlatform) for sample applications and
-scaffolding for other python frameworks and use cases.
+https://skojjt.appspot.com
+Prova skojjt.appspot.com, säg till martin@famgreen.se för att få access.
 
-## Run Locally
-1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
-See the README file for directions. You'll need python 2.7 and [pip 1.4 or later](http://www.pip-installer.org/en/latest/installing.html) installed too.
+Alternativen verkar så undermåliga för vår verksamhet, så ett eget system var den bästa möjligheten.
+Målet med skojjt är en enkel närvaroregistrering som kan används av alla på avdelning. Samt att göra rapporteringen enkel (ingen excel).
+Man ska kunna göra sin registering direkt när man har mötet.
+Det finns en direktkoppling till vårt eget medlemsregister, scoutnet. Vi kan synkronisera nya medlemmar direkt från scoutnet med en knapptryckning.
+Det är en web-site som fungerar i mobiltelefon, inget behov av en app. Det ser ut som en app i telefonens browser.
+Den hostas på Google app engine. Vilket ger följande fördelar:
+* Google står för säkerheten. Användarna loggar in med sina google konton. Administratören sätter access i skojjt, sen kan dom registrera.
+* google står för SSL certifikatet. All trafik går via https.
+* Driftsäkerheten är god.
+* Det är gratis upp till en viss gräns för trafik och datamängd (vi är inte i närheten).
+* Om det skulle bli många användare så klarar googles servrar det.
 
-2. Clone this repo with
+Det finns rapportering av närvaro per grupp (avdelning) som Göteborgs kommun kräver.
+Vi har även möjlighet att koppla denna närvaro till andra partners, t ex Sensus studieförbund.
 
-   ```
-   git clone https://github.com/GoogleCloudPlatform/appengine-python-flask-skeleton.git
-   ```
-3. Install dependencies in the project's lib directory.
-   Note: App Engine can only import libraries from inside your project directory.
+Skojjt implementerar DAK för redovisning till Göteborgs kommun:
+http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 
-   ```
-   cd appengine-python-flask-skeleton
-   pip install -r requirements.txt -t lib
-   ```
-4. Run this project locally from the command line:
 
-   ```
-   dev_appserver.py .
-   ```
+TODO:
+* ancestor queries to get consistency
+* reporting
+* sensus
+* semesters
 
-Visit the application [http://localhost:8080](http://localhost:8080)
+Notes:
 
-See [the development server documentation](https://developers.google.com/appengine/docs/python/tools/devserver)
-for options when running dev_appserver.
-
-## Deploy
-To deploy the application:
-
-1. Use the [Admin Console](https://appengine.google.com) to create a
-   project/app id. (App id and project id are identical)
-1. [Deploy the
-   application](https://developers.google.com/appengine/docs/python/tools/uploadinganapp) with
-
-   ```
-   appcfg.py -A <your-project-id> --oauth2 update .
-   ```
-1. Congratulations!  Your application is now live at your-app-id.appspot.com
-
-## Next Steps
-This skeleton includes `TODO` markers to help you find basic areas you will want
-to customize.
-
-### Relational Databases and Datastore
-To add persistence to your models, use
-[NDB](https://developers.google.com/appengine/docs/python/ndb/) for
-scale.  Consider
-[CloudSQL](https://developers.google.com/appengine/docs/python/cloud-sql)
-if you need a relational database.
-
-### Installing Libraries
-See the [Third party
-libraries](https://developers.google.com/appengine/docs/python/tools/libraries27)
-page for libraries that are already included in the SDK.  To include SDK
-libraries, add them in your app.yaml file. Other than libraries included in
-the SDK, only pure python libraries may be added to an App Engine project.
-
-### Feedback
-Star this repo if you found it useful. Use the github issue tracker to give
-feedback on this repo.
-
-## Contributing changes
-See [CONTRIB.md](CONTRIB.md)
-
-## Licensing
-See [LICENSE](LICENSE)
-
-## Author
-Logan Henriquez and Johan Euphrosine
+If running/testing on windows and get this error:
+ImportError: cannot import name RAND_egd
+edit:
+C:\Prgram Files (x86)\Google\google_appengine\google\appengine\dist27\socket.py
+remove: RAND_egd from line 73:
+from _ssl import RAND_add, RAND_egd, RAND_status, SSL_ERROR_ZERO_RETURN, SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE, SSL_ERROR_WANT_X509_LOOKUP, SSL_ERROR_SYSCALL, SSL_ERROR_SSL, SSL_ERROR_WANT_CONNECT, SSL_ERROR_EOF, SSL_ERROR_INVALID_ERROR_CODE
