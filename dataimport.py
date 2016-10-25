@@ -33,7 +33,7 @@ def GetBackupXML():
 def GetOrgnrAndKommunIDForGroup(groupname):
 	groupname = groupname.lower()
 	with open('data/kommunid.csv', 'rb') as f:
-		reader = ucsv.DictReader(f, delimiter=',', quoting=ucsv.QUOTE_NONE, fieldnames=['namn', 'id', 'orgnr'])
+		reader = ucsv.DictReader(f, delimiter=',', quoting=ucsv.QUOTE_ALL, fieldnames=['namn', 'id', 'orgnr'])
 		for row in reader:
 			name = row['namn'].lower().strip("\"")
 			if name == groupname:
@@ -44,6 +44,11 @@ class ScoutnetImporter:
 	report = []
 	commit = False
 	rapportID = 1
+	
+	def __init__(self):
+		self.report = []
+		commit = False
+		rapportID = 1
 	
 	def GetOrCreateCurrentSemester(self):
 		thisdate = datetime.datetime.now()
@@ -76,7 +81,6 @@ class ScoutnetImporter:
 			self.report.append(u"Ny kår %s" % (name))
 			group = ScoutGroup.create(name)
 			group.activeSemester = self.GetOrCreateCurrentSemester().key
-			fid, orgnr = GetOrgnrAndKommunIDForGroup(name)
 			group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
 			if self.commit:
 				group.put()
@@ -133,13 +137,17 @@ class ScoutnetImporter:
 			person.mobile = p["mobile"]
 
 			person.scoutgroup = self.GetOrCreateGroup(p["group"]).key
+			if len(p["troop"]) == 0:
+				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
+				
 			troop = self.GetOrCreateTroop(p["troop"], person.scoutgroup)
 			troop_key = troop.key if troop != None else None
 			new_troop = person.troop != troop_key
 			person.troop = troop_key
-			tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key))
-			if tp == None:
-				new_troop = True
+			#if person.troop != None:
+			#	tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key)) # check if troop person doesn't exist
+			#	if tp == None:
+			#		new_troop = True
 			if self.commit:
 				person.put()
 			if new_troop:
@@ -177,6 +185,15 @@ def DeleteAllData():
 	entries = Semester.query().fetch(1000, keys_only=True)
 	ndb.delete_multi(entries)
 	ndb.get_context().clear_cache() # clear memcache
+
+def dofixsgroupids():
+	sgroups = ScoutGroup.query().fetch(1000)
+	for group in sgroups:
+		fid, orgnr = GetOrgnrAndKommunIDForGroup(group.getname())
+		if fid != "" and orgnr != "":
+			group.foreningsID = fid
+			group.organisationsnummer = orgnr
+			group.put()
 
 def ForceSemesterForAll(activeSemester):
 	for u in UserPrefs.query().fetch(1000):

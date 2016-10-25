@@ -534,7 +534,17 @@ def dodelete():
 		abort(403)
 		return "denied"
 
-	DeleteAllData()
+	# DeleteAllData() 
+	return redirect('/admin')
+
+@app.route('/admin/fixsgroupids/')
+def fixsgroupids():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		abort(403)
+		return "denied"
+
+	dofixsgroupids()
 	return redirect('/admin')
 	
 
