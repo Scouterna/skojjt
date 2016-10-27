@@ -120,7 +120,7 @@ class ScoutnetImporter:
 				person.firstname = p["firstname"]
 				person.lastname = p["lastname"]
 				person.female = p["female"]
-				person.birthdate = Person.persnumbertodatetime(p["personnr"])
+				person.setpersonnr(p["personnr"])
 			else:
 				person = Person.create(
 					id,
