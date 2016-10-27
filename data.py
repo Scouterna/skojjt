@@ -128,7 +128,7 @@ class Troop(ndb.Model):
 class Person(ndb.Model):
 	firstname = ndb.StringProperty(required=True)
 	lastname = ndb.StringProperty(required=True)
-	birthdate = ndb.DateProperty(required=True)
+	birthdate = ndb.DateProperty(required=True) # could be a computed property from personnr
 	personnr = ndb.StringProperty()
 	female = ndb.BooleanProperty(required=True)
 	troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops 
@@ -162,6 +162,10 @@ class Person(ndb.Model):
 	@staticmethod
 	def persnumbertodatetime(pnr):
 		return datetime.datetime.strptime(pnr[:8], "%Y%m%d")
+	
+	def setpersonnr(self, pnr):
+		self.personnr = pnr
+		self.birthdate = Person.persnumbertodatetime(pnr)
 		
 	def getbirthdatestring(self):
 		return self.birthdate.strftime("%Y-%m-%d")
@@ -188,12 +192,6 @@ class Meeting(ndb.Model):
 	semester = ndb.KeyProperty(kind=Semester, required=True)
 	attendingPersons = ndb.KeyProperty(kind=Person, repeated=True) # list of attending persons' keys
 
-	@staticmethod
-	def overlapsanother(meeting):
-		return False
-		# todo:
-		# Meeting(Meeting.datetime == meeting.datetime)
-	
 	@staticmethod
 	def create(troop_key, name, datetime, duration, semester_key):
 		return Meeting(id=datetime.strftime("%Y%m%d%H%M")+str(troop_key.id())+str(semester_key.id()),
