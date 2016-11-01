@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Aktivitetskort xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Aktivitetskort xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://aktivitetskort.net.umea.se/importSchema.xsd">
   <Kommun kommunID="{{dak.kommunID}}" version="2.1">
       <Foerening foereningsID="{{dak.foreningsID}}" foereningsNamn="{{dak.foereningsNamn}}" organisationsnummer="{{dak.organisationsnummer}}">
       <Naervarokort NaervarokortNummer="{{dak.kort.NaervarokortNummer}}">
@@ -35,7 +35,6 @@
 		{% endfor%}
         </Sammankomster>
       </Naervarokort>
-      <BorttagnaSammankomster />
     </Foerening>
   </Kommun>
   <DeltagarRegister>
@@ -44,7 +43,6 @@
       <Foernamn>{{deltagare.Foernamn}}</Foernamn>
       <Efternamn>{{deltagare.Efternamn}}</Efternamn>
       <Personnummer>{{deltagare.Personnummer}}</Personnummer>
-      <Kon>{{deltagare.Kon}}</Kon>
     </Deltagare>
   {% endfor %}
   </DeltagarRegister>
@@ -54,7 +52,8 @@
       <Foernamn>{{deltagare.Foernamn}}</Foernamn>
       <Efternamn>{{deltagare.Efternamn}}</Efternamn>
       <Personnummer>{{deltagare.Personnummer}}</Personnummer>
-      <Kon>{{deltagare.Kon}}</Kon>
+      <Epost>{{deltagare.Epost}}</Epost>
+      <MobilNr>{{deltagare.MobilNr}}</MobilNr>
     </Ledare>
 	{% endfor %}
   </LedarRegister>

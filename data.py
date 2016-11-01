@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import re
 import codecs
 import datetime
-from google.appengine.api import users
+import re
+from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
 
 class Semester(ndb.Model):
@@ -12,7 +12,7 @@ class Semester(ndb.Model):
 	@staticmethod
 	def getid(year, ht):
 		return str(year) + ("ht" if ht else "vt")
-	
+
 	@staticmethod
 	def create(year, ht):
 		if year < 2016:
@@ -28,63 +28,12 @@ class Semester(ndb.Model):
 			semester = Semester.create(thisdate.year + 1, ht)
 			semester.put()
 		return semester
-		
+
 	def getyear(self):
 		return self.year
 
 	def getname(self):
 		return "%04d-%s" % (self.getyear(), "ht" if self.ht else "vt")
-
-known_nicknames = ['jacob.thoren', 'kattis@famgreen.se', 'magan174', 'dedden1', 'sephyra', 'kerstin.nyborg', 'madad273', 'znark86', 'Rossniklasson', 'thyrabratthammar', 'katper0730', 'erland.green']
-
-class UserPrefs(ndb.Model):
-	userid = ndb.StringProperty(required=True)
-	hasaccess = ndb.BooleanProperty(required=True)
-	canimport = ndb.BooleanProperty(required=False)
-	hasadminaccess = ndb.BooleanProperty(default=False, required=True)
-	name = ndb.StringProperty(required=True)
-	activeSemester = ndb.KeyProperty(kind=Semester)
-	
-	def hasAccess(self):
-		return self.hasaccess
-
-	def isAdmin(self):
-		return self.hasaccess and self.hasadminaccess
-
-	def canImport(self):
-		return self.hasaccess and self.canimport
-	
-	def getname(self):
-		return self.name
-	
-	@staticmethod
-	def current():
-		cu = users.get_current_user()
-		return UserPrefs.getorcreate(cu)
-
-	@staticmethod
-	def getorcreate(user):
-		usersresult = UserPrefs.query(UserPrefs.userid==user.user_id()).fetch()
-		if len(usersresult) == 0:
-			user = UserPrefs.create(user, user.nickname() in known_nicknames)
-			user.put()
-		else:
-			user = usersresult[0]
-		return user
-
-	@staticmethod
-	def create(user, access=False):
-		return UserPrefs(userid = user.user_id(), name=user.nickname(), hasaccess=access)
-		
-	@staticmethod
-	def checkandcreate(user, admin=False):
-		usersresult = UserPrefs.query(UserPrefs.userid==user.user_id()).fetch()
-		if len(usersresult) == 0:
-			user = UserPrefs.create(user, user.nickname() in known_nicknames)
-			user.put()
-		else:
-			user = usersresult[0]
-		return user.hasaccess if not admin else user.hasadminaccess
 
 # kår
 class ScoutGroup(ndb.Model):
@@ -93,17 +42,17 @@ class ScoutGroup(ndb.Model):
 	organisationsnummer = ndb.StringProperty()
 	foreningsID = ndb.StringProperty()
 	kommunID = ndb.StringProperty(default="1480")
-	
+
 	@staticmethod
 	def getid(name):
 		return name.lower().replace(' ', '')
-		
+
 	@staticmethod
 	def create(name):
 		if len(name) < 2:
 			raise ValueError("Invalid name %s" % (name))
-		return ScoutGroup(id = ScoutGroup.getid(name), name=name)
-		
+		return ScoutGroup(id=ScoutGroup.getid(name), name=name)
+
 	def getname(self):
 		return self.name
 
@@ -117,14 +66,14 @@ class Troop(ndb.Model):
 	@staticmethod
 	def getid(name, scoutgroup_key):
 		return name.lower().replace(' ', '')+scoutgroup_key.id()
-		
+
 	@staticmethod
 	def create(name, scoutgroup_key):
 		return Troop(id=Troop.getid(name, scoutgroup_key), name=name, scoutgroup=scoutgroup_key)
 
 	def getname(self):
 		return self.name
-	
+
 class Person(ndb.Model):
 	firstname = ndb.StringProperty(required=True)
 	lastname = ndb.StringProperty(required=True)
@@ -158,14 +107,17 @@ class Person(ndb.Model):
 			female=female,
 			personnr=personnr,
 			notInScoutnet=True)
-	
+
 	@staticmethod
 	def persnumbertodatetime(pnr):
 		return datetime.datetime.strptime(pnr[:8], "%Y%m%d")
 	
 	def setpersonnr(self, pnr):
-		self.personnr = pnr
+		self.personnr = pnr.replace('-', '')
 		self.birthdate = Person.persnumbertodatetime(pnr)
+	
+	def getpersonnr(self):
+		return self.personnr.replace('-', '')
 		
 	def getbirthdatestring(self):
 		return self.birthdate.strftime("%Y-%m-%d")
@@ -183,7 +135,6 @@ class Person(ndb.Model):
 		delta = thisdate - self.birthdate
 		return delta.days / 365
 
-	
 class Meeting(ndb.Model):
 	datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
 	name = ndb.StringProperty(required=True)
@@ -215,7 +166,7 @@ class Meeting(ndb.Model):
 		return self.datetime.strftime("%H:%M")
 	def getname(self):
 		return self.name
-	
+
 class TroopPerson(ndb.Model):
 	troop = ndb.KeyProperty(kind=Troop, required=True)
 	person = ndb.KeyProperty(kind=Person, required=True)
@@ -225,6 +176,7 @@ class TroopPerson(ndb.Model):
 	@staticmethod
 	def getid(troop_key, person_key):
 		return str(troop_key.id())+str(person_key.id())
+
 	@staticmethod
 	def create(troop_key, person_key, isLeader):
 		return TroopPerson(id=TroopPerson.getid(troop_key, person_key),
@@ -234,10 +186,63 @@ class TroopPerson(ndb.Model):
 
 	def commit(self):
 		self.put()
-		
+
 	def getname(self):
 		return self.person.get().getname()
 
 	def gettroopname(self):
 		return self.troop.get().getname()
-	
+
+class UserPrefs(ndb.Model):
+	userid = ndb.StringProperty(required=True)
+	hasaccess = ndb.BooleanProperty(required=True)
+	canimport = ndb.BooleanProperty(required=False)
+	hasadminaccess = ndb.BooleanProperty(default=False, required=True)
+	name = ndb.StringProperty(required=True)
+	activeSemester = ndb.KeyProperty(kind=Semester)
+	groupaccess = ndb.KeyProperty(kind=ScoutGroup, required=False, default=None)
+	groupadmin = ndb.BooleanProperty(required=False, default=False)
+
+	def updateMemcache(self):
+		if not memcache.add(self.userid, self):
+			memcache.replace(self.userid, self)
+
+	def put(self):
+		super(UserPrefs, self).put()
+		self.updateMemcache()
+
+	def hasAccess(self):
+		return self.hasaccess
+
+	def isAdmin(self):
+		return self.hasaccess and self.hasadminaccess
+
+	def canImport(self):
+		return self.hasaccess and self.canimport
+
+	def getname(self):
+		return self.name
+
+	@staticmethod
+	def current():
+		cu = users.get_current_user()
+		return UserPrefs.getorcreate(cu)
+
+	@staticmethod
+	def getorcreate(user):
+		userprefs = memcache.get(user.user_id())
+		if userprefs is not None:
+			return userprefs
+		else:
+			usersresult = UserPrefs.query(UserPrefs.userid == user.user_id()).fetch()
+			if len(usersresult) == 0:
+				userprefs = UserPrefs.create(user, users.is_current_user_admin(), users.is_current_user_admin())
+				userprefs.put()
+			else:
+				userprefs = usersresult[0]
+				userprefs.updateMemcache()
+			return userprefs
+
+	@staticmethod
+	def create(user, access=False, hasadminaccess=False):
+		return UserPrefs(userid=user.user_id(), name=user.nickname(), hasaccess=access, hasadminaccess=hasadminaccess)

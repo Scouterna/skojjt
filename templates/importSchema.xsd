@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="importShema"
+  targetNamespace="http://aktivitetskort.net.umea.se/importSchema.xsd"
+  xmlns="http://aktivitetskort.net.umea.se/importSchema.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  >
+  <xs:element name="Aktivitetskort">
+    <xs:annotation>
+      <xs:documentation>Aktivitetskort</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Kommun">
+          <xs:annotation>
+            <xs:documentation>Kommun</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Foerening" minOccurs="1" maxOccurs="unbounded">
+                <xs:annotation>
+                  <xs:documentation>Förening</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Naervarokort" minOccurs="0" maxOccurs="unbounded">
+                      <xs:annotation>
+                        <xs:documentation>Närvarorkort</xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Aktivitet" minOccurs="1" maxOccurs="1">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="150" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element name="Lokal" minOccurs="1" maxOccurs="1">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="150" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element name="NamnPaaKort" minOccurs="0" maxOccurs="1">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="50" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element name="Sammankomster">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Sammankomst" minOccurs="0" maxOccurs="unbounded" type="SammankomstTyp" />
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="NaervarokortNummer" use="required">
+                          <xs:simpleType>
+                            <xs:restriction base="xs:int" />
+                          </xs:simpleType>
+                        </xs:attribute>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="foereningsID" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:maxLength value="50" />
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="foereningsNamn" use="optional">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string" />
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="organisationsnummer" use="optional">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string" />
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="kommunID" use="required">
+              <xs:simpleType>
+                <xs:restriction base="xs:int" />
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="version" type="xs:double" default="2.1" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DeltagarRegister" type="deltagarRegisterTyp" minOccurs="0" maxOccurs="1" />
+        <xs:element name="LedarRegister" type="ledarRegisterTyp" minOccurs="0" maxOccurs="1" />
+      </xs:sequence>
+    </xs:complexType>
+    <xs:key name="DeltagarID">
+      <xs:selector xpath="DeltagarRegister/Deltagare"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <xs:keyref name="DeltagarIdRef" refer="DeltagarID">
+      <xs:selector xpath="./Kommun/Foerening/Naervarokort/Sammankomster/Sammankomst/DeltagarLista/Deltagare"/>
+      <xs:field xpath="@id"/>
+    </xs:keyref>
+    <xs:key name="LedarID">
+      <xs:selector xpath="LedarRegister/Ledare"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <xs:keyref name="LedarIdRef" refer="LedarID">
+      <xs:selector xpath="./Kommun/Foerening/Naervarokort/Sammankomster/Sammankomst/LedarLista/Ledare"/>
+      <xs:field xpath="@id"/>
+    </xs:keyref>
+    <xs:unique name="DeltagarKey">
+      <xs:selector xpath=".//DeltagarRegister/Deltagare"/>
+      <xs:field xpath="@id"/>
+    </xs:unique>
+  </xs:element>
+  <xs:complexType name="SammankomstTyp">
+    <xs:sequence>
+      <xs:element name="StartTid" type="xs:time" minOccurs="1" maxOccurs="1" />
+      <xs:element name="StoppTid" type="xs:time" minOccurs="1" maxOccurs="1" />
+      <xs:element name="Aktivitet" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="150" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Lokal" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="150" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Typ" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Traening" />
+            <xs:enumeration value="Match" />
+            <xs:enumeration value="Moete" />
+            <xs:enumeration value="Oevrigt" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Metod" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Add" />
+            <xs:enumeration value="Remove" />
+            <xs:enumeration value="Update" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Lagidrott" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="DeltagarLista" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Deltagare" minOccurs="0" maxOccurs="unbounded" type="deltagarNaervaroTyp" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="LedarLista" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Ledare" minOccurs="0" maxOccurs="unbounded" type="ledarNaervaroTyp" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="Datum" type="xs:date" use="required" />
+    <xs:attribute name="kod" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="3" />
+          <xs:maxLength value="50" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="deltagarNaervaroTyp">
+    <xs:sequence>
+      <xs:element name="Handikapp" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="Naervarande" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="TillfaelligLedare" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="2" />
+          <xs:maxLength value="50" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="tillfaelligLedare" use="optional" type="xs:boolean" />
+  </xs:complexType>
+  <xs:complexType name="ledarNaervaroTyp">
+    <xs:sequence>
+      <xs:element name="Handikapp" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="Naervarande" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="2" />
+          <xs:maxLength value="50" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="deltagarTyp">
+    <xs:sequence>
+      <xs:element name="Foernamn" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="Efternamn" minOccurs="1" maxOccurs="1" type="xs:string" />
+      <xs:element name="Personnummer" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:length value="12" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="2" />
+          <xs:maxLength value="50" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="ledarTyp">
+    <xs:complexContent>
+      <xs:extension base="deltagarTyp">
+        <xs:sequence>
+          <xs:element name="Epost" minOccurs="0" maxOccurs="1" type="xs:string" />
+          <xs:element name="MobilNr" minOccurs="0" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="deltagarRegisterTyp">
+    <xs:sequence>
+      <xs:element name="Deltagare" minOccurs="0" maxOccurs="unbounded" type="deltagarTyp" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ledarRegisterTyp">
+    <xs:sequence>
+      <xs:element name="Ledare" minOccurs="0" maxOccurs="unbounded" type="ledarTyp" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
