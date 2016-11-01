@@ -8,16 +8,18 @@ class Deltagare:
 	Foernamn = ""
 	Efternamn = ""
 	Personnummer = ""
-	Kon = "" # Man/Kvinna
 	Ledare = False
-	
-	def __init__(self, id, Foernamn, Efternamn, Personnummer, female, ledare):
+	Epost = ""
+	MobilNr = ""
+
+	def __init__(self, id, Foernamn, Efternamn, Personnummer, ledare, epost="", mobilNr=""):
 		self.id = id
 		self.Foernamn = Foernamn
 		self.Efternamn = Efternamn
 		self.Personnummer = Personnummer
-		self.Kon = "Kvinna" if female else "Man"
 		self.Ledare = ledare
+		self.Epost = epost
+		self.MobilNr = mobilNr
 
 class Sammankomst:
 	kod = ""
@@ -39,16 +41,16 @@ class Sammankomst:
 		return self.datum.strftime('%Y-%m-%d')
 	
 	def GetStartTimeString(self):
-		return self.datum.strftime('%H:%M')
+		return self.datum.strftime('%H:%M:%S')
 		
 	def GetStopTimeString(self):
 		endtime = self.datum + datetime.timedelta(minutes=self.duration)
-		return endtime.strftime('%H:%M')
+		return endtime.strftime('%H:%M:%S')
 
 class Narvarokort:
 	NaervarokortNummer="1"
 	Sammankomster = []
-	Aktivitet="Scouting"
+	Aktivitet="Moete"
 	Lokal="Scouthuset"
 	NamnPaaKort=""
 	deltagare = []

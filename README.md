@@ -36,7 +36,7 @@ http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 ###Hur man testar/utvecklar:
 Klona git-repon till lokal dator.
 Installera Python 2.7 och Google App Engine SDK (GAE). 
-Starta GAE. Lägg till skojj med File|Add existing application...
+Starta GAE. Lägg till skojjt med File|Add existing application...
 Markera skojjt i listan kicka start, sen browse.
 Man kan också köra Visual Studio Code för att få brytpunkter i koden.
 

@@ -300,9 +300,9 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			for tp in trooppersons:
 				p = personsDict[tp.person]
 				if tp.leader:
-					dak.kort.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+					dak.kort.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
 				else:
-					dak.kort.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+					dak.kort.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False))
 				
 			for m in meetings:
 				sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
@@ -311,9 +311,9 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 					if isAttending:
 						p = personsDict[tp.person]
 						if tp.leader:
-							sammankomst.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+							sammankomst.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
 						else:
-							sammankomst.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.personnr, p.female, tp.leader))
+							sammankomst.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False))
 				
 				dak.kort.Sammankomster.append(sammankomst)
 			
@@ -417,7 +417,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			heading=section_title, 
 			baselink=baselink,
 			addlink=True,
-			items=ScoutGroup.query().fetch(),
+			items=ScoutGroup.query().fetch(100),
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	elif person==None:
@@ -511,7 +511,12 @@ def adminaccess(userprefs_url=None):
 			logging.info('request.form=%s', str(request.form))
 			userprefs.hasaccess = request.form.get('hasAccess') == 'on'
 			userprefs.hasadminaccess = request.form.get('hasAdminAccess') == 'on'
+			userprefs.groupadmin = request.form.get('groupadmin') == 'on'
 			userprefs.canimport = request.form.get('canImport') == 'on'
+			sgroup_key = None
+			if len(request.form.get('groupaccess')) != 0:
+				sgroup_key = ndb.Key(urlsafe=request.form.get('groupaccess'))
+			userprefs.groupaccess = sgroup_key
 			userprefs.put()
 			return redirect(breadcrumbs[-1]['link'])
 		else:
@@ -523,7 +528,8 @@ def adminaccess(userprefs_url=None):
 				baselink=baselink,
 				addlink=True,
 				userprefs=userprefs,
-				breadcrumbs=breadcrumbs)
+				breadcrumbs=breadcrumbs,
+				scoutgroups=ScoutGroup.query().fetch(300))
 	
 	abort(404)
 
