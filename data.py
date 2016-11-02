@@ -130,10 +130,8 @@ class Person(ndb.Model):
 		ln = pattern.split(self.lastname)[0][:10]
 		return fn + " " + ln
 	
-	def getyearsold(self):
-		thisdate = datetime.datetime.now().date()
-		delta = thisdate - self.birthdate
-		return delta.days / 365
+	def getyearsoldthisyear(self, year):
+		return year - self.birthdate.year
 
 class Meeting(ndb.Model):
 	datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
