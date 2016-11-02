@@ -187,7 +187,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			return ""
 
 	# render main pages
-	if scoutgroup==None:
+	if scoutgroup == None:
 		return render_template('index.html', 
 			heading=section_title, 
 			baselink=baselink,
@@ -237,6 +237,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			persons.append(person)
 			personsDict[personKey] = person
 		
+		year = scoutgroup.activeSemester.get().getyear()
 		for meeting in meetings:
 			maleAttendenceCount = 0
 			femaleAttendenceCount = 0
@@ -248,7 +249,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				meetingattendance.append(isAttending)
 				if isAttending:
 					person = personsDict[troopperson.person]
-					age = person.getyearsold()
+					age = person.getyearsoldthisyear(year)
 					if troopperson.leader:
 						if age >= 13 and age <= 100:
 							if femaleLeadersAttendenceCount+maleLeadersAttendenceCount < 2:
@@ -270,18 +271,38 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 							ageProblemDesc.append(person.getname() + ": " + str(age))
 					
 			attendances.append(meetingattendance)
+			totalAttendence = maleAttendenceCount+femaleAttendenceCount
+			# max 40 people
+			if totalAttendence > 40:
+				surplusPeople = totalAttendence-40
+				removedMen = min(maleAttendenceCount, surplusPeople)
+				maleAttendenceCount -= removedMen
+				surplusPeople -= removedMen
+				femaleAttendenceCount -= surplusPeople
 
-			if maleAttendenceCount+femaleAttendenceCount < 5:
+			maxLeaders = 1 if totalAttendence <= 10 else 2
+			totalLeaders = femaleLeadersAttendenceCount+maleLeadersAttendenceCount
+			if totalAttendence < 3:
 				tooSmallGroupMeetingCount += 1
 			else:
-				if femaleLeadersAttendenceCount+maleLeadersAttendenceCount == 0:
+				if totalLeaders == 0:
 					noLeaderMeetingCount += 1
 				else:
 					meetingCount += 1
-					sumMaleAttendenceCount += maleAttendenceCount
 					sumFemaleAttendenceCount += femaleAttendenceCount
-					sumMaleLeadersAttendenceCount += maleLeadersAttendenceCount
+					sumMaleAttendenceCount += maleAttendenceCount
+					if totalLeaders > maxLeaders:
+						if maleLeadersAttendenceCount > maxLeaders and femaleLeadersAttendenceCount == 0:
+							maleLeadersAttendenceCount = maxLeaders
+						elif maleLeadersAttendenceCount == 0 and femaleLeadersAttendenceCount > maxLeaders:
+							femaleLeadersAttendenceCount = maxLeaders
+						else:
+							femaleLeadersAttendenceCount = maxLeaders / 2
+							maxLeaders -= femaleLeadersAttendenceCount
+							maleLeadersAttendenceCount = maxLeaders
+						
 					sumFemaleLeadersAttendenceCount += femaleLeadersAttendenceCount
+					sumMaleLeadersAttendenceCount += maleLeadersAttendenceCount
 
 		if key_url == "dak":
 			dak = DakData()
