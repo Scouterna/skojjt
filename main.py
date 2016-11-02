@@ -237,7 +237,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			persons.append(person)
 			personsDict[personKey] = person
 		
-		year = scoutgroup.activeSemester.get().getyear()
+		semester = scoutgroup.activeSemester.get()
+		year = semester.getyear()
 		for meeting in meetings:
 			maleAttendenceCount = 0
 			femaleAttendenceCount = 0
@@ -341,7 +342,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			result = render_template('dak.xml', dak=dak)
 			response = make_response(result)
 			response.headers['Content-Type'] = 'application/xml'
-			response.headers['Content-Disposition'] = 'attachment; filename=dak-' + dak.kort.NamnPaaKort + '.xml'
+			response.headers['Content-Disposition'] = 'attachment; filename=' + dak.kort.NamnPaaKort + '-' + semester.getname() + '.xml'
 			return response
 		else:
 			allowance = []
