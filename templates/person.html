@@ -7,7 +7,7 @@
 		  <input type="hidden" name="action" value="newperson"/>
 		  <h1>{% if hasPerson %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
 		  {% if not hasPerson or (hasPerson and ep.notInScoutnet) %}
-		  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/organisation/group/home/1137">scoutnet</a> automatiskt!</em>
+		  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/">scoutnet</a> automatiskt!</em>
 		  {% endif %}
 		  <div class="form-group">
 			<label for="firstname">Förnamn</label>
