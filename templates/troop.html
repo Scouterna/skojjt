@@ -16,7 +16,7 @@
 					{% if addlink %}
 						<a href="{{baselink+item.key.urlsafe()}}/">
 					{% endif %}
-						{{ item.getname() }}
+						{{loop.index}}:{{ item.getname() }}{% if trooppersons[loop.index-1].leader %}(L){% endif %}
 					{% if addlink %}
 						</a>
 					{% endif %}

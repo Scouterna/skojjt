@@ -102,19 +102,7 @@ class ScoutnetImporter:
 			
 		for p in list:
 			id = int(p["id"])
-			p2 = Person.get_by_id(p["id"])
-			duplicate = False
-			person = Person.get_by_id(id) # need to be an integer due to backwards compatibility with imported data
-			if p2 != None and person != None and p2.key.id() != person.key.id() and p2.firstname == person.firstname and p2.lastname == person.lastname:
-				self.report.append("removing id=%s, keeping=%s" % (str(p2.key.id()), str(person.key.id())))
-				if p2.troop != None:
-					tp = TroopPerson.get_by_id(TroopPerson.getid(p2.troop, p2.key))
-					if tp != None:
-						self.report.append("removing id=%s from troop" % (str(p2.key.id())))
-						if self.commit:
-							tp.key.delete()
-				if self.commit:
-					p2.key.delete()
+			person = Person.get_by_id(id) # need to be an integer due to backwards compatility with imported data
 					
 			if person != None:
 				person.firstname = p["firstname"]
@@ -148,13 +136,16 @@ class ScoutnetImporter:
 			#	tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key)) # check if troop person doesn't exist
 			#	if tp == None:
 			#		new_troop = True
-			if self.commit:
-				person.put()
+			if person._dirty:
+				self.report.append(u"Sparar ändringar:%s %s %s" % (id, p["firstname"], p["lastname"]))
+				if self.commit:
+					person.put()
+				
 			if new_troop:
 				if person.troop:
 					tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key))
-					if tp and self.commit:
-						tp.key.delete()
+					if tp != None and self.commit:
+						tp.delete()
 
 				if troop_key != None:
 					if self.commit:
@@ -162,11 +153,12 @@ class ScoutnetImporter:
 					self.report.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
 
 			if person.removed:
-				self.report.append("%s marked as removed, removing from troops" % (person.getname()))
+				self.report.append(u"%s borttagen, tar bort från avdelningar" % (person.getname()))
 				if self.commit:
-					tpkeys = TroopPerson.query(TroopPerson.person==person.key).fetch(keys_only=True)
-					ndb.delete_multi(tpkeys)
+					tps = TroopPerson.query(TroopPerson.person==person.key).fetch()
 					if self.commit:
+						for tp in tps:
+							tp.delete()
 						person.key.delete()
 
 		return self.report

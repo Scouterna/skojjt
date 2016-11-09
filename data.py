@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import codecs
 import datetime
+import logging
 import re
-from google.appengine.api import users, memcache
+
+from google.appengine.api import memcache, users
+
 from google.appengine.ext import ndb
+
 
 class Semester(ndb.Model):
 	year = ndb.IntegerProperty(required=True)
@@ -52,6 +56,13 @@ class ScoutGroup(ndb.Model):
 		if len(name) < 2:
 			raise ValueError("Invalid name %s" % (name))
 		return ScoutGroup(id=ScoutGroup.getid(name), name=name)
+	
+	@staticmethod
+	def getgroupsforuser(user):
+		if user.groupaccess != None:
+			return [user.groupaccess.get()]
+		else:
+			return ScoutGroup.query().fetch(100)
 
 	def getname(self):
 		return self.name
@@ -88,13 +99,30 @@ class Person(ndb.Model):
 	email = ndb.StringProperty()
 	phone = ndb.StringProperty()
 	mobile = ndb.StringProperty()
+	_dirty = False
+
+	def __init__(self, *args, **kw):
+		self._dirty = False
+		super(Person, self).__init__(*args, **kw)
+
+	def __setattr__(self, key, value):
+		if key[:1] != '_': # avoid all system properties and "_dirty"
+			if self.__getattribute__(key) != value:
+				self._make_dirty()
+		super(Person, self).__setattr__(key, value)
+
+	def _make_dirty(self):
+		self._dirty = True
+
+	def _not_dirty(self):
+		self._dirty = False
 
 	@staticmethod
 	def create(id, firstname, lastname, personnr, female):
 		return Person(id=id,
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodatetime(personnr),
+			birthdate=Person.persnumbertodate(personnr),
 			female=female,
 			personnr=personnr)
 
@@ -103,18 +131,18 @@ class Person(ndb.Model):
 		return Person(
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodatetime(personnr),
+			birthdate=Person.persnumbertodate(personnr),
 			female=female,
 			personnr=personnr,
 			notInScoutnet=True)
 
 	@staticmethod
-	def persnumbertodatetime(pnr):
-		return datetime.datetime.strptime(pnr[:8], "%Y%m%d")
+	def persnumbertodate(pnr):
+		return datetime.datetime.strptime(pnr[:8], "%Y%m%d").date()
 	
 	def setpersonnr(self, pnr):
 		self.personnr = pnr.replace('-', '')
-		self.birthdate = Person.persnumbertodatetime(pnr)
+		self.birthdate = Person.persnumbertodate(pnr)
 	
 	def getpersonnr(self):
 		return self.personnr.replace('-', '')
@@ -127,7 +155,7 @@ class Person(ndb.Model):
 	def getname(self):
 		pattern = re.compile("\( -")
 		fn = self.firstname #pattern.split(self.firstname)[0][:10]
-		ln = pattern.split(self.lastname)[0][:10]
+		ln = pattern.split(self.lastname)[0][:12]
 		return fn + " " + ln
 	
 	def getyearsoldthisyear(self, year):
@@ -152,7 +180,7 @@ class Meeting(ndb.Model):
 			)
 
 	@staticmethod
-	def gettroopmeetings(troop_key, semester_key):
+	def gettroopmeetings(troop_key, semester_key): # TODO: memcache here!
 		return Meeting.query(Meeting.troop==troop_key, Meeting.semester==semester_key).order(-Meeting.datetime)
 
 	def commit(self):
@@ -176,11 +204,44 @@ class TroopPerson(ndb.Model):
 		return str(troop_key.id())+str(person_key.id())
 
 	@staticmethod
+	def __getMemcacheKeyString(troop_key):
+		return 'tps:' + str(troop_key)
+	
+	def delete(self):
+		self.key.delete()
+		troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(self.troop))
+		if troopperson_keys is not None:
+			troopperson_keys.remove(self.key)
+			memcache.replace(TroopPerson.__getMemcacheKeyString(self.troop), troopperson_keys)
+
+	@staticmethod
 	def create(troop_key, person_key, isLeader):
-		return TroopPerson(id=TroopPerson.getid(troop_key, person_key),
+		tp = TroopPerson(id=TroopPerson.getid(troop_key, person_key),
 			troop=troop_key,
 			person=person_key,
 			leader=isLeader)
+		troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(troop_key))
+		if troopperson_keys is not None and tp.key not in troopperson_keys:
+			troopperson_keys.append(tp.key)
+			memcache.replace(TroopPerson.__getMemcacheKeyString(troop_key), troopperson_keys)
+		return tp
+
+	def put(self):
+		super(TroopPerson, self).put()
+	
+	@staticmethod
+	def getTroopPersonsForTroop(troop_key):
+		trooppersons = []
+		troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(troop_key))
+		if troopperson_keys is None:
+			troopperson_keys = TroopPerson.query(TroopPerson.troop==troop_key).fetch(keys_only=True)
+			memcache.add(TroopPerson.__getMemcacheKeyString(troop_key), troopperson_keys)
+		for tp_key in troopperson_keys:
+			tp = tp_key.get()
+			if tp != None:
+				trooppersons.append(tp)
+		trooppersons.sort(key=lambda x: (-x.leader, x.sortname))
+		return trooppersons
 
 	def commit(self):
 		self.put()
@@ -201,14 +262,6 @@ class UserPrefs(ndb.Model):
 	groupaccess = ndb.KeyProperty(kind=ScoutGroup, required=False, default=None)
 	groupadmin = ndb.BooleanProperty(required=False, default=False)
 
-	def updateMemcache(self):
-		if not memcache.add(self.userid, self):
-			memcache.replace(self.userid, self)
-
-	def put(self):
-		super(UserPrefs, self).put()
-		self.updateMemcache()
-
 	def hasAccess(self):
 		return self.hasaccess
 
@@ -225,6 +278,14 @@ class UserPrefs(ndb.Model):
 	def current():
 		cu = users.get_current_user()
 		return UserPrefs.getorcreate(cu)
+
+	def updateMemcache(self):
+		if not memcache.add(self.userid, self):
+			memcache.replace(self.userid, self)
+
+	def put(self):
+		super(UserPrefs, self).put()
+		self.updateMemcache()
 
 	@staticmethod
 	def getorcreate(user):

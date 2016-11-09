@@ -192,7 +192,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			heading=section_title, 
 			baselink=baselink,
 			addlink=True,
-			items=ScoutGroup.query().fetch(100),
+			items=ScoutGroup.getgroupsforuser(user),
 			breadcrumbs=breadcrumbs)
 	elif troop==None:
 		section_title = 'Avdelningar'
@@ -200,7 +200,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			heading=section_title,
 			baselink=baselink,
 			addlink=True,
-			items=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100),
+			items=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100), # TODO: memcache
 			breadcrumbs=breadcrumbs)
 	elif key_url!=None and key_url!="dak":
 		meeting = ndb.Key(urlsafe=key_url).get()
@@ -225,7 +225,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		ageProblemDesc = []
 
 		section_title = troop.getname()
-		trooppersons = TroopPerson.query(TroopPerson.troop==troop_key).order(TroopPerson.sortname).fetch()
+		trooppersons = TroopPerson.getTroopPersonsForTroop(troop_key) #TroopPerson.query(TroopPerson.troop==troop_key).order(TroopPerson.sortname).fetch() # TODO: memcache
 		meetings = Meeting.gettroopmeetings(troop_key, scoutgroup.activeSemester)
 		
 		attendances = [] # [meeting][person]
@@ -369,6 +369,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
 				addlink=True,
 				items=persons,
+				trooppersons=trooppersons,
 				meetings=meetings,
 				attendances=attendances,
 				showaddmeetings=True,
@@ -416,17 +417,20 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			person.removed = action == "deleteperson"
 			person.put() # we only mark the person as removed
 			if person.removed:
-				tpkeys = TroopPerson.query(TroopPerson.person==person.key).fetch(keys_only=True)
-				ndb.delete_multi(tpkeys)
+				tps = TroopPerson.query(TroopPerson.person == person.key).fetch()
+				for tp in tps:
+					tp.delete()
 			return redirect(breadcrumbs[-1]['link'])
 		if action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
 			troop_key = ndb.Key(urlsafe=request.args["troop"])
-			tp = TroopPerson.query(TroopPerson.person==person.key, TroopPerson.troop == troop_key).fetch(1)[0]
-			if action == "removefromtroop":
-				tp.key.delete()
-			else:
-				tp.leader = (action == "setasleader")
-				tp.put()
+			tps = TroopPerson.query(TroopPerson.person == person.key, TroopPerson.troop == troop_key).fetch(1)
+			if len(tps) == 1:
+				tp = tps[0]
+				if action == "removefromtroop":
+					tp.delete()
+				else:
+					tp.leader = (action == "setasleader")
+					tp.put()
 			return redirect(breadcrumbs[-1]['link'])
 		else:
 			logging.error('unknown action=' + action)
@@ -439,7 +443,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			heading=section_title, 
 			baselink=baselink,
 			addlink=True,
-			items=ScoutGroup.query().fetch(100),
+			items=ScoutGroup.query().fetch(100), # TODO: memcache
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	elif person==None:
@@ -448,7 +452,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			heading=section_title,
 			baselink=baselink,
 			addlink=True,
-			items=Person.query(Person.scoutgroup==sgroup_key).order(Person.firstname, Person.lastname).fetch(),
+			items=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(), # TODO: memcache
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	else:
@@ -456,7 +460,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			heading=section_title,
 			baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
 			addlink=True,
-			trooppersons=TroopPerson.query(TroopPerson.person==person.key).fetch(),
+			trooppersons=TroopPerson.query(TroopPerson.person == person.key).fetch(), # TODO: memcache
 			ep=person,
 			#attendances=Attendance.query(Attendance.person==person.key).fetch(), # todo: filter by semester
 			breadcrumbs=breadcrumbs,
@@ -475,8 +479,8 @@ def import_():
 
 	if request.method == 'POST':
 		commit = 'commit' in request.form.values()
-		api_key = request.form.get('apikey')
-		groupid = request.form.get('groupid')
+		api_key = request.form.get('apikey').strip()
+		groupid = request.form.get('groupid').strip()
 		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
 		importer = ScoutnetImporter()
 		importer.commit = commit
