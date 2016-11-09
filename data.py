@@ -125,9 +125,9 @@ class Person(ndb.Model):
 		return self.birthdate.strftime("%Y%m%d0000")
 
 	def getname(self):
-		pattern = re.compile("\( -")
-		fn = self.firstname #pattern.split(self.firstname)[0][:10]
-		ln = pattern.split(self.lastname)[0][:10]
+		pattern = re.compile("[\( -]")
+		fn = pattern.split(self.firstname)[0][:15]
+		ln = pattern.split(self.lastname)[0][:15]
 		return fn + " " + ln
 	
 	def getyearsoldthisyear(self, year):
