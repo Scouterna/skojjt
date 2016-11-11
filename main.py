@@ -26,13 +26,21 @@ sys.setdefaultencoding('utf8')
 @app.route('/')
 def home():
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
+	user=UserPrefs.current()
+	starturl = '/start/'
+	personsurl = '/persons/'
+	if user.groupaccess != None:
+		starturl += user.groupaccess.urlsafe() + '/'
+		personsurl += user.groupaccess.urlsafe() + '/'
 	return render_template('index.html',
 						   heading='Hem',
 						   items=[],
 						   breadcrumbs=breadcrumbs,
 						   showstart=True,
 						   user=UserPrefs.current(),
-						   signout_url=users.create_logout_url('/'))
+						   starturl=starturl,
+						   personsurl=personsurl
+						   )
 
 @app.route('/start')
 @app.route('/start/')
@@ -443,7 +451,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			heading=section_title, 
 			baselink=baselink,
 			addlink=True,
-			items=ScoutGroup.query().fetch(100), # TODO: memcache
+			items=ScoutGroup.getgroupsforuser(user),
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	elif person==None:

@@ -7,8 +7,8 @@
 		<div class="jumbotron">
 		  <div class="btn-toolbar">
 			<h2 class=>Välkommen {{user.getname()}}</h2>
-			<a href="/start/" class="btn btn-lg btn-primary">Närvaroregistrering</a>
-			<a href="/persons/" class="btn btn-lg btn-default">Personregister</a>
+			<a href="{{starturl}}" class="btn btn-lg btn-primary">Närvaroregistrering</a>
+			<a href="{{personsurl}}" class="btn btn-lg btn-default">Personregister</a>
 		  </div>
 		<hr/>
 		  {% if user.canImport() %}
