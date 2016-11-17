@@ -138,7 +138,10 @@ class Person(ndb.Model):
 
 	@staticmethod
 	def persnumbertodate(pnr):
-		return datetime.datetime.strptime(pnr[:8], "%Y%m%d").date()
+		if pnr == '-':
+			return datetime.datetime.strptime("19010101", "%Y%m%d").date()
+		else:
+			return datetime.datetime.strptime(pnr[:8], "%Y%m%d").date()
 	
 	def setpersonnr(self, pnr):
 		self.personnr = pnr.replace('-', '')
