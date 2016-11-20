@@ -53,7 +53,10 @@ def GetScoutnetDataListJson(json_data):
 		m["firstname"] = GetValueFromJsonObject(p, 'first_name')
 		m["lastname"] = GetValueFromJsonObject(p, 'last_name')
 		m["personnr"] = GetValueFromJsonObject(p, 'ssno')
-		m["female"] = GetValueFromJsonObject(p, 'sex') != 'Man'
+		sex = GetValueFromJsonObject(p, 'sex')
+		if sex == "Annat":
+			continue # ignore non-persons
+		m["female"] = sex != 'Man'
 		m["patrool"] = GetValueFromJsonObject(p, 'patrol')
 		m["active"] = GetValueFromJsonObject(p, 'status') == 'Aktiv'
 		m["email"] = GetValueFromJsonObject(p, 'email')
