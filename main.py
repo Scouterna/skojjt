@@ -187,7 +187,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		elif action == "deletemeeting":
 			meeting = ndb.Key(urlsafe=key_url).get()
 			logging.debug("deleting meeting=%s", meeting.getname())
-			meeting.key.delete()
+			meeting.delete()
 			return redirect(breadcrumbs[-1]['link'])
 		else:
 			logging.error('unknown action=' + action)
@@ -233,7 +233,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		ageProblemDesc = []
 
 		section_title = troop.getname()
-		trooppersons = TroopPerson.getTroopPersonsForTroop(troop_key) #TroopPerson.query(TroopPerson.troop==troop_key).order(TroopPerson.sortname).fetch() # TODO: memcache
+		trooppersons = TroopPerson.getTroopPersonsForTroop(troop_key)
 		meetings = Meeting.gettroopmeetings(troop_key, scoutgroup.activeSemester)
 		
 		attendances = [] # [meeting][person]
