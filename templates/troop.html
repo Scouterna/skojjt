@@ -118,10 +118,17 @@ $(document).ready(function() {
 		// hack/fix for webkit to match sizes after css has been applied
 		maintable.fnAdjustColumnSizing();
 	}, 10);
+	var DIRTY_COLOR = '#fa0';
 	$('.attendance-cb').click(function(event) {
 		meeting_url = event.target.name.slice(2);
-		$('#btn'+meeting_url).css('background-color','#fa0');
+		var btn = $('#btn'+meeting_url);
+		btn.css('background-color',DIRTY_COLOR);
+		btn.attr('data-dirty','1');
 	});
+	function resetDirtyButton(btn) {
+		btn.css('background-color','#00FF00');
+		btn.attr('data-dirty','0');
+	}
 	$('.postattendance').click(function(event) {
 		var button = event.target;
 		if (button.type != 'button') // if you press on the glyphicon inside the button
@@ -146,7 +153,7 @@ $(document).ready(function() {
 			processData: false,
 			contentType: false,
 			type: 'POST',
-			success: function(data) { if (data === "ok") $('#btn'+meeting_url).css('background-color','#00FF00');}
+			success: function(data) { if (data === "ok") resetDirtyButton($('#btn'+meeting_url));}
 		});
 	});
 	$('#namesearch').on('keyup', function() {
@@ -177,6 +184,27 @@ $(document).ready(function() {
 			$('#tblSearchResults').remove();
 		}
 	});
+});
+function isDirty()
+{
+	var btns = $('.postattendance');
+	for(ind in btns){
+		var btn = btns[ind];
+		var dd = btn.attributes['data-dirty'];
+		if (dd != undefined)
+			var v=dd.value;
+			if (v == '1')
+				return true;
+	}
+	return false;
+}
+$(window).on('beforeunload', function(){
+	if (!isDirty()) {
+		return undefined;
+	}
+	var confirmationMessage = 'Du har osparade ändringar.';
+	//(e || window.event).returnValue = confirmationMessage; //Gecko + IE
+	return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
 });
 </script>
 {% endblock %}
