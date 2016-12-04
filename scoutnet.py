@@ -206,8 +206,7 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	try:
 		response = urllib2.urlopen(request)
 	except urllib2.HTTPError:
-		result_json = response.read()
-		logging.error("Failed to add person: " + result_json)
+		logging.error("Failed to add person")
 		return False
 	   
 	if 200 <= response.getcode() <= 201:
