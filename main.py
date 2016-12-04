@@ -32,11 +32,10 @@ def home():
 	if user.groupaccess != None:
 		starturl += user.groupaccess.urlsafe() + '/'
 		personsurl += user.groupaccess.urlsafe() + '/'
-	return render_template('index.html',
+	return render_template('start.html',
 						   heading='Hem',
 						   items=[],
 						   breadcrumbs=breadcrumbs,
-						   showstart=True,
 						   user=UserPrefs.current(),
 						   starturl=starturl,
 						   personsurl=personsurl
@@ -85,12 +84,21 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				baselink=baselink,
 				breadcrumbs=breadcrumbs)
 		elif request.method == "POST":
-			person = Person.createlocal(request.form['firstname'], request.form['lastname'], request.form['birthdate'].replace('-',''), request.form['sex'] == "female")
+			pnr = request.form['personnummer'].replace('-','')
+			person = Person.createlocal(
+				request.form['firstname'], 
+				request.form['lastname'], 
+				pnr, 
+				Person.getIsFemale(pnr),
+				request.form['mobile'],
+				request.form['phone'],
+				request.form['email'])
 			person.scoutgroup = sgroup_key
 			logging.info("created local person %s", person.getname())
 			person.put()
 			troopperson = TroopPerson.create(troop_key, person.key, False)
 			troopperson.commit()
+			scoutnet.AddPersonToWaitinglist(scoutgroup, person.firstname, person.lastname, person.personnr, person.email, request.form['street'], request.form['zip_code'], request.form['zip_name'], person.mobile, person.phone)
 			return redirect(breadcrumbs[-2]['link'])
 	
 	if request.method == "GET" and len(request.args) > 0:
@@ -204,11 +212,12 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			breadcrumbs=breadcrumbs)
 	elif troop==None:
 		section_title = 'Avdelningar'
-		return render_template('index.html',
+		return render_template('troops.html',
 			heading=section_title,
 			baselink=baselink,
-			addlink=True,
-			items=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100), # TODO: memcache
+			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
+			user=user,
+			troops=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100), # TODO: memcache
 			breadcrumbs=breadcrumbs)
 	elif key_url!=None and key_url!="dak":
 		meeting = ndb.Key(urlsafe=key_url).get()
@@ -474,6 +483,36 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	
+@app.route('/scoutgroupinfo/<sgroup_url>')
+@app.route('/scoutgroupinfo/<sgroup_url>/', methods = ['POST', 'GET'])
+def scoutgroupinfo(sgroup_url):
+	breadcrumbs = [{'link':'/', 'text':'Hem'}]
+	baselink = "/scoutgroupinfo/"
+	section_title = "Kårinformation"
+	scoutgroup = None
+	if sgroup_url!=None:
+		sgroup_key = ndb.Key(urlsafe=sgroup_url)
+		scoutgroup = sgroup_key.get()
+		baselink += sgroup_url+"/"
+		breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
+	if request.method == "POST":
+		logging.info("POST, %s" % str(request.form))
+		scoutgroup.organisationsnummer = request.form['organisationsnummer'].strip()
+		scoutgroup.foreningsID = request.form['foreningsID'].strip()
+		scoutgroup.scoutnetID = request.form['scoutnetID'].strip()
+		scoutgroup.apikey_waitinglist = request.form['apikey_waitinglist'].strip()
+		scoutgroup.apikey_all_members = request.form['apikey_all_members'].strip()
+		scoutgroup.put()
+		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
+		return redirect(breadcrumbs[-1]['link'])
+	else:
+		return render_template('scoutgroupinfo.html',
+			heading=section_title,
+			baselink=baselink,
+			scoutgroup=scoutgroup,
+			breadcrumbs=breadcrumbs)
+	
+
 @app.route('/import')
 @app.route('/import/', methods = ['POST', 'GET'])
 def import_():
@@ -496,7 +535,7 @@ def import_():
 		return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
 	else:
 		return render_template('updatefromscoutnetform.html', breadcrumbs=breadcrumbs)
-	return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, showstart=True, username=user.getname())
+	return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, username=user.getname())
 	
 	
 @app.route('/admin')
@@ -509,7 +548,7 @@ def admin():
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/admin', 'text':'Admin'}]
-	return render_template('admin.html', heading="Admin", breadcrumbs=breadcrumbs, showstart=True, username=user.getname())
+	return render_template('admin.html', heading="Admin", breadcrumbs=breadcrumbs, username=user.getname())
 
 @app.route('/admin/access/')
 @app.route('/admin/access/<userprefs_url>')

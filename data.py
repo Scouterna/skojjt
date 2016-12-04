@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import codecs
 import datetime
 import logging
@@ -63,8 +65,10 @@ class ScoutGroup(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	activeSemester = ndb.KeyProperty(kind=Semester)
 	organisationsnummer = ndb.StringProperty()
-	foreningsID = ndb.StringProperty()
-	kommunID = ndb.StringProperty(default="1480")
+	foreningsID = ndb.StringProperty(required=False, default="")
+	scoutnetID = ndb.StringProperty(required=False, default="")
+	apikey_waitinglist = ndb.StringProperty(required=False, default="")
+	apikey_all_members  = ndb.StringProperty(required=False, default="")
 
 	@staticmethod
 	def getid(name):
@@ -129,19 +133,26 @@ class Person(PropertyWriteTracker):
 			personnr=personnr)
 
 	@staticmethod
-	def createlocal(firstname, lastname, personnr, female):
+	def createlocal(firstname, lastname, personnr, female, mobile, phone, email):
 		return Person(
 			firstname=firstname,
 			lastname=lastname,
 			birthdate=Person.persnumbertodate(personnr),
 			female=female,
 			personnr=personnr,
+			mobile=mobile,
+			phone=phone,
+			email=email,
 			notInScoutnet=True)
 
 	@staticmethod
 	def persnumbertodate(pnr):
 		return datetime.datetime.strptime(pnr[:8], "%Y%m%d").date()
 
+	@staticmethod
+	def getIsFemale(personnummer):
+		return False if int(personnummer[-2])&1 == 1 else True
+		
 	def setpersonnr(self, pnr):
 		self.personnr = pnr.replace('-', '')
 		self.birthdate = Person.persnumbertodate(pnr)

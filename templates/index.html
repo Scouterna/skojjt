@@ -2,28 +2,6 @@
 <body>
 {% include "navigation.html" %}
 	<div class="main">
-		{% if showstart %}
-		<div class="container">
-		<div class="jumbotron">
-		  <div class="btn-toolbar">
-			<h2 class=>Välkommen {{user.getname()}}</h2>
-			<a href="{{starturl}}" class="btn btn-lg btn-primary">Närvaroregistrering</a>
-			<a href="{{personsurl}}" class="btn btn-lg btn-default">Personregister</a>
-		  </div>
-		<hr/>
-		  {% if user.canImport() %}
-		  <div class="btn-toolbar">
-			<a href="/import/" class="btn btn-lg btn-default">Import</a>
-		  </div>
-		  {% endif %}
-		  {% if user.isAdmin() %}
-		  <div class="btn-toolbar">
-			<a href="/admin/" class="btn btn-lg btn-default">Admin</a>
-		  </div>
-		  {% endif %}
-		</div>
-		</div>
-		{% else %}
 		<h1 class="page-header">{{heading}}</h1>
 		<div class="table-responsive">
 			<table id="maintable" class="table table-striped">
@@ -90,8 +68,6 @@
 		{% include "meetingform.html" %}
 		</div>
 		{% endif %}
-		{% endif %}
-		<!-- <a href="./?action=newsemester" class="btn btn-lg btn-default">Ny termin</a> -->
 	</div>
 <script>
 $(document).ready(function() {

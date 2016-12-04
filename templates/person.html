@@ -5,38 +5,37 @@
 	<div class="main">
 		<form id="newperson" role="form" name="person" method="POST">
 		  <input type="hidden" name="action" value="newperson"/>
-		  <h1>{% if hasPerson %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
+		  <h1>{% if ep %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
 		  {% if not hasPerson or (hasPerson and ep.notInScoutnet) %}
-		  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/organisation/group/home/1137">scoutnet</a> automatiskt!</em>
 		  {% endif %}
 		  <div class="form-group">
 			<label for="firstname">Förnamn</label>
-			<input type="text" class="form-control" placeholder="Förnamn" name="firstname" id="firstname"
-			value="{% if hasPerson %}{{ep.firstname}}{% endif %}"/>
+			<input type="text" class="form-control" size='50' required="1" placeholder="Förnamn" name="firstname" id="firstname" value="{% if ep %}{{ep.firstname}}{% endif %}"/>
 			<label for="lastname">Efternamn</label>
-			<input type="text" class="form-control" placeholder="Efternamn" name="lastname" id="lastname"
-			value="{% if hasPerson %}{{ep.lastname}}{% endif %}"/>
+			<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}"/>
+			<label for="personnummer">Personnummer</label>
+			<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" class="form-control" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}"/>
+			<label for='street'>Gatuadress</label>
+			<input type='text' class="form-control" size='50' required="1" name='street' id='street' placeholder='Gatuadress'/>
+			<label for='zip_code'>Postnummer</label>
+			<input type='text' class="form-control" pattern='[0-9]{5}' size='5' required="1" name='zip_code' id='zip_code'/>
+			<label for='zip_name'>Postadress</label>
+			<input type='text' class="form-control" size='50' required="1" name='zip_name' id='zip_name'/>
+			<label for='mobile'>Mobiltelefon</label>
+			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='mobile' id='mobile' value="{% if ep %}{{ep.mobile}}{% endif %}"/>
+			<label for='phone'>Telefon</label>
+			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='phone' id='phone' value="{% if ep %}{{ep.phone}}{% endif %}"/>
+			<label for='email'>E-post</label>
+			<input type='email' class="form-control" size='50' required="1" name='email' id='email' value="{% if ep %}{{ep.email}}{% endif %}"/>
 		  </div>
-		  <div class="form-group">
-			<label for="birthdate">Födelsedatum</label>
-			<input type="date" class="form-control" name="birthdate" id="birthdate"
-			value="{% if hasPerson %}{{ep.getbirthdatestring()}}{% endif %}"/>
-		  </div>
-		  <div class="form-group">
-		    <label class="radio-inline">
-				<input name="sex" id="female" value="female" type="radio" {% if hasPerson and ep.female %}checked=""{% endif %}>Flicka</input>
-			</label>
-			<label class="radio-inline">
-				<input name="sex" id="male" value="male" type="radio" {% if hasPerson and not ep.female %}checked=""{% endif %}>Pojke</input>
-			</label>
-		  </div>
-		{% if not hasPerson %}
+		{% if not ep %}
 		  <div class="btn-toolbar">  
 		  <button id="personsubmit" type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
 		  </div>
 		{% endif %}
 		</form>
 		<hr/>
+		{% if ep %}
 		<div class="form-group">
 			{% if ep.mobile != "" %}
 				<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
@@ -48,6 +47,7 @@
 				<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
 			{% endif %}
 		</div>
+		{% endif %}
  		{% if hasPerson and ep.notInScoutnet %}
 		<em>OBS! Personen finns inte i scoutnet</em>
 		<div class="btn-toolbar">
@@ -90,35 +90,5 @@
 		</div>
 		{% endif %}
 	</div>
-	<script>
-	function isFormValid()
-	{
-		if ($("#firstname").val().length < 2)
-			return false;
-		if ($("#lastname").val().length < 2)
-			return false;
-		var bdval = $("#birthdate").val();
-		if (bdval.length == 0)
-			return false;
-		var sex = $('input:radio[name=sex]').filter(":checked").val();
-		if (!sex || sex.length == 0)
-			return false;
-			
-		return true;
-	}
-	function validateForm()
-	{
-		$("#personsubmit").prop('disabled', !isFormValid());
-	}
-	$(document).ready(function () {
-	validateForm();
-	$('#newperson').change(validateForm);
-	$('#newperson').submit({
-		function() {
-			return isFormValid();
-		}
-	});
-	});
-	</script>
 </body>
 </html>

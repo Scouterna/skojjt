@@ -63,7 +63,7 @@ class ScoutnetImporter:
 	def GetOrCreateTroop(self, name, group_key):
 		if len(name) == 0:
 			return None
-		troop = Troop.get_by_id(Troop.getid(name, group_key))
+		troop = Troop.get_by_id(Troop.getid(name, group_key), use_memcache=True)
 		if troop == None:
 			self.report.append("Ny avdelning %s" % (name))
 			troop = Troop.create(name, group_key)
@@ -73,17 +73,24 @@ class ScoutnetImporter:
 				troop.put()
 		return troop
 
-	def GetOrCreateGroup(self, name):
+	def GetOrCreateGroup(self, name, scoutnetID):
 		if len(name) == 0:
 			return None
-		group = ScoutGroup.get_by_id(ScoutGroup.getid(name))
+		group = ScoutGroup.get_by_id(ScoutGroup.getid(name), use_memcache=True)
 		if group == None:
-			self.report.append(u"Ny kår %s" % (name))
-			group = ScoutGroup.create(name)
+			self.report.append(u"Ny kår %s, id=%d" % (name, id))
+			group = ScoutGroup.create(name, id)
 			group.activeSemester = self.GetOrCreateCurrentSemester().key
+			group.scoutnetID = scoutnetID
 			group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
 			if self.commit:
 				group.put()
+			
+		if group.scoutnetID != scoutnetID:
+			group.scoutnetID = scoutnetID
+			if self.commit:
+				group.put()
+
 		return group
 
 	def DoImport(self, data):
@@ -124,7 +131,7 @@ class ScoutnetImporter:
 			person.phone = p["phone"]
 			person.mobile = p["mobile"]
 
-			person.scoutgroup = self.GetOrCreateGroup(p["group"]).key
+			person.scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"]).key
 			if len(p["troop"]) == 0:
 				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
 
