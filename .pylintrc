@@ -1,0 +1,8 @@
+[FORMAT]
+indent-string=\t
+
+[MESSAGES CONTROL]
+disable=C0301,C0330,C0111,C0326
+
+[MASTER]
+init-hook='sys.path.extend(["C:/Program Files (x86)/Google/google_appengine", "C:/Program Files (x86)/Google/google_appengine/lib", "c:/Program Files (x86)/Google/google_appengine/google/appengine/api", "c:/Program Files (x86)/Google/google_appengine/google/appengine"]);'

@@ -1,0 +1,33 @@
+{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+	<div class="main">
+		<h1 class="page-header">{{heading}}</h1>
+		<div class="table-responsive">
+			<table id="maintable" class="table table-striped">
+			  <thead>
+				<tr>
+				  <th class="col-xs-3 col-sm-3 col-lg-3">Namn</th>
+				  <th class="col-xs-3 col-sm-3 col-lg-3">Email</th>
+				  <th class="col-xs-3 col-sm-3 col-lg-3">Kår</th>
+				  <th class="col-xs-1 col-sm-1 col-lg-1">Access</th>
+				  <th class="col-xs-1 col-sm-1 col-lg-1">Import</th>
+				  <th class="col-xs-1 col-sm-1 col-lg-1">Admin</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				{% for u in users %}
+                <tr><td><a href="{{baselink+u.key.urlsafe()}}/">{{u.getname()}}</a></td>
+				<td><a href="mailto:{{u.getemail()}}/">{{u.getemail()}}</a></td>
+				<td>{% if u.groupaccess != None %}{{u.groupaccess.get().getname()}}{% else %}-{% endif %}</td>
+				<td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
+				</tr>
+				{% endfor %}
+              </tbody>
+			</table>
+		</div>
+	</div>
+</body>
+</html>

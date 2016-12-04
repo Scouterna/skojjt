@@ -72,7 +72,7 @@ class ScoutnetImporter:
 			if self.commit:
 				troop.put()
 		return troop
-		
+
 	def GetOrCreateGroup(self, name):
 		if len(name) == 0:
 			return None
@@ -93,17 +93,17 @@ class ScoutnetImporter:
 		if len(data) < 80:
 			self.report.append("Error, too little data length=%d" % len(data))
 			return report
-			
+
 		list = scoutnet.GetScoutnetDataListJson(data)
 		self.report.append("antal personer=%d" % (len(list)-1))
 		if len(list) < 1:
 			self.report.append("Error, too few rows=%d" % len(list))
 			return self.report
-			
+
 		for p in list:
 			id = int(p["id"])
 			person = Person.get_by_id(id) # need to be an integer due to backwards compatility with imported data
-					
+
 			if person != None:
 				person.firstname = p["firstname"]
 				person.lastname = p["lastname"]
@@ -127,7 +127,7 @@ class ScoutnetImporter:
 			person.scoutgroup = self.GetOrCreateGroup(p["group"]).key
 			if len(p["troop"]) == 0:
 				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
-				
+
 			troop = self.GetOrCreateTroop(p["troop"], person.scoutgroup)
 			troop_key = troop.key if troop != None else None
 			new_troop = person.troop != troop_key
@@ -140,7 +140,7 @@ class ScoutnetImporter:
 				self.report.append(u"Sparar ändringar:%s %s %s" % (id, p["firstname"], p["lastname"]))
 				if self.commit:
 					person.put()
-				
+
 			if new_troop:
 				if person.troop:
 					tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key))

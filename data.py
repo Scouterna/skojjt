@@ -289,6 +289,7 @@ class UserPrefs(ndb.Model):
 	activeSemester = ndb.KeyProperty(kind=Semester)
 	groupaccess = ndb.KeyProperty(kind=ScoutGroup, required=False, default=None)
 	groupadmin = ndb.BooleanProperty(required=False, default=False)
+	email = ndb.StringProperty(required=False)
 
 	def hasAccess(self):
 		return self.hasaccess
@@ -301,7 +302,14 @@ class UserPrefs(ndb.Model):
 
 	def getname(self):
 		return self.name
-
+		
+	def getemail(self):
+		if self.email != None and len(self.email) != 0:
+			return self.email
+		if '@' in self.name:
+			return self.name
+		return self.name + '@gmail.com'
+		
 	@staticmethod
 	def current():
 		cu = users.get_current_user()
@@ -321,15 +329,27 @@ class UserPrefs(ndb.Model):
 		if userprefs is not None:
 			return userprefs
 		else:
-			usersresult = UserPrefs.query(UserPrefs.userid == user.user_id()).fetch()
+			userprefs = UserPrefs.get_by_id(user.user_id()) # new records have user_id as id
+			if userprefs != None:
+				userprefs.updateMemcache()
+				return userprefs
+			usersresult = UserPrefs.query(UserPrefs.userid == user.user_id()).fetch() # Fetching old records from userid
 			if len(usersresult) == 0:
 				userprefs = UserPrefs.create(user, users.is_current_user_admin(), users.is_current_user_admin())
 				userprefs.put()
 			else:
-				userprefs = usersresult[0]
-				userprefs.updateMemcache()
+				olduser = usersresult[0]
+				# old record, update to a new with user_id as id and email
+				if olduser != None:
+					userprefs = UserPrefs.create(user, olduser.hasAccess(), olduser.isAdmin())
+					userprefs.activeSemester = olduser.activeSemester 
+					userprefs.groupaccess = olduser.groupaccess
+					userprefs.groupadmin = olduser.groupadmin
+					userprefs.put()
+					olduser.key.delete()	
+			userprefs.updateMemcache()
 			return userprefs
 
 	@staticmethod
 	def create(user, access=False, hasadminaccess=False):
-		return UserPrefs(userid=user.user_id(), name=user.nickname(), hasaccess=access, hasadminaccess=hasadminaccess)
+		return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess)

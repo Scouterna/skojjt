@@ -533,11 +533,11 @@ def adminaccess(userprefs_url=None):
 	breadcrumbs.append({'link':baselink, 'text':section_title})
 
 	if userprefs_url == None:
-		return render_template('index.html',
+		return render_template('userlist.html',
 			heading=section_title,
 			baselink=baselink,
 			addlink=True,
-			items=UserPrefs().query().fetch(),
+			users=UserPrefs().query().fetch(),
 			breadcrumbs=breadcrumbs)
 	else:
 		userprefs = ndb.Key(urlsafe=userprefs_url).get()
