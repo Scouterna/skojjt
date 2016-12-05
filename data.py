@@ -75,10 +75,10 @@ class ScoutGroup(ndb.Model):
 		return name.lower().replace(' ', '')
 
 	@staticmethod
-	def create(name):
+	def create(name, scoutnetID):
 		if len(name) < 2:
 			raise ValueError("Invalid name %s" % (name))
-		return ScoutGroup(id=ScoutGroup.getid(name), name=name)
+		return ScoutGroup(id=ScoutGroup.getid(name), name=name, scoutnetID=scoutnetID)
 	
 	@staticmethod
 	def getgroupsforuser(user):

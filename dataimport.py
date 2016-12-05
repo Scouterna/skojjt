@@ -78,8 +78,8 @@ class ScoutnetImporter:
 			return None
 		group = ScoutGroup.get_by_id(ScoutGroup.getid(name), use_memcache=True)
 		if group == None:
-			self.report.append(u"Ny kår %s, id=%d" % (name, id))
-			group = ScoutGroup.create(name, id)
+			self.report.append(u"Ny kår %s, id=%s" % (name, str(scoutnetID)))
+			group = ScoutGroup.create(name, scoutnetID)
 			group.activeSemester = self.GetOrCreateCurrentSemester().key
 			group.scoutnetID = scoutnetID
 			group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
