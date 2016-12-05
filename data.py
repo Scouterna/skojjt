@@ -122,6 +122,9 @@ class Person(PropertyWriteTracker):
 	email = ndb.StringProperty()
 	phone = ndb.StringProperty()
 	mobile = ndb.StringProperty()
+	street = ndb.StringProperty()
+	zip_code = ndb.StringProperty()
+	zip_name = ndb.StringProperty()
 
 	@staticmethod
 	def create(id, firstname, lastname, personnr, female):

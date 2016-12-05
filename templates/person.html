@@ -6,27 +6,41 @@
 		<form id="newperson" role="form" name="person" method="POST">
 		  <input type="hidden" name="action" value="newperson"/>
 		  <h1>{% if ep %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
+			{% if ep %}
+			<div class="form-group">
+				Kontakt:
+				{% if ep.mobile != "" %}
+					<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
+				{% endif %}
+				{% if ep.phone != "" %}
+					<label for="tele">Telefon:</label><a href="tel:{{ep.phone}}">{{ep.phone}}</a>
+				{% endif %}
+				{% if ep.email != "" %}
+					<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
+				{% endif %}
+			</div>
+			{% endif %}
 		  {% if not hasPerson or (hasPerson and ep.notInScoutnet) %}
 		  {% endif %}
 		  <div class="form-group">
 			<label for="firstname">Förnamn</label>
-			<input type="text" class="form-control" size='50' required="1" placeholder="Förnamn" name="firstname" id="firstname" value="{% if ep %}{{ep.firstname}}{% endif %}"/>
+			<input type="text" class="form-control" size='50' required="1" placeholder="Förnamn" name="firstname" id="firstname" value="{% if ep %}{{ep.firstname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 			<label for="lastname">Efternamn</label>
-			<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}"/>
+			<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 			<label for="personnummer">Personnummer</label>
-			<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" class="form-control" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}"/>
+			<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" class="form-control" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 			<label for='street'>Gatuadress</label>
-			<input type='text' class="form-control" size='50' required="1" name='street' id='street' placeholder='Gatuadress'/>
+			<input type='text' class="form-control" size='50' required="1" name='street' id='street' value='{% if ep %}{{ep.street}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='zip_code'>Postnummer</label>
-			<input type='text' class="form-control" pattern='[0-9]{5}' size='5' required="1" name='zip_code' id='zip_code'/>
+			<input type='text' class="form-control" pattern='[0-9]{5}' size='5' required="1" name='zip_code' id='zip_code' value='{% if ep %}{{ep.zip_code}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='zip_name'>Postadress</label>
-			<input type='text' class="form-control" size='50' required="1" name='zip_name' id='zip_name'/>
+			<input type='text' class="form-control" size='50' required="1" name='zip_name' id='zip_name' value='{% if ep %}{{ep.zip_name}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='mobile'>Mobiltelefon</label>
-			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='mobile' id='mobile' value="{% if ep %}{{ep.mobile}}{% endif %}"/>
+			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='mobile' id='mobile' value='{% if ep %}{{ep.mobile}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='phone'>Telefon</label>
-			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='phone' id='phone' value="{% if ep %}{{ep.phone}}{% endif %}"/>
+			<input type='text' class="form-control" pattern='[0-9]{6,10}' size='10' name='phone' id='phone' value='{% if ep %}{{ep.phone}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='email'>E-post</label>
-			<input type='email' class="form-control" size='50' required="1" name='email' id='email' value="{% if ep %}{{ep.email}}{% endif %}"/>
+			<input type='email' class="form-control" size='50' required="1" name='email' id='email' value='{% if ep %}{{ep.email}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 		  </div>
 		{% if not ep %}
 		  <div class="btn-toolbar">  
@@ -35,19 +49,6 @@
 		{% endif %}
 		</form>
 		<hr/>
-		{% if ep %}
-		<div class="form-group">
-			{% if ep.mobile != "" %}
-				<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
-			{% endif %}
-			{% if ep.phone != "" %}
-				<label for="tele">Telefon:</label><a href="tel:{{ep.phone}}">{{ep.phone}}</a>
-			{% endif %}
-			{% if ep.email != "" %}
-				<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
-			{% endif %}
-		</div>
-		{% endif %}
  		{% if hasPerson and ep.notInScoutnet %}
 		<em>OBS! Personen finns inte i scoutnet</em>
 		<div class="btn-toolbar">

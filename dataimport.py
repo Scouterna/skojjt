@@ -130,6 +130,9 @@ class ScoutnetImporter:
 			person.email = p["email"]
 			person.phone = p["phone"]
 			person.mobile = p["mobile"]
+			person.street = p["street"]
+			person.zip_code = p["zip_code"]
+			person.zip_name = p["zip_name"]
 
 			person.scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"]).key
 			if len(p["troop"]) == 0:

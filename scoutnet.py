@@ -32,9 +32,14 @@ def GetScoutnetMembersCSVData(username, password, groupid):
 	return response.read()
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
-	req2 = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
-	response = urllib2.urlopen(req2)
+	request = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		logging.error("Failed to read members, code=%d", e.code)
+		return None
 	return response.read()
+	   
 	
 def GetValueFromJsonObject(p, key, value_name='value'):
 	if key in p:
@@ -66,6 +71,9 @@ def GetScoutnetDataListJson(json_data):
 			phone = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_telephone_home')) # scoutnet has both "Telefon hem" and "Hemtelefon" pick one!
 		m["phone"] = phone
 		m["mobile"] = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_mobile_phone'))
+		m["street"] = GetValueFromJsonObject(p, 'address_1')
+		m["zip_code"] = GetValueFromJsonObject(p, 'postcode')
+		m["zip_name"] = GetValueFromJsonObject(p, 'town')
 		result.append(m)
 	return result
 	
@@ -205,8 +213,8 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	request = urllib2.Request(url)
 	try:
 		response = urllib2.urlopen(request)
-	except urllib2.HTTPError:
-		logging.error("Failed to add person")
+	except urllib2.HTTPError as e:
+		logging.error("Failed to add person, code=%d", e.code)
 		return False
 	   
 	if 200 <= response.getcode() <= 201:

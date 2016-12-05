@@ -93,12 +93,16 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				request.form['mobile'],
 				request.form['phone'],
 				request.form['email'])
+			person.street = request.form["street"]
+			person.zip_code = request.form["zip_code"]
+			person.zip_name = request.form["zip_name"]
 			person.scoutgroup = sgroup_key
 			logging.info("created local person %s", person.getname())
 			person.put()
 			troopperson = TroopPerson.create(troop_key, person.key, False)
 			troopperson.commit()
-			scoutnet.AddPersonToWaitinglist(scoutgroup, person.firstname, person.lastname, person.personnr, person.email, request.form['street'], request.form['zip_code'], request.form['zip_name'], person.mobile, person.phone)
+			if scoutgroup.scoutnetID != None and scoutgroup.apikey_waitinglist != None:
+				scoutnet.AddPersonToWaitinglist(scoutgroup, person.firstname, person.lastname, person.personnr, person.email, request.form['street'], request.form['zip_code'], request.form['zip_name'], person.mobile, person.phone)
 			return redirect(breadcrumbs[-2]['link'])
 	
 	if request.method == "GET" and len(request.args) > 0:
@@ -486,6 +490,9 @@ def persons(sgroup_url=None, person_url=None, action=None):
 @app.route('/scoutgroupinfo/<sgroup_url>')
 @app.route('/scoutgroupinfo/<sgroup_url>/', methods = ['POST', 'GET'])
 def scoutgroupinfo(sgroup_url):
+	user = UserPrefs.current()
+	if not user.canImport():
+		return "denied", 403
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	baselink = "/scoutgroupinfo/"
 	section_title = "Kårinformation"
@@ -504,7 +511,15 @@ def scoutgroupinfo(sgroup_url):
 		scoutgroup.apikey_all_members = request.form['apikey_all_members'].strip()
 		scoutgroup.put()
 		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
-		return redirect(breadcrumbs[-1]['link'])
+		if "import" in request.form:
+			logging.info("", breadcrumbs[-1]['link'])
+			data = scoutnet.GetScoutnetMembersAPIJsonData(scoutgroup.scoutnetID, scoutgroup.apikey_all_members)
+			importer = ScoutnetImporter()
+			importer.commit = True
+			result = importer.DoImport(data)
+			return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)			
+		else:
+			return redirect(breadcrumbs[-1]['link'])
 	else:
 		return render_template('scoutgroupinfo.html',
 			heading=section_title,

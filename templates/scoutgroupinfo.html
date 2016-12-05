@@ -22,7 +22,10 @@
 	<input type="text" class="form-control" name="apikey_waitinglist" value="{{scoutgroup.apikey_waitinglist|default("", True)}}"/>
   </div>
   <div class="btn-toolbar">  
-	<button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+	<button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Spara</button>
+  </div>
+  <div class="btn-toolbar">  
+	<input type="submit" class="btn btn-lg" name="import" value="Spara och Starta import"></input>
   </div>
 </form>
 {% endblock %}
