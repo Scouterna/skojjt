@@ -507,6 +507,7 @@ def scoutgroupinfo(sgroup_url):
 		scoutgroup.organisationsnummer = request.form['organisationsnummer'].strip()
 		scoutgroup.foreningsID = request.form['foreningsID'].strip()
 		scoutgroup.scoutnetID = request.form['scoutnetID'].strip()
+		scoutgroup.kommunID = request.form['kommunID'].strip()
 		scoutgroup.apikey_waitinglist = request.form['apikey_waitinglist'].strip()
 		scoutgroup.apikey_all_members = request.form['apikey_all_members'].strip()
 		scoutgroup.put()
@@ -596,7 +597,7 @@ def adminaccess(userprefs_url=None):
 	else:
 		userprefs = ndb.Key(urlsafe=userprefs_url).get()
 		if request.method == 'POST':
-			logging.info('request.form=%s', str(request.form))
+			#logging.info('request.form=%s', str(request.form))
 			userprefs.hasaccess = request.form.get('hasAccess') == 'on'
 			userprefs.hasadminaccess = request.form.get('hasAdminAccess') == 'on'
 			userprefs.groupadmin = request.form.get('groupadmin') == 'on'
@@ -628,9 +629,20 @@ def dodelete():
 		abort(403)
 		return "denied"
 
-	# DeleteAllData() 
+	# DeleteAllData()
 	return redirect('/admin')
 
+	
+@app.route('/admin/settroopsemester/')
+def settroopsemester():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		abort(403)
+		return "denied"
+
+	dosettroopsemester()
+	return redirect('/admin')
+	
 @app.route('/admin/fixsgroupids/')
 def fixsgroupids():
 	user = UserPrefs.current()

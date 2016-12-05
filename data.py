@@ -67,6 +67,7 @@ class ScoutGroup(ndb.Model):
 	organisationsnummer = ndb.StringProperty()
 	foreningsID = ndb.StringProperty(required=False, default="")
 	scoutnetID = ndb.StringProperty(required=False, default="")
+	kommunID = ndb.StringProperty(default="1480")
 	apikey_waitinglist = ndb.StringProperty(required=False, default="")
 	apikey_all_members  = ndb.StringProperty(required=False, default="")
 
@@ -96,14 +97,15 @@ class Troop(ndb.Model):
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
 	defaultstarttime = ndb.StringProperty(default="18:30")
 	rapportID = ndb.IntegerProperty()
+	semester_key = ndb.KeyProperty(kind=Semester)
 
 	@staticmethod
 	def getid(name, scoutgroup_key):
 		return name.lower().replace(' ', '')+scoutgroup_key.id()
 
 	@staticmethod
-	def create(name, scoutgroup_key):
-		return Troop(id=Troop.getid(name, scoutgroup_key), name=name, scoutgroup=scoutgroup_key)
+	def create(name, scoutgroup_key, semester_key):
+		return Troop(id=Troop.getid(name, scoutgroup_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
 
 	def getname(self):
 		return self.name
@@ -128,25 +130,26 @@ class Person(PropertyWriteTracker):
 
 	@staticmethod
 	def create(id, firstname, lastname, personnr, female):
-		return Person(id=id,
+		person = Person(id=id,
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodate(personnr),
-			female=female,
-			personnr=personnr)
+			female=female)
+		person.setpersonnr(personnr)
+		return person
 
 	@staticmethod
 	def createlocal(firstname, lastname, personnr, female, mobile, phone, email):
-		return Person(
+		person = Person(
+			id=personnr.replace('-', ''), # using personnr as id for local persons
 			firstname=firstname,
 			lastname=lastname,
-			birthdate=Person.persnumbertodate(personnr),
 			female=female,
-			personnr=personnr,
 			mobile=mobile,
 			phone=phone,
 			email=email,
 			notInScoutnet=True)
+		person.setpersonnr(personnr)
+		return person
 
 	@staticmethod
 	def persnumbertodate(pnr):

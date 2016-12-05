@@ -40,6 +40,16 @@ def GetOrgnrAndKommunIDForGroup(groupname):
 				return str(row['id']), str(row['orgnr'])
 	return "", ""
 
+def GetOrCreateCurrentSemester(commit=True):
+	thisdate = datetime.datetime.now()
+	ht = False if thisdate.month>6 else True
+	semester = Semester.get_by_id(Semester.getid(thisdate.year + 1, ht), use_memcache=True)
+	if semester == None:
+		semester = Semester.create(thisdate.year + 1, ht)
+		if commit:
+			semester.put()
+	return semester
+
 class ScoutnetImporter:
 	report = []
 	commit = False
@@ -50,23 +60,13 @@ class ScoutnetImporter:
 		commit = False
 		rapportID = 1
 	
-	def GetOrCreateCurrentSemester(self):
-		thisdate = datetime.datetime.now()
-		ht = False if thisdate.month>6 else True
-		semester = Semester.get_by_id(Semester.getid(thisdate.year + 1, ht))
-		if semester == None:
-			semester = Semester.create(thisdate.year + 1, ht)
-			if self.commit:
-				semester.put()
-		return semester
-		
-	def GetOrCreateTroop(self, name, group_key):
+	def GetOrCreateTroop(self, name, group_key, semester_key):
 		if len(name) == 0:
 			return None
 		troop = Troop.get_by_id(Troop.getid(name, group_key), use_memcache=True)
 		if troop == None:
 			self.report.append("Ny avdelning %s" % (name))
-			troop = Troop.create(name, group_key)
+			troop = Troop.create(name, group_key, semester_key)
 			troop.rapportID = self.rapportID # TODO: should check the highest number in the sgroup, will work for full imports
 			self.rapportID += 1
 			if self.commit:
@@ -80,7 +80,7 @@ class ScoutnetImporter:
 		if group == None:
 			self.report.append(u"Ny kår %s, id=%s" % (name, str(scoutnetID)))
 			group = ScoutGroup.create(name, scoutnetID)
-			group.activeSemester = self.GetOrCreateCurrentSemester().key
+			group.activeSemester = GetOrCreateCurrentSemester(self.commit).key
 			group.scoutnetID = scoutnetID
 			group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
 			if self.commit:
@@ -109,13 +109,18 @@ class ScoutnetImporter:
 
 		for p in list:
 			id = int(p["id"])
-			person = Person.get_by_id(id) # need to be an integer due to backwards compatility with imported data
+			person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
+			if person == None:
+				id = p["personnr"].replace('-', '')
+				person = Person.get_by_id(id, use_memcache=True) # attempt to find using personnr, created as a local person
 
 			if person != None:
 				person.firstname = p["firstname"]
 				person.lastname = p["lastname"]
 				person.female = p["female"]
 				person.setpersonnr(p["personnr"])
+				if person.notInScoutnet != None:
+					person.notInScoutnet = False
 			else:
 				person = Person.create(
 					id,
@@ -134,11 +139,12 @@ class ScoutnetImporter:
 			person.zip_code = p["zip_code"]
 			person.zip_name = p["zip_name"]
 
-			person.scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"]).key
+			scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"])
+			person.scoutgroup = scoutgroup.key
 			if len(p["troop"]) == 0:
 				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
 
-			troop = self.GetOrCreateTroop(p["troop"], person.scoutgroup)
+			troop = self.GetOrCreateTroop(p["troop"], person.scoutgroup, scoutgroup.activeSemester)
 			troop_key = troop.key if troop != None else None
 			new_troop = person.troop != troop_key
 			person.troop = troop_key
@@ -196,6 +202,15 @@ def dofixsgroupids():
 			group.foreningsID = fid
 			group.organisationsnummer = orgnr
 			group.put()
+
+def dosettroopsemester():
+	semester_key = GetOrCreateCurrentSemester().key
+	troops = Troop.query().fetch()
+	for troop in troops:
+		#if troop.semester_key != semester_key:
+		troop.semester_key = semester_key
+		logging.info("updating semester for: %s", troop.getname())
+		troop.put()
 
 def ForceSemesterForAll(activeSemester):
 	for u in UserPrefs.query().fetch(1000):
