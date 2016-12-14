@@ -54,6 +54,7 @@ class ScoutnetImporter:
 	report = []
 	commit = False
 	rapportID = 1
+	importedScoutGroup_key = None
 	
 	def __init__(self):
 		self.report = []
@@ -91,6 +92,7 @@ class ScoutnetImporter:
 			if self.commit:
 				group.put()
 
+		self.importedScoutGroup_key = group.key
 		return group
 
 	def DoImport(self, data):

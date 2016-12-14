@@ -567,6 +567,10 @@ def import_():
 		importer = ScoutnetImporter()
 		importer.commit = commit
 		result = importer.DoImport(data)
+		if user.groupaccess != importer.importedScoutGroup_key:
+			user.groupaccess = importer.importedScoutGroup_key
+			user.put()
+			
 		return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
 	else:
 		return render_template('updatefromscoutnetform.html', breadcrumbs=breadcrumbs)
