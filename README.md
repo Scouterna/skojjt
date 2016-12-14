@@ -24,14 +24,10 @@ Vi har även möjlighet att koppla denna närvaro till andra partners, t ex Sens
 Skojjt implementerar DAK för redovisning till Göteborgs kommun:
 http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 
+###Dokumentation
+[Wiki](./wiki)
 
-###Att Göra (TODO):
-* Sensus, integrera automatisk rapportering
-* Bättre hantering av terminer (semesters)
-* Mer användning av Memcache för att hålla ner mängden reads från datastore.
-* Backup/Resore
-
-###Hur man testar/utvecklar:
+###Hur man testar/utvecklar
 Klona git-repon till lokal dator.
 Installera Python 2.7 och Google App Engine SDK (GAE). 
 Starta GAE. Lägg till skojjt med File|Add existing application...
