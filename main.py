@@ -7,6 +7,8 @@ import json
 import scoutnet
 from dakdata import *
 from google.appengine.api import users
+from google.appengine.api import app_identity
+from google.appengine.api import mail
 import random
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
@@ -388,13 +390,10 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			return render_template('troop.html',
 				heading=section_title,
 				baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
-				addlink=True,
-				items=persons,
+				persons=persons,
 				trooppersons=trooppersons,
 				meetings=meetings,
 				attendances=attendances,
-				showaddmeetings=True,
-				showaddmember=True,
 				breadcrumbs=breadcrumbs,
 				allowance=allowance,
 				defaultstarttime=troop.defaultstarttime)
@@ -527,7 +526,27 @@ def scoutgroupinfo(sgroup_url):
 			baselink=baselink,
 			scoutgroup=scoutgroup,
 			breadcrumbs=breadcrumbs)
-	
+
+@app.route('/getaccess/', methods = ['POST', 'GET'])
+def getaccess():
+	user = UserPrefs.current()
+	breadcrumbs = [{'link':'/', 'text':'Hem'}]
+	baselink = "/getaccess/"
+	section_title = "Access"
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+	if request.method == "POST":
+		adminEmails = [u.email for u in UserPrefs.query(UserPrefs.hasadminaccess==True).fetch()]
+		if len(adminEmails) > 0:
+			scoutgroup_name = request.form.get('sg').strip()
+			mail.send_mail(sender=user.email,
+			to=','.join(adminEmails),
+			subject="Användren: " + user.getname() + " vill ha access.\nKår: " + scoutgroup_name,
+			body="""""")	
+		return redirect('/')
+	else:
+		return render_template('getaccess.html',
+			baselink=baselink,
+			breadcrumbs=breadcrumbs)
 
 @app.route('/import')
 @app.route('/import/', methods = ['POST', 'GET'])
@@ -684,7 +703,7 @@ def page_not_found(e):
 
 @app.errorhandler(403)
 def access_denied(e):
-	return render_template('access.html'), 403
+	return render_template('403.html'), 403
 
 @app.errorhandler(500)
 def serverError(e):

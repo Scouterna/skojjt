@@ -85,8 +85,10 @@ class ScoutGroup(ndb.Model):
 	def getgroupsforuser(user):
 		if user.groupaccess != None:
 			return [user.groupaccess.get()]
-		else:
+		elif user.hasadminaccess:
 			return ScoutGroup.query().fetch(100)
+		else:
+			return []
 
 	def getname(self):
 		return self.name
@@ -172,8 +174,8 @@ class Person(PropertyWriteTracker):
 		return self.birthdate.strftime("%Y%m%d0000")
 
 	def getname(self):
-		pattern = re.compile("\( -")
-		fn = self.firstname #pattern.split(self.firstname)[0][:10]
+		pattern = re.compile("[\( -]")
+		fn = self.firstname
 		ln = pattern.split(self.lastname)[0][:12]
 		return fn + " " + ln
 

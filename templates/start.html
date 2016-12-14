@@ -1,23 +1,28 @@
 {% include "header.html" %}
 <body>
 {% include "navigation.html" %}
-	<div class="main"><div class="container"><div class="jumbotron">
-	  <div class="btn-toolbar">
-		<h2 class=>Välkommen {{user.getname()}}</h2>
-		<a href="{{starturl}}" class="btn btn-lg btn-primary">Närvaroregistrering</a>
-		<a href="{{personsurl}}" class="btn btn-lg btn-default">Personregister</a>
-	  </div>
+<div class="main"><div class="container"><div class="jumbotron">
+  <div class="btn-toolbar">
+	<h2 class=>Välkommen {{user.getname()}}</h2>
+	<a href="{{starturl}}" class="btn btn-lg btn-primary">Närvaroregistrering</a>
+	<a href="{{personsurl}}" class="btn btn-lg btn-default">Personregister</a>
+  </div>
+{% if user.canImport() %}
 	<hr/>
-	  {% if user.canImport() %}
-	  <div class="btn-toolbar">
-		<a href="/import/" class="btn btn-lg btn-default">Import</a>
-	  </div>
-	  {% endif %}
-	  {% if user.isAdmin() %}
-	  <div class="btn-toolbar">
-		<a href="/admin/" class="btn btn-lg btn-default">Admin</a>
-	  </div>
-	  {% endif %}
-	</div></div></div>
+	<div class="btn-toolbar">
+	<a href="/import/" class="btn btn-lg btn-default">Import</a>
+	</div>
+{% endif %}
+{% if user.isAdmin() %}
+	<hr/>
+	<div class="btn-toolbar">
+	<a href="/admin/" class="btn btn-lg btn-default">Admin</a>
+	</div>
+{% endif %}
+	<hr/>
+	<a href="https://github.com/martin-green/skojjt/wiki" class="btn btn-lg btn-default">Dokumentation</a>
+</div>
+</div>
+</div>
 </body>
 </html>
