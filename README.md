@@ -24,8 +24,7 @@ Vi har även möjlighet att koppla denna närvaro till andra partners, t ex Sens
 Skojjt implementerar DAK för redovisning till Göteborgs kommun:
 http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 
-###Dokumentation
-[Wiki](/martin-green/skojjt/wiki)
+###[Dokumentation](https://github.com/martin-green/skojjt/wiki)
 
 ###Hur man testar/utvecklar
 Klona git-repon till lokal dator.
