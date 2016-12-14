@@ -25,7 +25,7 @@ Skojjt implementerar DAK för redovisning till Göteborgs kommun:
 http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 
 ###Dokumentation
-[Wiki](./wiki)
+[Wiki](/martin-green/skojjt/wiki)
 
 ###Hur man testar/utvecklar
 Klona git-repon till lokal dator.
