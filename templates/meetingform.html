@@ -6,7 +6,7 @@
   <input type="hidden" name="action" value="addmeeting"/>
 {% endif %}
   <div class="form-group">
-	<label for="name">Namn</label>
+	<label for="mname">Namn</label>
 	<input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% else %}Möte{% endif %}"/>
   </div>
   <div class="form-group">

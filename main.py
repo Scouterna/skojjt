@@ -5,6 +5,7 @@ import datetime
 import urllib
 import json
 import scoutnet
+import htmlform
 from dakdata import *
 from google.appengine.api import users
 from google.appengine.api import app_identity
@@ -76,6 +77,23 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		troop = troop_key.get()
 		breadcrumbs.append({'link':baselink, 'text':troop.getname()})
 		
+	if key_url == "settings":
+		section_title = u'Inställningar'
+		baselink += "settings/"
+		breadcrumbs.append({'link':baselink, 'text':section_title})
+		if request.method == "POST":
+			troop.defaultstarttime = request.form['defaultstarttime'] 
+			troop.rapportID = int(request.form['rapportID'])
+			troop.put()
+			
+		form = htmlform.HtmlForm('troopsettings')
+		form.AddField('defaultstarttime', troop.defaultstarttime, 'Avdelningens vanliga starttid')
+		form.AddField('rapportID', troop.rapportID, 'Unik rapport ID för kommunens närvarorapport', 'number')
+		return render_template('form.html',
+			heading=section_title,
+			baselink=baselink,
+			form=str(form),
+			breadcrumbs=breadcrumbs)
 	if key_url == "newperson":
 		section_title = "Ny person"
 		baselink += key_url + "/"

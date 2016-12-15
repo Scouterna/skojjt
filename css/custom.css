@@ -40,5 +40,11 @@ margin-bottom: 5px;
 }
 .big-checkbox 
 {
-width: 25px; height: 25px;
+width: 24px; height: 24px;
+}
+.heading
+{ 
+    display: block;
+	font-size: 36px;
+    font-weight: bold;
 }

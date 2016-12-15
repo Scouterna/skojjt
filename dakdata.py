@@ -48,20 +48,25 @@ class Sammankomst:
 		return endtime.strftime('%H:%M:%S')
 
 class Narvarokort:
-	NaervarokortNummer="1"
+	NaervarokortNummer=""
 	Sammankomster = []
 	Aktivitet="Moete"
 	Lokal="Scouthuset"
 	NamnPaaKort=""
 	deltagare = []
 	ledare = []
-	
+
+	def __init__(self):
+		self.deltagare = []
+		self.ledare = []
+		self.Sammankomster = []
 	
 class DakData:
-	kommunID = "1480"
-	foreningsID = "3843"
+	kommunID = ""
+	foreningsID = ""
 	foereningsNamn=u""
-	organisationsnummer="857203-7722"
+	organisationsnummer=""
+	kort = None
 	
 	def __init__(self):
 		self.kort = Narvarokort()
