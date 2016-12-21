@@ -460,7 +460,6 @@ def persons(sgroup_url=None, person_url=None, action=None):
 				else:
 					tp.leader = (action == "setasleader")
 					tp.put()
-			return redirect(breadcrumbs[-1]['link'])
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)
