@@ -166,15 +166,6 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			logging.info("Set new semester: %s", semester.getname())
 			#ForceSemesterForAll(semester)
 			return semester.getname()
-		elif action == "setdefaultstarttime":
-			if scoutgroup == None:
-				raise ValueError('Missing scoutgroup')
-			if troop == None:
-				raise ValueError('Missing troop')
-			troop.defaultstarttime = request.args['time']
-			troop.put()
-			logging.info("Set new starttime for %s to %s", troop.getname(), troop.defaultstarttime)
-			return troop.defaultstarttime
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)
@@ -530,12 +521,8 @@ def scoutgroupinfo(sgroup_url):
 		scoutgroup.put()
 		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
 		if "import" in request.form:
-			logging.info("", breadcrumbs[-1]['link'])
-			data = scoutnet.GetScoutnetMembersAPIJsonData(scoutgroup.scoutnetID, scoutgroup.apikey_all_members)
-			importer = ScoutnetImporter()
-			importer.commit = True
-			result = importer.DoImport(data)
-			return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)			
+			result = RunScoutnetImport(scoutgroup.scoutnetID, scoutgroup.apikey_all_members, user)
+			return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
 		else:
 			return redirect(breadcrumbs[-1]['link'])
 	else:
@@ -577,24 +564,16 @@ def import_():
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/import', 'text':'Import'}]
 
-	if request.method == 'POST':
-		commit = 'commit' in request.form.values()
-		api_key = request.form.get('apikey').strip()
-		groupid = request.form.get('groupid').strip()
-		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
-		importer = ScoutnetImporter()
-		importer.commit = commit
-		result = importer.DoImport(data)
-		if user.groupaccess != importer.importedScoutGroup_key:
-			user.groupaccess = importer.importedScoutGroup_key
-			user.put()
-			
-		return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
-	else:
-		return render_template('updatefromscoutnetform.html', breadcrumbs=breadcrumbs)
-	return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, username=user.getname())
-	
-	
+	if request.method != 'POST':
+		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, username=user.getname())
+
+	commit = 'commit' in request.form.values()
+	api_key = request.form.get('apikey').strip()
+	groupid = request.form.get('groupid').strip()
+	result = RunScoutnetImport(groupid, api_key, user, commit)
+	return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
+
+
 @app.route('/admin')
 @app.route('/admin/')
 def admin():

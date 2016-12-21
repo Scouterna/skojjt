@@ -8,6 +8,32 @@ import scoutnet
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
 import StringIO
+import urllib2
+
+def RunScoutnetImport(groupid, api_key, user, commit = True):
+	data = None
+	result = []
+	if groupid == None or groupid == "" or api_key == None or api_key == "":
+		result.append(u"Du måste ange både kårid och api nyckel")
+		return result
+
+	try:
+		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
+	except urllib2.HTTPError as e:
+		result.append(u"Kunde inte läsa medlämmar från scoutnet, fel=%s" % (str(e)))
+		if e.code == 401:
+			result.append(u"Kontrollera: api nyckel och kårid.")
+			result.append(u"Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
+		
+	if data != None:
+		importer = ScoutnetImporter()
+		importer.commit = commit
+		result = importer.DoImport(data)
+		if user.groupaccess != importer.importedScoutGroup_key:
+			user.groupaccess = importer.importedScoutGroup_key
+			user.put()
+	return result
+	
 
 def GetBackupXML():
 	thisdate = datetime.datetime.now()
@@ -99,8 +125,8 @@ class ScoutnetImporter:
 		if not self.commit:
 			self.report.append("*** sparar inte, test mode ***")
 
-		if len(data) < 80:
-			self.report.append("Error, too little data length=%d" % len(data))
+		if data == None or len(data) < 80:
+			self.report.append(u"Fel: ingen data från scoutnet")
 			return report
 
 		list = scoutnet.GetScoutnetDataListJson(data)

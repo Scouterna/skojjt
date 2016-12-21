@@ -33,13 +33,8 @@ def GetScoutnetMembersCSVData(username, password, groupid):
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
 	request = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
-	try:
-		response = urllib2.urlopen(request)
-	except urllib2.HTTPError as e:
-		logging.error("Failed to read members, code=%d", e.code)
-		return None
+	response = urllib2.urlopen(request) # "let it throw, let it throw, let it throw..."
 	return response.read()
-	   
 	
 def GetValueFromJsonObject(p, key, value_name='value'):
 	if key in p:
