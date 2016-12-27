@@ -42,7 +42,7 @@
 			<select class="form-control form-control-lg" name="groupaccess" id="groupaccess">
 				<option value=""></option>
 				{% for scoutgroup in scoutgroups %}
-				<option value="{{sgroupurlkey}}" {% if sgroupurlkey==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
+				<option value="{{scoutgroup.key.urlsafe()}}" {% if sgroupurlkey==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
 				{% endfor %}
 			</select><br/>
 			</div>
