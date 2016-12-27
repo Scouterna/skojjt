@@ -373,7 +373,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			result = render_template('dak.xml', dak=dak)
 			response = make_response(result)
 			response.headers['Content-Type'] = 'application/xml'
-			response.headers['Content-Disposition'] = 'attachment; filename=' + dak.kort.NamnPaaKort + '-' + semester.getname() + '.xml'
+			response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') + '-' + semester.getname() + '.xml;'
 			return response
 		else:
 			allowance = []
