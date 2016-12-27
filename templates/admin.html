@@ -3,12 +3,18 @@
 {% include "navigation.html" %}
 	<div class="main">
 		<div class="jumbotron">
-			<a href="#" class="btn btn-lg btn-default">Termin</a>
-			<a href="/admin/access/" class="btn btn-lg btn-default">Access</a>
-			<hr/>
-			<a href="/admin/backup/" class="btn btn-lg btn-default">Backup xml</a>
-			<a href="/import/" class="btn btn-lg btn-default">Importera från scoutnet</a>
-			<a href="/admin/deleteall/" class="btn btn-lg btn-default">Delete all data</a>
+			<div class="btn-toolbar">
+				<a href="/admin/access/" class="btn btn-lg btn-default">Access</a>
+			</div>
+			<div class="btn-toolbar">
+				<a href="/import/" class="btn btn-lg btn-default">Importera från scoutnet</a>
+			</div>
+			<div class="btn-toolbar">
+				<a href="/admin/setcurrentsemester" class="btn btn-lg btn-default">Byt till ny termin för alla användare</a>
+			</div>
+			<div class="btn-toolbar">
+				<a href="/admin/backup/" class="btn btn-lg btn-default">Backup xml</a>
+			</div>
 		</div>
 	</div>
 </body>

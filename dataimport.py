@@ -29,7 +29,7 @@ def RunScoutnetImport(groupid, api_key, user, commit = True):
 		importer = ScoutnetImporter()
 		importer.commit = commit
 		result = importer.DoImport(data)
-		if user.groupaccess != importer.importedScoutGroup_key:
+		if commit and user.groupaccess != importer.importedScoutGroup_key:
 			user.groupaccess = importer.importedScoutGroup_key
 			user.put()
 	return result
@@ -66,16 +66,6 @@ def GetOrgnrAndKommunIDForGroup(groupname):
 				return str(row['id']), str(row['orgnr'])
 	return "", ""
 
-def GetOrCreateCurrentSemester(commit=True):
-	thisdate = datetime.datetime.now()
-	ht = False if thisdate.month>6 else True
-	semester = Semester.get_by_id(Semester.getid(thisdate.year + 1, ht), use_memcache=True)
-	if semester == None:
-		semester = Semester.create(thisdate.year + 1, ht)
-		if commit:
-			semester.put()
-	return semester
-
 class ScoutnetImporter:
 	report = []
 	commit = False
@@ -90,7 +80,7 @@ class ScoutnetImporter:
 	def GetOrCreateTroop(self, name, group_key, semester_key):
 		if len(name) == 0:
 			return None
-		troop = Troop.get_by_id(Troop.getid(name, group_key), use_memcache=True)
+		troop = Troop.get_by_id(Troop.getid(name, group_key, semester_key), use_memcache=True)
 		if troop == None:
 			self.report.append("Ny avdelning %s" % (name))
 			troop = Troop.create(name, group_key, semester_key)
@@ -107,7 +97,6 @@ class ScoutnetImporter:
 		if group == None:
 			self.report.append(u"Ny kår %s, id=%s" % (name, str(scoutnetID)))
 			group = ScoutGroup.create(name, scoutnetID)
-			group.activeSemester = GetOrCreateCurrentSemester(self.commit).key
 			group.scoutnetID = scoutnetID
 			group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
 			if self.commit:
@@ -135,6 +124,8 @@ class ScoutnetImporter:
 			self.report.append("Error, too few rows=%d" % len(list))
 			return self.report
 
+		semester = Semester.getOrCreateCurrent()
+		
 		for p in list:
 			id = int(p["id"])
 			person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
@@ -171,8 +162,8 @@ class ScoutnetImporter:
 			person.scoutgroup = scoutgroup.key
 			if len(p["troop"]) == 0:
 				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
-
-			troop = self.GetOrCreateTroop(p["troop"], person.scoutgroup, scoutgroup.activeSemester)
+				
+			troop = self.GetOrCreateTroop(p["troop"], scoutgroup.key, semester.key)
 			troop_key = troop.key if troop != None else None
 			new_troop = person.troop != troop_key
 			person.troop = troop_key
@@ -220,6 +211,8 @@ def DeleteAllData():
 	ndb.delete_multi(entries)
 	entries = Semester.query().fetch(1000, keys_only=True)
 	ndb.delete_multi(entries)
+	#entries = UserPrefs.query().fetch(1000, keys_only=True)
+	#ndb.delete_multi(entries)
 	ndb.get_context().clear_cache() # clear memcache
 
 def dofixsgroupids():
@@ -239,14 +232,6 @@ def dosettroopsemester():
 		troop.semester_key = semester_key
 		logging.info("updating semester for: %s", troop.getname())
 		troop.put()
-
-def ForceSemesterForAll(activeSemester):
-	for u in UserPrefs.query().fetch(1000):
-		u.activeSemester = activeSemester.key
-		u.put()
-	for m in Meeting.query().fetch(1000):
-		m.semester = activeSemester.key
-		m.put()
 
 def UpdateSchemaTroopPerson():
 	entries = TroopPerson().query().fetch()

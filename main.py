@@ -55,8 +55,7 @@ def home():
 def start(sgroup_url=None, troop_url=None, key_url=None):
 	user = UserPrefs.current()
 	if not user.hasAccess():
-		abort(403)
-		return "denied"
+		return "denied", 403
 		
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	section_title = u'Kårer'
@@ -157,14 +156,14 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			troopperson = TroopPerson.create(troop_key, person_key, False)
 			troopperson.commit()
 			return redirect(breadcrumbs[-1]['link'])
-		elif action == "newsemester":
-			if scoutgroup == None:
-				raise ValueError('Missing scoutgroup')
-			semester = Semester.getOrCreateCurrent()
-			scoutgroup.activeSemester = semester.key
-			scoutgroup.put()
-			logging.info("Set new semester: %s", semester.getname())
-			#ForceSemesterForAll(semester)
+		elif action == "setsemester":
+			if user == None or "semester" not in request.args:
+				raise ValueError('Missing user or semester arg')
+			semester_url = request.args["semester"]
+			user.activeSemester = ndb.Key(urlsafe=semester_url)
+			user.put()
+		elif action == "nextsemester":
+			semester = Semester.getOrCreateNext()
 			return semester.getname()
 		else:
 			logging.error('unknown action=' + action)
@@ -197,8 +196,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				meeting = Meeting.create(troop_key, 
 					mname,
 					dt,
-					int(mduration),
-					scoutgroup.activeSemester)
+					int(mduration))
 			else:
 				meeting = ndb.Key(urlsafe=key_url).get()
 				meeting.name = mname
@@ -232,7 +230,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			baselink=baselink,
 			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
 			user=user,
-			troops=Troop.query(Troop.scoutgroup==sgroup_key).fetch(100), # TODO: memcache
+			semesters=Semester.query(),
+			troops=Troop.getTroopsForUser(sgroup_key, user),
 			breadcrumbs=breadcrumbs)
 	elif key_url!=None and key_url!="dak":
 		meeting = ndb.Key(urlsafe=key_url).get()
@@ -258,7 +257,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 
 		section_title = troop.getname()
 		trooppersons = TroopPerson.getTroopPersonsForTroop(troop_key)
-		meetings = Meeting.gettroopmeetings(troop_key, scoutgroup.activeSemester)
+		meetings = Meeting.gettroopmeetings(troop_key)
 		
 		attendances = [] # [meeting][person]
 		persons = []
@@ -269,7 +268,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			persons.append(person)
 			personsDict[personKey] = person
 		
-		semester = scoutgroup.activeSemester.get()
+		semester = troop.semester_key.get()
 		year = semester.getyear()
 		for meeting in meetings:
 			maleAttendenceCount = 0
@@ -398,6 +397,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				
 			return render_template('troop.html',
 				heading=section_title,
+				semestername=semester.getname(),
 				baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
 				persons=persons,
 				trooppersons=trooppersons,
@@ -417,8 +417,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 def persons(sgroup_url=None, person_url=None, action=None):
 	user = UserPrefs.current()
 	if not user.hasAccess():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	
@@ -557,8 +556,7 @@ def getaccess():
 def import_():
 	user = UserPrefs.current()
 	if not user.canImport():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/import', 'text':'Import'}]
@@ -578,8 +576,7 @@ def import_():
 def admin():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/admin', 'text':'Admin'}]
@@ -591,8 +588,7 @@ def admin():
 def adminaccess(userprefs_url=None):
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	section_title = u'Hem'
 	baselink = '/'
@@ -610,7 +606,6 @@ def adminaccess(userprefs_url=None):
 		return render_template('userlist.html',
 			heading=section_title,
 			baselink=baselink,
-			addlink=True,
 			users=UserPrefs().query().fetch(),
 			breadcrumbs=breadcrumbs)
 	else:
@@ -645,51 +640,59 @@ def adminaccess(userprefs_url=None):
 def dodelete():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
-	# DeleteAllData()
-	return redirect('/admin')
+	# DeleteAllData() # uncomment to enable this
+	return redirect('/admin/')
 
 	
 @app.route('/admin/settroopsemester/')
 def settroopsemester():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	dosettroopsemester()
-	return redirect('/admin')
+	return redirect('/admin/')
 	
 @app.route('/admin/fixsgroupids/')
 def fixsgroupids():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	dofixsgroupids()
-	return redirect('/admin')
+	return redirect('/admin/')
 	
 
 @app.route('/admin/updateschemas')
 def doupdateschemas():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	UpdateSchemas()
-	return redirect('/admin')
+	return redirect('/admin/')
+	
+@app.route('/admin/setcurrentsemester')
+def setcurrentsemester():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		return "denied", 403
+
+	semester = Semester.getOrCreateCurrent()
+	for u in UserPrefs.query().fetch():
+		u.activeSemester = semester.key
+		u.put()
+
+	return redirect('/admin/')
 
 @app.route('/admin/backup')
 @app.route('/admin/backup/')
 def dobackup():
 	user = UserPrefs.current()
 	if not user.isAdmin():
-		abort(403)
-		return "denied"
+		return "denied", 403
 
 	response = make_response(GetBackupXML())
 	response.headers['Content-Type'] = 'application/xml'

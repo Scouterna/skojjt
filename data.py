@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 import codecs
 import datetime
 import logging
@@ -48,9 +46,24 @@ class Semester(ndb.Model):
 	def getOrCreateCurrent():
 		thisdate = datetime.datetime.now()
 		ht = True if thisdate.month>6 else False
-		semester = Semester.get_by_id(Semester.getid(thisdate.year + 1, ht))
+		year = thisdate.year
+		semester = Semester.get_by_id(Semester.getid(year, ht))
 		if semester == None:
-			semester = Semester.create(thisdate.year + 1, ht)
+			semester = Semester.create(year, ht)
+			semester.put()
+		return semester
+
+	@staticmethod
+	def getOrCreateNext():
+		thisdate = datetime.datetime.now()
+		ht = True if thisdate.month>6 else False
+		year = thisdate.year
+		if ht:
+			year += 1
+		ht = not ht
+		semester = Semester.get_by_id(Semester.getid(year, ht))
+		if semester == None:
+			semester = Semester.create(year, ht)
 			semester.put()
 		return semester
 
@@ -63,7 +76,7 @@ class Semester(ndb.Model):
 # kår
 class ScoutGroup(ndb.Model):
 	name = ndb.StringProperty(required=True)
-	activeSemester = ndb.KeyProperty(kind=Semester)
+	activeSemester = ndb.KeyProperty(kind=Semester, required=False) # TODO: remove
 	organisationsnummer = ndb.StringProperty()
 	foreningsID = ndb.StringProperty(required=False, default="")
 	scoutnetID = ndb.StringProperty(required=False, default="")
@@ -102,12 +115,20 @@ class Troop(ndb.Model):
 	semester_key = ndb.KeyProperty(kind=Semester)
 
 	@staticmethod
-	def getid(name, scoutgroup_key):
-		return name.lower().replace(' ', '')+scoutgroup_key.id()
+	def getid(name, scoutgroup_key, semester_key):
+		semester = semester_key.get()
+		if semester.year == 2016 and semester.ht: 
+			return name.lower().replace(' ', '')+scoutgroup_key.id() # backward compatible with existing records
+		else:
+			return name.lower().replace(' ', '')+scoutgroup_key.id()+semester.getname()
 
 	@staticmethod
 	def create(name, scoutgroup_key, semester_key):
-		return Troop(id=Troop.getid(name, scoutgroup_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
+		return Troop(id=Troop.getid(name, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
+		
+	@staticmethod
+	def getTroopsForUser(sgroup_key, user):
+		return Troop.query(Troop.scoutgroup==sgroup_key, user.activeSemester==Troop.semester_key).fetch()
 
 	def getname(self):
 		return self.name
@@ -187,35 +208,34 @@ class Meeting(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	troop = ndb.KeyProperty(kind=Troop, required=True)
 	duration = ndb.IntegerProperty(default=90, required=True) #minutes
-	semester = ndb.KeyProperty(kind=Semester, required=True)
+	semester = ndb.KeyProperty(kind=Semester, required=False) # TODO: remove
 	attendingPersons = ndb.KeyProperty(kind=Person, repeated=True) # list of attending persons' keys
 
 	@staticmethod
-	def __getMemcacheKeyString(troop_key, semester_key):
-		return 'tms:' + str(troop_key) + "/" + str(semester_key)
+	def __getMemcacheKeyString(troop_key):
+		return 'tms:' + str(troop_key)
 
 	@staticmethod
-	def create(troop_key, name, datetime, duration, semester_key):
-		m = Meeting(id=datetime.strftime("%Y%m%d%H%M")+str(troop_key.id())+str(semester_key.id()),
+	def create(troop_key, name, datetime, duration):
+		m = Meeting(id=datetime.strftime("%Y%m%d%H%M")+str(troop_key.id()),
 			datetime=datetime,
 			name=name,
 			troop=troop_key,
-			duration=duration,
-			semester=semester_key
+			duration=duration
 			)
-		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key, semester_key))
+		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
 		if troopmeeting_keys is not None and m.key not in troopmeeting_keys:
 			troopmeeting_keys.append(m.key)
-			memcache.replace(Meeting.__getMemcacheKeyString(troop_key, semester_key), troopmeeting_keys)
+			memcache.replace(Meeting.__getMemcacheKeyString(troop_key), troopmeeting_keys)
 		return m
 
 	@staticmethod
-	def gettroopmeetings(troop_key, semester_key):
+	def gettroopmeetings(troop_key):
 		troopmeetings = []
-		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key, semester_key))
+		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
 		if troopmeeting_keys is None:
-			troopmeeting_keys = Meeting.query(Meeting.troop==troop_key, Meeting.semester==semester_key).fetch(keys_only=True)
-			memcache.add(Meeting.__getMemcacheKeyString(troop_key, semester_key), troopmeeting_keys)
+			troopmeeting_keys = Meeting.query(Meeting.troop==troop_key).fetch(keys_only=True)
+			memcache.add(Meeting.__getMemcacheKeyString(troop_key), troopmeeting_keys)
 		for tm_key in troopmeeting_keys:
 			m = tm_key.get()
 			if m != None:
@@ -225,10 +245,10 @@ class Meeting(ndb.Model):
 
 	def delete(self):
 		self.key.delete()
-		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(self.troop, self.semester))
+		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(self.troop))
 		if troopmeeting_keys is not None:
 			troopmeeting_keys.remove(self.key)
-			memcache.replace(Meeting.__getMemcacheKeyString(self.troop, self.semester), troopmeeting_keys)
+			memcache.replace(Meeting.__getMemcacheKeyString(self.troop), troopmeeting_keys)
 
 	def commit(self):
 		self.put()

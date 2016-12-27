@@ -4,7 +4,7 @@
 	<table id="maintable" class="table table-striped display nowrap">
 	  <thead>
 		<tr>
-			<th><span class="heading">{{heading}}</span></th>
+			<th>{{semestername}}<br/><span class="heading">{{heading}}</span></th>
 			{% for meeting in meetings %}
 			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
 			{% endfor %}

@@ -7,9 +7,9 @@
 			<table id="maintable" class="table table-striped">
 			  <thead>
 				<tr>
-				  <th class="col-xs-3 col-sm-3 col-lg-3">Namn</th>
-				  <th class="col-xs-3 col-sm-3 col-lg-3">Email</th>
-				  <th class="col-xs-3 col-sm-3 col-lg-3">Kår</th>
+				  <th class="col-xs-2 col-sm-2 col-lg-2">Namn</th>
+				  <th class="col-xs-2 col-sm-2 col-lg-2">Email</th>
+				  <th class="col-xs-2 col-sm-2 col-lg-2">Kår</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Access</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Import</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Admin</th>
@@ -18,8 +18,19 @@
 			  <tbody>
 				{% for u in users %}
                 <tr><td><a href="{{baselink+u.key.urlsafe()}}/">{{u.getname()}}</a></td>
-				<td><a href="mailto:{{u.getemail()}}/">{{u.getemail()}}</a></td>
-				<td>{% if u.groupaccess != None %}{{u.groupaccess.get().getname()}}{% else %}-{% endif %}</td>
+				<td><a href="mailto:{{u.getemail()}}">{{u.getemail()}}</a></td>
+				{% set sgroupname = '' %}
+				{% set sgroupurlkey = '' %}
+				{% if u.groupaccess != None %}
+					{% set group = u.groupaccess.get() %}
+					{% set sgroupurlkey = u.groupaccess.urlsafe() %}
+					{% if group == None %}
+						{% set sgroupname = sgroupurlkey %}
+					{% else %}
+						{% set sgroupname = group.getname() %}
+					{% endif %}
+				{% endif %}
+				<td>{{sgroupname}}</td>
 				<td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</a></td>
 				<td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</a></td>
 				<td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
