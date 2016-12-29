@@ -650,10 +650,11 @@ def adminaccess(userprefs_url=None):
 	breadcrumbs.append({'link':baselink, 'text':section_title})
 
 	if userprefs_url == None:
+		users = UserPrefs().query().fetch()
 		return render_template('userlist.html',
 			heading=section_title,
 			baselink=baselink,
-			users=UserPrefs().query().fetch(),
+			users=users,
 			breadcrumbs=breadcrumbs)
 	else:
 		userprefs = ndb.Key(urlsafe=userprefs_url).get()
@@ -733,6 +734,18 @@ def setcurrentsemester():
 		u.put()
 
 	return redirect('/admin/')
+	
+@app.route('/admin/autoGroupAccess')
+def autoGroupAccess():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		return "denied", 403
+	users = UserPrefs().query().fetch()
+	for u in users:
+		u.attemptAutoGroupAccess()
+
+	return "done"
+
 
 @app.route('/admin/backup')
 @app.route('/admin/backup/')
