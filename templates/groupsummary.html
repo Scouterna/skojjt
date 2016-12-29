@@ -1,0 +1,20 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<h1>Föreningsredovisning</h1>
+<div class="table-responsive">
+	<table class="table table-striped">
+	  <thead>
+		<tr>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Ålder</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Kvinnor</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Män</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for item in items %}
+		<tr><td>{{item.age}}</td><td>{{item.women}}</td><td>{{item.men}}</td></tr>
+		{% endfor %}
+	 </tbody>
+	</table>
+</div>
+{% endblock %}

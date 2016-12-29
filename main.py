@@ -230,6 +230,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			heading=section_title,
 			baselink=baselink,
 			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
+			groupsummarylink='/groupsummary/' + sgroup_url + '/',
 			user=user,
 			semesters=Semester.query(),
 			troops=Troop.getTroopsForUser(sgroup_key, user),
@@ -521,7 +522,7 @@ def scoutgroupinfo(sgroup_url):
 		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
 		if "import" in request.form:
 			result = RunScoutnetImport(scoutgroup.scoutnetID, scoutgroup.apikey_all_members, user)
-			return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
+			return render_template('table.html', tabletitle="Importresultat", items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
 		else:
 			return redirect(breadcrumbs[-1]['link'])
 	else:
@@ -530,6 +531,50 @@ def scoutgroupinfo(sgroup_url):
 			baselink=baselink,
 			scoutgroup=scoutgroup,
 			breadcrumbs=breadcrumbs)
+			
+
+@app.route('/groupsummary/<sgroup_url>')
+@app.route('/groupsummary/<sgroup_url>/')
+def scoutgroupsummary(sgroup_url):
+	user = UserPrefs.current()
+	if not user.canImport():
+		return "denied", 403
+	if sgroup_url is None:
+		return "missing group", 404
+
+	breadcrumbs = [{'link':'/', 'text':'Hem'}]
+	baselink = "/groupsummary/"
+	section_title = "Föreningsredovisning"
+	sgroup_key = ndb.Key(urlsafe=sgroup_url)
+	scoutgroup = sgroup_key.get()
+	class Item():
+		age = 0
+		women = 0
+		men = 0
+		def __init__(self, age, women=0, men=0):
+			self.age = age
+			self.women = women
+			self.men = men
+
+	thisdate = datetime.datetime.now()
+	women = 0
+	men = 0
+	startage = 6
+	endage = 99
+	items = [Item(i) for i in range(startage, endage)]
+	for person in Person.query(Person.scoutgroup==sgroup_key, Person.removed==False).fetch():
+		age = person.getyearsoldthisyear(thisdate.year)
+		if age >= startage and age <= endage:
+			index = age-startage
+			if person.female:
+				women += 1
+				items[index].women += 1
+			else:
+				men += 1
+				items[index].men += 1
+	items.append(Item("Totalt", women, men))
+	return render_template('groupsummary.html', items=items, breadcrumbs=breadcrumbs)
+
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
@@ -569,7 +614,7 @@ def import_():
 	api_key = request.form.get('apikey').strip()
 	groupid = request.form.get('groupid').strip()
 	result = RunScoutnetImport(groupid, api_key, user, commit)
-	return render_template('table.html', items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
+	return render_template('table.html', items=result, tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
 
 
 @app.route('/admin')
