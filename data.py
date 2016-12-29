@@ -202,6 +202,11 @@ class Person(PropertyWriteTracker):
 
 	def getyearsoldthisyear(self, year):
 		return year - self.birthdate.year
+	
+	def getIsLeader(self):
+		thisdate = datetime.datetime.now()
+		return self.getyearsoldthisyear(thisdate.year) >= 18
+
 
 class Meeting(ndb.Model):
 	datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
@@ -341,18 +346,29 @@ class UserPrefs(ndb.Model):
 
 	def getname(self):
 		return self.name
-		
+
 	def getemail(self):
 		if self.email != None and len(self.email) != 0:
 			return self.email
 		if '@' in self.name:
 			return self.name
 		return self.name + '@gmail.com'
-		
+
 	@staticmethod
 	def current():
 		cu = users.get_current_user()
 		return UserPrefs.getorcreate(cu)
+	
+	def attemptAutoGroupAccess(self):
+		if self.groupaccess is None:
+			persons = Person.query(self.email == Person.email).fetch()
+			if persons is not None and len(persons) > 0:
+				person = persons[0]
+				if person.getIsLeader():
+					self.groupaccess = person.scoutgroup
+					self.hasaccess = True
+					self.put()
+					logging.info("Auto groupaccess for %s: %s %s", self.email, person.firstname, person.lastname)
 
 	def updateMemcache(self):
 		if not memcache.add(self.userid, self):
@@ -381,11 +397,11 @@ class UserPrefs(ndb.Model):
 				# old record, update to a new with user_id as id and email
 				if olduser != None:
 					userprefs = UserPrefs.create(user, olduser.hasAccess(), olduser.isAdmin())
-					userprefs.activeSemester = olduser.activeSemester 
+					userprefs.activeSemester = olduser.activeSemester
 					userprefs.groupaccess = olduser.groupaccess
 					userprefs.groupadmin = olduser.groupadmin
 					userprefs.put()
-					olduser.key.delete()	
+					olduser.key.delete()
 			userprefs.updateMemcache()
 			return userprefs
 

@@ -30,6 +30,7 @@ sys.setdefaultencoding('utf8')
 def home():
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	user=UserPrefs.current()
+	user.attemptAutoGroupAccess()
 	starturl = '/start/'
 	personsurl = '/persons/'
 	if user.groupaccess != None:
