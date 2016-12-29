@@ -542,11 +542,12 @@ def scoutgroupsummary(sgroup_url):
 	if sgroup_url is None:
 		return "missing group", 404
 
-	breadcrumbs = [{'link':'/', 'text':'Hem'}]
-	baselink = "/groupsummary/"
-	section_title = "Föreningsredovisning"
 	sgroup_key = ndb.Key(urlsafe=sgroup_url)
 	scoutgroup = sgroup_key.get()
+	breadcrumbs = [{'link':'/', 'text':'Hem'}]
+	baselink = "/groupsummary/" + sgroup_url
+	section_title = "Föreningsredovisning - " + scoutgroup.getname()
+	breadcrumbs.append({'link':baselink, 'text':section_title})
 	class Item():
 		age = 0
 		women = 0
