@@ -343,6 +343,9 @@ class UserPrefs(ndb.Model):
 
 	def canImport(self):
 		return self.hasaccess and self.canimport
+		
+	def isGroupAdmin(self):
+		return self.hasaccess and self.groupaccess and self.groupaccess != None
 
 	def getname(self):
 		return self.name

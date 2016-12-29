@@ -684,6 +684,42 @@ def adminaccess(userprefs_url=None):
 	
 	abort(404)
 
+@app.route('/groupaccess')
+@app.route('/groupaccess/')
+@app.route('/groupaccess/<userprefs_url>')
+def groupaccess(userprefs_url=None):
+	user = UserPrefs.current()
+	if not user.isGroupAdmin():
+		return "denied", 403
+
+	section_title = u'Hem'
+	baselink = '/'
+	breadcrumbs = [{'link':baselink, 'text':section_title}]
+	
+	section_title = u'Kåraccess'
+	baselink += 'groupaccess/'
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+
+	if userprefs_url != None:
+		userprefs = ndb.Key(urlsafe=userprefs_url).get()
+		groupaccessurl = request.args["setgroupaccess"]
+		if groupaccessurl == 'None':
+			userprefs.groupaccess = None
+		else:
+			userprefs.groupaccess = ndb.Key(urlsafe=groupaccessurl)
+			userprefs.hasaccess = True
+		userprefs.put()
+	
+	users = UserPrefs().query(UserPrefs.groupaccess == None).fetch()
+	users.extend(UserPrefs().query(UserPrefs.groupaccess == user.groupaccess).fetch())
+	return render_template('groupaccess.html',
+		heading=section_title,
+		baselink=baselink,
+		users=users,
+		breadcrumbs=breadcrumbs,
+		mygroupurl=user.groupaccess.urlsafe(),
+		mygroupname=user.groupaccess.get().getname())
+
 @app.route('/admin/deleteall/')
 def dodelete():
 	user = UserPrefs.current()

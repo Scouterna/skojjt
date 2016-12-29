@@ -1,0 +1,37 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<h1 class="page-header">{{heading}}</h1>
+Du kan lägga och ta bort till användare till din kår. Du kan bara ändra användare som inte har någon kår, eller som är med i din egen kår.
+Användare som du lägger till kan rapportera närvaro i din kår.
+<div class="table-responsive">
+	<table id="maintable" class="table table-striped">
+	  <thead>
+		<tr>
+		  <th class="col-xs-2 col-sm-2 col-lg-2">Namn</th>
+		  <th class="col-xs-2 col-sm-2 col-lg-2">Email</th>
+		  <th class="col-xs-2 col-sm-2 col-lg-2">Access till kår</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for u in users %}
+		<tr><td>{{u.getname()}}</td>
+		<td><a href="mailto:{{u.getemail()}}">{{u.getemail()}}</a></td>
+		{% set sgroupname = '' %}
+		{% set sgroupurlkey = '' %}
+		{% if u.groupaccess != None %}
+			{% set group = u.groupaccess.get() %}
+			{% set sgroupurlkey = u.groupaccess.urlsafe() %}
+			{% if group == None %}
+				{% set sgroupname = sgroupurlkey %}
+			{% else %}
+				{% set sgroupname = group.getname() %}
+			{% endif %}
+		{% endif %}
+		<td>{%if sgroupname==''%}<a href="./{{u.key.urlsafe()}}?setgroupaccess={{mygroupurl}}" class="btn btn-success">Lägg till i {{mygroupname}}</a>
+		{%else%}<a href="./{{u.key.urlsafe()}}?setgroupaccess=None" class="btn btn-warning">Ta bort ifrån {{mygroupname}}{%endif%}</a></td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+{% endblock %}

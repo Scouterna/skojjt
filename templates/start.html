@@ -13,6 +13,12 @@
 	<a href="/import/" class="btn btn-lg btn-default">Import</a>
 	</div>
 {% endif %}
+{% if user.isGroupAdmin() %}
+	<hr/>
+	<div class="btn-toolbar">
+	<a href="/groupaccess/" class="btn btn-lg btn-default">Kåraccess för användare</a>
+	</div>
+{% endif %}
 {% if user.isAdmin() %}
 	<hr/>
 	<div class="btn-toolbar">
