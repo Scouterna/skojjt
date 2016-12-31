@@ -150,6 +150,8 @@ class Person(PropertyWriteTracker):
 	street = ndb.StringProperty()
 	zip_code = ndb.StringProperty()
 	zip_name = ndb.StringProperty()
+	troop_roles = ndb.StringProperty(repeated=True)
+	group_roles = ndb.StringProperty(repeated=True)
 
 	@staticmethod
 	def create(id, firstname, lastname, personnr, female):
@@ -203,9 +205,15 @@ class Person(PropertyWriteTracker):
 	def getyearsoldthisyear(self, year):
 		return year - self.birthdate.year
 	
-	def getIsLeader(self):
+	def isLeader(self):
+		if self.troop_roles != None:
+			if any(u'ledare' in role for role in self.troop_roles):
+				return True
 		thisdate = datetime.datetime.now()
 		return self.getyearsoldthisyear(thisdate.year) >= 18
+
+	def isBoardMember(self):
+		return self.group_roles != None and len(self.group_roles) > 0
 
 
 class Meeting(ndb.Model):
@@ -324,6 +332,11 @@ class TroopPerson(ndb.Model):
 	def gettroopname(self):
 		return self.troop.get().getname()
 
+	def getFullTroopname(self):
+		troop = self.troop.get()
+		semester = troop.semester_key.get()
+		return self.troop.get().getname() + ' - ' + semester.getname()
+
 class UserPrefs(ndb.Model):
 	userid = ndb.StringProperty(required=True)
 	hasaccess = ndb.BooleanProperty(required=True)
@@ -367,7 +380,7 @@ class UserPrefs(ndb.Model):
 			persons = Person.query(self.email == Person.email).fetch()
 			if persons is not None and len(persons) > 0:
 				person = persons[0]
-				if person.getIsLeader():
+				if person.isLeader():
 					self.groupaccess = person.scoutgroup
 					self.hasaccess = True
 					self.put()

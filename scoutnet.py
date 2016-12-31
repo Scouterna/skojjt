@@ -69,6 +69,8 @@ def GetScoutnetDataListJson(json_data):
 		m["street"] = GetValueFromJsonObject(p, 'address_1')
 		m["zip_code"] = GetValueFromJsonObject(p, 'postcode')
 		m["zip_name"] = GetValueFromJsonObject(p, 'town')
+		m["troop_roles"] = filter(None, GetValueFromJsonObject(p, 'unit_role').lower().split(','))
+		m["group_roles"] = filter(None, GetValueFromJsonObject(p, 'group_role').lower().split(','))
 		result.append(m)
 	return result
 	

@@ -157,7 +157,9 @@ class ScoutnetImporter:
 			person.street = p["street"]
 			person.zip_code = p["zip_code"]
 			person.zip_name = p["zip_name"]
-
+			person.troop_roles = p["troop_roles"]
+			person.group_roles = p["group_roles"]
+			
 			scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"])
 			person.scoutgroup = scoutgroup.key
 			if len(p["troop"]) == 0:

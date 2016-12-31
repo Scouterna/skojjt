@@ -154,7 +154,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			person_key = ndb.Key(urlsafe=key_url)
 			person = person_key.get()
 			logging.info("adding person=%s to troop=%d", person.getname(), troop.getname())
-			troopperson = TroopPerson.create(troop_key, person_key, False)
+			troopperson = TroopPerson.create(troop_key, person_key, person.isLeader())
 			troopperson.commit()
 			return redirect(breadcrumbs[-1]['link'])
 		elif action == "setsemester":
@@ -562,19 +562,34 @@ def scoutgroupsummary(sgroup_url):
 	men = 0
 	startage = 6
 	endage = 99
-	items = [Item(i) for i in range(startage, endage)]
+	ages = [Item(i) for i in range(startage, endage)]
+	leaders = [Item(u't.o.m. 26 år'), Item(u'över 26 år')]
+	boardmebers = [Item('')]
+	
 	for person in Person.query(Person.scoutgroup==sgroup_key, Person.removed==False).fetch():
 		age = person.getyearsoldthisyear(thisdate.year)
 		if age >= startage and age <= endage:
 			index = age-startage
 			if person.female:
 				women += 1
-				items[index].women += 1
+				ages[index].women += 1
 			else:
 				men += 1
-				items[index].men += 1
-	items.append(Item("Totalt", women, men))
-	return render_template('groupsummary.html', items=items, breadcrumbs=breadcrumbs)
+				ages[index].men += 1
+		if person.isBoardMember():
+			if person.female:
+				boardmebers[0].women += 1
+			else:
+				boardmebers[0].men += 1
+		if person.isLeader():
+			index = 0 if age <= 26 else 1
+			if person.female:
+				leaders[index].women += 1
+			else:
+				leaders[index].men += 1
+
+	ages.append(Item("Totalt", women, men))
+	return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders, breadcrumbs=breadcrumbs)
 
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
