@@ -557,32 +557,44 @@ def scoutgroupsummary(sgroup_url):
 			self.women = women
 			self.men = men
 
-	thisdate = datetime.datetime.now()
+	year = datetime.datetime.now().year - 1 # previous year
 	women = 0
 	men = 0
-	startage = 6
-	endage = 99
-	ages = [Item(i) for i in range(startage, endage)]
-	leaders = [Item(u't.o.m. 26 år'), Item(u'över 26 år')]
+	startage = 7
+	endage = 25
+	ages = [Item('0 - 6')]
+	ages.extend([Item(i) for i in range(startage, endage+1)])
+	ages.append(Item('26 - 64'))
+	ages.append(Item('65 -'))
+	leaders = [Item(u't.o.m. 25 år'), Item(u'över 25 år')]
 	boardmebers = [Item('')]
 	
 	for person in Person.query(Person.scoutgroup==sgroup_key, Person.removed==False).fetch():
-		age = person.getyearsoldthisyear(thisdate.year)
-		if age >= startage and age <= endage:
-			index = age-startage
-			if person.female:
-				women += 1
-				ages[index].women += 1
-			else:
-				men += 1
-				ages[index].men += 1
+		age = person.getyearsoldthisyear(year)
+		index = 0
+		if 7 <= age <= 25:
+			index = age-startage + 1
+		elif age < 7:
+			index = 0
+		elif 26 <= age <= 64:
+			index = endage - startage + 2
+		else:
+			index = endage - startage + 3
+			
+		if person.female:
+			women += 1
+			ages[index].women += 1
+		else:
+			men += 1
+			ages[index].men += 1
+
 		if person.isBoardMember():
 			if person.female:
 				boardmebers[0].women += 1
 			else:
 				boardmebers[0].men += 1
 		if person.isLeader():
-			index = 0 if age <= 26 else 1
+			index = 0 if age <= 25 else 1
 			if person.female:
 				leaders[index].women += 1
 			else:
