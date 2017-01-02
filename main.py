@@ -676,17 +676,9 @@ def adminaccess(userprefs_url=None):
 	baselink += 'access/'
 	breadcrumbs.append({'link':baselink, 'text':section_title})
 
-	if userprefs_url == None:
-		users = UserPrefs().query().fetch()
-		return render_template('userlist.html',
-			heading=section_title,
-			baselink=baselink,
-			users=users,
-			breadcrumbs=breadcrumbs)
-	else:
+	if userprefs_url != None:
 		userprefs = ndb.Key(urlsafe=userprefs_url).get()
 		if request.method == 'POST':
-			#logging.info('request.form=%s', str(request.form))
 			userprefs.hasaccess = request.form.get('hasAccess') == 'on'
 			userprefs.hasadminaccess = request.form.get('hasAdminAccess') == 'on'
 			userprefs.groupadmin = request.form.get('groupadmin') == 'on'
@@ -696,7 +688,6 @@ def adminaccess(userprefs_url=None):
 				sgroup_key = ndb.Key(urlsafe=request.form.get('groupaccess'))
 			userprefs.groupaccess = sgroup_key
 			userprefs.put()
-			return redirect(breadcrumbs[-1]['link'])
 		else:
 			section_title = userprefs.getname()
 			baselink += userprefs_url + '/' 
@@ -707,9 +698,14 @@ def adminaccess(userprefs_url=None):
 				addlink=True,
 				userprefs=userprefs,
 				breadcrumbs=breadcrumbs,
-				scoutgroups=ScoutGroup.query().fetch(300))
-	
-	abort(404)
+				scoutgroups=ScoutGroup.query().fetch())
+
+	users = UserPrefs().query().fetch()
+	return render_template('userlist.html',
+		heading=section_title,
+		baselink=baselink,
+		users=users,
+		breadcrumbs=breadcrumbs)
 
 @app.route('/groupaccess')
 @app.route('/groupaccess/')

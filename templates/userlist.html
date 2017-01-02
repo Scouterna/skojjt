@@ -12,6 +12,7 @@
 				  <th class="col-xs-2 col-sm-2 col-lg-2">Kår</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Access</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Import</th>
+				  <th class="col-xs-1 col-sm-1 col-lg-1">Kåradmin</th>
 				  <th class="col-xs-1 col-sm-1 col-lg-1">Admin</th>
 				</tr>
 			  </thead>
@@ -33,6 +34,7 @@
 				<td>{{sgroupname}}</td>
 				<td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</a></td>
 				<td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.isGroupAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
 				<td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
 				</tr>
 				{% endfor %}

@@ -31,8 +31,9 @@ def RunScoutnetImport(groupid, api_key, user, semester):
 	if data != None:
 		importer = ScoutnetImporter()
 		result = importer.DoImport(data, semester)
-		if user.groupaccess != importer.importedScoutGroup_key:
+		if user.groupaccess != importer.importedScoutGroup_key or user.hasaccess != True:
 			user.groupaccess = importer.importedScoutGroup_key
+			user.hasaccess = True
 			user.put()
 	return result
 	
