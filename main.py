@@ -521,7 +521,7 @@ def scoutgroupinfo(sgroup_url):
 		scoutgroup.put()
 		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
 		if "import" in request.form:
-			result = RunScoutnetImport(scoutgroup.scoutnetID, scoutgroup.apikey_all_members, user)
+			result = RunScoutnetImport(scoutgroup.scoutnetID, scoutgroup.apikey_all_members, user, Semester.getOrCreateCurrent())
 			return render_template('table.html', tabletitle="Importresultat", items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
 		else:
 			return redirect(breadcrumbs[-1]['link'])
@@ -636,12 +636,12 @@ def import_():
 				   {'link':'/import', 'text':'Import'}]
 
 	if request.method != 'POST':
-		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, username=user.getname())
+		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, user=user, semesters=Semester.query())
 
-	commit = 'commit' in request.form.values()
 	api_key = request.form.get('apikey').strip()
 	groupid = request.form.get('groupid').strip()
-	result = RunScoutnetImport(groupid, api_key, user, commit)
+	semester=ndb.Key(urlsafe=request.form.get('semester')).get()
+	result = RunScoutnetImport(groupid, api_key, user, semester)
 	return render_template('table.html', items=result, tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
 
 

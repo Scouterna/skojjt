@@ -10,9 +10,11 @@ from google.appengine.ext.ndb import metadata
 import StringIO
 import urllib2
 
-def RunScoutnetImport(groupid, api_key, user, commit = True):
+def RunScoutnetImport(groupid, api_key, user, semester):
+	commit = True
 	data = None
 	result = []
+	logging.info('Importing semester=%s', semester.getname())
 	if groupid == None or groupid == "" or api_key == None or api_key == "":
 		result.append(u"Du måste ange både kårid och api nyckel")
 		return result
@@ -20,6 +22,7 @@ def RunScoutnetImport(groupid, api_key, user, commit = True):
 	try:
 		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
 	except urllib2.HTTPError as e:
+		logging.error('Scoutnet http error=%s', str(e))
 		result.append(u"Kunde inte läsa medlämmar från scoutnet, fel=%s" % (str(e)))
 		if e.code == 401:
 			result.append(u"Kontrollera: api nyckel och kårid.")
@@ -27,9 +30,8 @@ def RunScoutnetImport(groupid, api_key, user, commit = True):
 		
 	if data != None:
 		importer = ScoutnetImporter()
-		importer.commit = commit
-		result = importer.DoImport(data)
-		if commit and user.groupaccess != importer.importedScoutGroup_key:
+		result = importer.DoImport(data, semester)
+		if user.groupaccess != importer.importedScoutGroup_key:
 			user.groupaccess = importer.importedScoutGroup_key
 			user.put()
 	return result
@@ -68,13 +70,13 @@ def GetOrgnrAndKommunIDForGroup(groupname):
 
 class ScoutnetImporter:
 	report = []
-	commit = False
+	commit = True
 	rapportID = 1
 	importedScoutGroup_key = None
 	
 	def __init__(self):
 		self.report = []
-		commit = False
+		commit = True
 		rapportID = 1
 	
 	def GetOrCreateTroop(self, name, group_key, semester_key):
@@ -110,7 +112,7 @@ class ScoutnetImporter:
 		self.importedScoutGroup_key = group.key
 		return group
 
-	def DoImport(self, data):
+	def DoImport(self, data, semester):
 		if not self.commit:
 			self.report.append("*** sparar inte, test mode ***")
 
@@ -124,8 +126,6 @@ class ScoutnetImporter:
 			self.report.append("Error, too few rows=%d" % len(list))
 			return self.report
 
-		semester = Semester.getOrCreateCurrent()
-		
 		for p in list:
 			id = int(p["id"])
 			person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
