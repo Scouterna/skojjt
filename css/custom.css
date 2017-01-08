@@ -1,5 +1,5 @@
-.breadcrumb > li + li:before {
-	content: "»"
+﻿.breadcrumb > li + li:before {
+	content: "\00BB";
 }
 .breadcrumb {
 padding: 8px 15px;
@@ -48,3 +48,11 @@ width: 24px; height: 24px;
 	font-size: 36px;
     font-weight: bold;
 }
+.troopnames
+{
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+

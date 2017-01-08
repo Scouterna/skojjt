@@ -4,7 +4,7 @@
 	<table id="maintable" class="table table-striped display nowrap">
 	  <thead>
 		<tr>
-			<th>{{semestername}}<br/><span class="heading">{{heading}}</span></th>
+			<th class="troopnames">{{semestername}}<br/><span class="heading">{{heading}}</span></th>
 			{% for meeting in meetings %}
 			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
 			{% endfor %}
@@ -12,7 +12,7 @@
 	  </thead>
 	  <tbody>
 		{% for person in persons %}{% set iperson = loop.index0 %}{% set isleader = trooppersons[iperson].leader %}
-		<tr><td class="name-field" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}">
+		<tr><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}">
 			<a href="{{baselink+person.key.urlsafe()}}/">
 			{{loop.index}}:{{ person.getname() }}{% if isleader %}(L){% endif %}
 			</a>
@@ -23,7 +23,7 @@
 		</tr>
 		{% endfor %}
 		{% if meetings %}
-		<tr><td><span class="saveinfo">&nbsp;</span></td>
+		<tr><td class="troopnames"><span class="saveinfo">&nbsp;</span></td>
 		{% endif %}
 		{% for meeting in meetings %}
 		<td>
