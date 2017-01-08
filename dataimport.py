@@ -126,6 +126,9 @@ class ScoutnetImporter:
 		if len(list) < 1:
 			self.report.append("Error, too few rows=%d" % len(list))
 			return self.report
+		
+		personsToSave = []
+		troopPersonsToSave = []
 
 		for p in list:
 			id = int(p["id"])
@@ -177,7 +180,7 @@ class ScoutnetImporter:
 			if person._dirty:
 				self.report.append(u"Sparar ändringar:%s %s %s" % (id, p["firstname"], p["lastname"]))
 				if self.commit:
-					person.put()
+					personsToSave.append(person)
 
 			if new_troop:
 				if person.troop:
@@ -187,7 +190,8 @@ class ScoutnetImporter:
 
 				if troop_key != None:
 					if self.commit:
-						TroopPerson.create(troop_key, person.key, False).put()
+						tp = TroopPerson.create(troop_key, person.key, False)
+						troopPersonsToSave.append(tp)
 					self.report.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
 
 			if person.removed:
@@ -198,6 +202,10 @@ class ScoutnetImporter:
 						for tp in tps:
 							tp.delete()
 						person.key.delete()
+			
+			if self.commit:
+				ndb.put_multi(personsToSave)
+				ndb.put_multi(troopPersonsToSave)
 
 		return self.report
 				

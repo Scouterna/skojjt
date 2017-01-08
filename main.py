@@ -635,8 +635,11 @@ def import_():
 	breadcrumbs = [{'link':'/', 'text':'Hem'},
 				   {'link':'/import', 'text':'Import'}]
 
+	currentSemester = Semester.getOrCreateCurrent()
+	semesters=[currentSemester]
+	semesters.extend(Semester.query(Semester.key!=currentSemester.key))
 	if request.method != 'POST':
-		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, user=user, semesters=Semester.query())
+		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, user=user, semesters=semesters)
 
 	api_key = request.form.get('apikey').strip()
 	groupid = request.form.get('groupid').strip()
