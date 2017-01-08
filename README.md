@@ -1,4 +1,4 @@
-﻿#Skojjt
+#Skojjt
 ##Närvarorapportering för scouter. 
 
 *av Martin Green/Tynnereds scoutkår.*
@@ -26,16 +26,28 @@ http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 
 ###[Dokumentation](https://github.com/martin-green/skojjt/wiki)
 
-###Hur man testar/utvecklar
-Klona git-repon till lokal dator.
-Installera Python 2.7 och Google App Engine SDK (GAE). 
-Starta GAE. Lägg till skojjt med File|Add existing application...
-Markera skojjt i listan kicka start, sen browse.
-Man kan också köra Visual Studio Code för att få brytpunkter i koden.
 
-Om du kör på windows och får felet:
+
+###Hur man testar/utvecklar i Windows:
+* Klona git-repon till lokal dator.
+* Installera Python 2.7 och Google App Engine SDK (GAE). 
+* Starta GAE. Lägg till skojjt med File|Add existing application...
+* Markera skojjt i listan kicka start, sen browse.
+* Man kan också köra Visual Studio Code för att få brytpunkter i koden.
+
+###Hur man testar/utvecklar i Linux:
+* Klona git-repon till lokal dator.
+* Installera Python 2.7 och Google App Engine SDK (GAE). 
+* Konfigurera GAE `gcloud init
+* Deploy kod `gcloud app deploy` från git mappen
+* Testa appen `gcloud app browse`
+
+#### Kända Fel
+Om du kör på windows och får felet:   
 "ImportError: cannot import name RAND_egd"
+
 Editera:
 C:\Prgram Files (x86)\Google\google_appengine\google\appengine\dist27\socket.py
-ta bort: RAND_egd from line 73:
+
+ta bort: RAND_egd from line 73:   
 from _ssl import RAND_add, RAND_egd, RAND_status, SSL_ERROR_ZERO_RETURN, SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE, SSL_ERROR_WANT_X509_LOOKUP, SSL_ERROR_SYSCALL, SSL_ERROR_SSL, SSL_ERROR_WANT_CONNECT, SSL_ERROR_EOF, SSL_ERROR_INVALID_ERROR_CODE
