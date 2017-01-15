@@ -94,6 +94,26 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			baselink=baselink,
 			form=str(form),
 			breadcrumbs=breadcrumbs)
+	if key_url == "delete":
+		if troop == None:
+			return "", 404
+		if len(request.form) > 0 and "confirm" in request.form:
+			if not user.isGroupAdmin():
+				return "", 403
+			troop.delete()
+			troop = None
+			del breadcrumbs[-1]
+			baselink=breadcrumbs[-1]["link"]
+		else:
+			form = htmlform.HtmlForm('deletetroop', submittext="Radera", buttonType="btn-danger", 
+				descriptionText=u"Vill du verkligen radera avdelningen och all registrerad närvaro?\nDet går här inte att ångra.")
+			form.AddField('confirm', '', '', 'hidden')
+			return render_template('form.html',
+				heading=section_title,
+				baselink=baselink,
+				form=str(form),
+				breadcrumbs=breadcrumbs)
+
 	if key_url == "newperson":
 		section_title = "Ny person"
 		baselink += key_url + "/"
@@ -125,10 +145,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				scoutnet.AddPersonToWaitinglist(scoutgroup, person.firstname, person.lastname, person.personnr, person.email, request.form['street'], request.form['zip_code'], request.form['zip_name'], person.mobile, person.phone)
 			return redirect(breadcrumbs[-2]['link'])
 	
-	if request.method == "GET" and len(request.args) > 0:
-		action =""
-		if "action" in request.args:
-			action = request.args["action"]
+	if request.method == "GET" and len(request.args) > 0 and "action" in request.args:
+		action = request.args["action"]
 		logging.debug("action %s", action)
 		if action == "lookupperson":
 			if scoutgroup == None:
@@ -145,7 +163,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 					jsonstr += '{"name": "'+person.getname()+'", "url": "' + person.key.urlsafe() + '"}'
 					personCounter += 1
 					if personCounter == 8:
-						break;
+						break
 			jsonstr+=']'
 			return jsonstr
 		elif action == "addperson":
@@ -170,8 +188,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			logging.error('unknown action=' + action)
 			abort(404)
 			return ""
-		
-	if request.method == "POST" and len(request.form) > 0:
+
+	if request.method == "POST" and len(request.form) > 0 and "action" in request.form:
 		action=request.form["action"]
 		if action == "saveattendance":
 			if troop == None or scoutgroup == None or key_url == None:
@@ -245,7 +263,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			heading=section_title,
 			baselink=baselink,
 			existingmeeting=meeting,
-			breadcrumbs=breadcrumbs)				
+			breadcrumbs=breadcrumbs)
 	else:
 		meetingCount = 0
 		sumMaleAttendenceCount = 0
@@ -407,7 +425,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				attendances=attendances,
 				breadcrumbs=breadcrumbs,
 				allowance=allowance,
-				defaultstarttime=troop.defaultstarttime)
+				defaultstarttime=troop.defaultstarttime,
+				user=user)
 
 @app.route('/persons')
 @app.route('/persons/')
@@ -752,7 +771,7 @@ def dodelete():
 	if not user.isAdmin():
 		return "denied", 403
 
-	# DeleteAllData() # uncomment to enable this
+	DeleteAllData() # uncomment to enable this
 	return redirect('/admin/')
 
 	

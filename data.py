@@ -115,16 +115,13 @@ class Troop(ndb.Model):
 	semester_key = ndb.KeyProperty(kind=Semester)
 
 	@staticmethod
-	def getid(name, scoutgroup_key, semester_key):
+	def getid(troop_id, scoutgroup_key, semester_key):
 		semester = semester_key.get()
-		if semester.year == 2016 and semester.ht: 
-			return name.lower().replace(' ', '')+scoutgroup_key.id() # backward compatible with existing records
-		else:
-			return name.lower().replace(' ', '')+scoutgroup_key.id()+semester.getname()
+		return str(troop_id) + '/' + str(scoutgroup_key.id()) + '/' + semester.getname()
 
 	@staticmethod
-	def create(name, scoutgroup_key, semester_key):
-		return Troop(id=Troop.getid(name, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
+	def create(name, troop_id, scoutgroup_key, semester_key):
+		return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
 		
 	@staticmethod
 	def getTroopsForUser(sgroup_key, user):
@@ -132,6 +129,14 @@ class Troop(ndb.Model):
 
 	def getname(self):
 		return self.name
+		
+	def delete(self):
+		for tp in TroopPerson.getTroopPersonsForTroop(self.key):
+			tp.delete()
+		for meeting in Meeting.gettroopmeetings(self.key):
+			meeting.delete()
+		self.key.delete()
+
 
 class Person(PropertyWriteTracker):
 	firstname = ndb.StringProperty(required=True)
@@ -322,7 +327,7 @@ class TroopPerson(ndb.Model):
 				trooppersons.append(tp)
 		trooppersons.sort(key=lambda x: (-x.leader, x.sortname))
 		return trooppersons
-
+		
 	def commit(self):
 		self.put()
 
@@ -358,7 +363,7 @@ class UserPrefs(ndb.Model):
 		return self.canimport
 		
 	def isGroupAdmin(self):
-		return self.hasaccess and self.groupadmin and self.groupaccess != None
+		return self.hasadminaccess or (self.hasaccess and self.groupadmin and self.groupaccess != None)
 
 	def getname(self):
 		return self.name

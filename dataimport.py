@@ -80,13 +80,18 @@ class ScoutnetImporter:
 		commit = True
 		rapportID = 1
 	
-	def GetOrCreateTroop(self, name, group_key, semester_key):
+	def GetOrCreateTroop(self, name, troop_id, group_key, semester_key):
 		if len(name) == 0:
 			return None
-		troop = Troop.get_by_id(Troop.getid(name, group_key, semester_key), use_memcache=True)
-		if troop == None:
+		troop = Troop.get_by_id(Troop.getid(troop_id, group_key, semester_key), use_memcache=True)
+		if troop != None:
+			if troop.name != name:
+				troop.name = name
+				if self.commit:
+					troop.put()
+		else:
 			self.report.append("Ny avdelning %s" % (name))
-			troop = Troop.create(name, group_key, semester_key)
+			troop = Troop.create(name, troop_id, group_key, semester_key)
 			troop.rapportID = self.rapportID # TODO: should check the highest number in the sgroup, will work for full imports
 			self.rapportID += 1
 			if self.commit:
@@ -119,7 +124,7 @@ class ScoutnetImporter:
 
 		if data == None or len(data) < 80:
 			self.report.append(u"Fel: ingen data från scoutnet")
-			return report
+			return self.report
 
 		list = scoutnet.GetScoutnetDataListJson(data)
 		self.report.append("antal personer=%d" % (len(list)-1))
@@ -169,30 +174,22 @@ class ScoutnetImporter:
 			if len(p["troop"]) == 0:
 				self.report.append("Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
 				
-			troop = self.GetOrCreateTroop(p["troop"], scoutgroup.key, semester.key)
+			troop = self.GetOrCreateTroop(p["troop"], p["troop_id"], scoutgroup.key, semester.key)
 			troop_key = troop.key if troop != None else None
-			new_troop = person.troop != troop_key
 			person.troop = troop_key
-			#if person.troop != None:
-			#	tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key)) # check if troop person doesn't exist
-			#	if tp == None:
-			#		new_troop = True
+
 			if person._dirty:
 				self.report.append(u"Sparar ändringar:%s %s %s" % (id, p["firstname"], p["lastname"]))
 				if self.commit:
 					personsToSave.append(person)
 
-			if new_troop:
-				if person.troop:
-					tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key))
-					if tp != None and self.commit:
-						tp.delete()
-
-				if troop_key != None:
-					if self.commit:
+			if troop_key != None:
+				if self.commit:
+					tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key), use_memcache=True)
+					if tp == None:
 						tp = TroopPerson.create(troop_key, person.key, False)
 						troopPersonsToSave.append(tp)
-					self.report.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
+						self.report.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
 
 			if person.removed:
 				self.report.append(u"%s borttagen, tar bort från avdelningar" % (person.getname()))
@@ -203,9 +200,9 @@ class ScoutnetImporter:
 							tp.delete()
 						person.key.delete()
 			
-			if self.commit:
-				ndb.put_multi(personsToSave)
-				ndb.put_multi(troopPersonsToSave)
+		if self.commit:
+			ndb.put_multi(personsToSave)
+			ndb.put_multi(troopPersonsToSave)
 
 		return self.report
 				
@@ -236,7 +233,7 @@ def dofixsgroupids():
 			group.put()
 
 def dosettroopsemester():
-	semester_key = GetOrCreateCurrentSemester().key
+	semester_key = Semester.getOrCreateCurrent().key
 	troops = Troop.query().fetch()
 	for troop in troops:
 		#if troop.semester_key != semester_key:

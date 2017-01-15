@@ -69,14 +69,18 @@
   </tbody>
 </table>
 </div>
+{% if user.isGroupAdmin() %}
 <button data-toggle="collapse" data-target="#settings" set-focus="#settingslink" class="btn btn-lg btn-info togglebutton">Inställningar</button>
 <div id="settings" class="collapse well">
-<a id="settingslink" href="./settings">Avdelningens Inställningar</a>
+<a id="settingslink" href="./settings"><span class="glyphicon glyphicon-cog"></span> Avdelningens Inställningar</a>
+<hr/>
+<a id="delete" href="./delete"><span class="glyphicon glyphicon-trash"></span> Radera avdelningen</a>
 </div>
 <button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
 <div id="report" class="collapse well">
 <a id="daklink" href="./dak">Rapportfil för Göteborgs Kommun</a>
 </div>
+{% endif %}
 <script>
 $(document).ready(function() {
 	$("#newmeeting").on('shown.bs.collapse', function(){
