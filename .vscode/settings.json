@@ -1,0 +1,11 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+"python.autoComplete.extraPaths": [
+"C:/Program Files (x86)/Google/google_appengine",
+"C:/Program Files (x86)/Google/google_appengine/lib" ]
+,
+"files.exclude": {
+        "**/*.ini": true,
+        "**/*.pyc": true,
+    }
+}
