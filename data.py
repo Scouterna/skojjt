@@ -234,13 +234,24 @@ class Meeting(ndb.Model):
 		return 'tms:' + str(troop_key)
 
 	@staticmethod
-	def create(troop_key, name, datetime, duration):
-		m = Meeting(id=datetime.strftime("%Y%m%d%H%M")+str(troop_key.id()),
-			datetime=datetime,
-			name=name,
-			troop=troop_key,
-			duration=duration
-			)
+	def getId(meetingDatetime, troop_key):
+		return meetingDatetime.strftime("%Y%m%d%H%M")+str(troop_key.id())
+		
+	@staticmethod
+	def getOrCreate(troop_key, name, datetime, duration):
+		m = Meeting.get_by_id(Meeting.getId(datetime, troop_key), use_memcache=True)
+		if m != None:
+			if m.name != name or m.duration != duration:
+				m.name = name
+				m.duration = duration
+				m.put()
+		else:
+			m = Meeting(id=Meeting.getId(datetime, troop_key),
+				datetime=datetime,
+				name=name,
+				troop=troop_key,
+				duration=duration
+				)
 		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
 		if troopmeeting_keys is not None and m.key not in troopmeeting_keys:
 			troopmeeting_keys.append(m.key)

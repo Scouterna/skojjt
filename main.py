@@ -212,7 +212,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			mduration = request.form['duration']
 			dt = datetime.datetime.strptime(dtstring, "%Y-%m-%dT%H:%M")
 			if action == "addmeeting":
-				meeting = Meeting.create(troop_key, 
+				meeting = Meeting.getOrCreate(troop_key, 
 					mname,
 					dt,
 					int(mduration))
