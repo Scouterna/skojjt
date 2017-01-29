@@ -154,6 +154,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			name = request.args['name'].lower()
 			if len(name) < 2:
 				return "[]"
+			logging.debug("name=%s", name)
 			jsonstr='['
 			personCounter = 0
 			for person in Person().query(Person.scoutgroup == sgroup_key):
@@ -181,13 +182,9 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			semester_url = request.args["semester"]
 			user.activeSemester = ndb.Key(urlsafe=semester_url)
 			user.put()
-		elif action == "nextsemester":
-			semester = Semester.getOrCreateNext()
-			return semester.getname()
 		else:
 			logging.error('unknown action=' + action)
-			abort(404)
-			return ""
+			return "", 404
 
 	if request.method == "POST" and len(request.form) > 0 and "action" in request.form:
 		action=request.form["action"]
@@ -218,10 +215,10 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 					int(mduration))
 			else:
 				meeting = ndb.Key(urlsafe=key_url).get()
-				meeting.name = mname
-				meeting.datetime = dt
-				meeting.duration = int(mduration)
 
+			meeting.name = mname
+			meeting.datetime = dt
+			meeting.duration = int(mduration)
 			meeting.commit()
 			return redirect(breadcrumbs[-1]['link'])
 		elif action == "deletemeeting":
@@ -231,8 +228,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			return redirect(breadcrumbs[-1]['link'])
 		else:
 			logging.error('unknown action=' + action)
-			abort(404)
-			return ""
+			return "", 404
 
 	# render main pages
 	if scoutgroup == None:
