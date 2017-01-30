@@ -235,7 +235,7 @@ class Meeting(ndb.Model):
 
 	@staticmethod
 	def getId(meetingDatetime, troop_key):
-		return meetingDatetime.strftime("%Y%m%d")+str(troop_key.id())
+		return meetingDatetime.strftime("%Y%m%d%H%M")+str(troop_key.id())
 		
 	@staticmethod
 	def getOrCreate(troop_key, name, datetime, duration):
