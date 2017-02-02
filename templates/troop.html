@@ -6,19 +6,19 @@
 		<tr>
 			<th class="troopnames">{{semestername}}<br/><span class="heading">{{heading}}</span></th>
 			{% for meeting in meetings %}
-			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
+			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/><span title="{{meeting.getdate()}} {{meeting.gettime()}}">{{meeting.getdate()}}</span></span></div></th>
 			{% endfor %}
 		</tr>
 	  </thead>
 	  <tbody>
 		{% for person in persons %}{% set iperson = loop.index0 %}{% set isleader = trooppersons[iperson].leader %}
-		<tr><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}">
+		<tr><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.firstname}} {{person.lastname}}{% if isleader %} (Ledare){% endif %}">
 			<a href="{{baselink+person.key.urlsafe()}}/">
 			{{loop.index}}:{{ person.getname() }}{% if isleader %}(L){% endif %}
 			</a>
 		</td>
 		{% for meeting in meetings %} {# name is meeting, id is the person #}{% set imeeting = loop.index0 %}
-			<td><input class="attendance-cb checkbox big-checkbox" name="cb{{meeting.key.urlsafe()}}" id="{{person.key.urlsafe()}}" type="checkbox" {%if attendances[imeeting][iperson]%}checked=""{% endif %}/></td>
+			<td><input title="{{meeting.getdate()}}: {{person.getname()}}" class="attendance-cb checkbox big-checkbox" name="cb{{meeting.key.urlsafe()}}" id="{{person.key.urlsafe()}}" type="checkbox" {%if attendances[imeeting][iperson]%}checked=""{% endif %}/></td>
 		{% endfor %}
 		</tr>
 		{% endfor %}
