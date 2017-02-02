@@ -29,7 +29,7 @@
 			<label for="lastname">Efternamn</label>
 			<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 			<label for="personnummer">Personnummer</label>
-			<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" class="form-control" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+			<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDD-XXXX" class="form-control" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 			<label for='street'>Gatuadress</label>
 			<input type='text' class="form-control" size='50' required="1" name='street' id='street' value='{% if ep %}{{ep.street}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='zip_code'>Postnummer</label>
