@@ -82,12 +82,14 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 		baselink += "settings/"
 		breadcrumbs.append({'link':baselink, 'text':section_title})
 		if request.method == "POST":
-			troop.defaultstarttime = request.form['defaultstarttime'] 
+			troop.defaultstarttime = request.form['defaultstarttime']
+			troop.defaultduration = int(request.form['defaultduration'])
 			troop.rapportID = int(request.form['rapportID'])
 			troop.put()
 			
 		form = htmlform.HtmlForm('troopsettings')
 		form.AddField('defaultstarttime', troop.defaultstarttime, 'Avdelningens vanliga starttid')
+		form.AddField('defaultduration', troop.defaultduration, u'Avdelningens vanliga mötestid i minuter', 'number')
 		form.AddField('rapportID', troop.rapportID, 'Unik rapport ID för kommunens närvarorapport', 'number')
 		return render_template('form.html',
 			heading=section_title,
@@ -421,7 +423,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				attendances=attendances,
 				breadcrumbs=breadcrumbs,
 				allowance=allowance,
-				defaultstarttime=troop.defaultstarttime,
+				troop=troop,
 				user=user)
 
 @app.route('/persons')

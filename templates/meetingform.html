@@ -24,8 +24,8 @@
   {% if not hasMeeting %}
   <script>
 	$("#mdate").val(getTodaysDateString());
-	$("#starttime").val("{{defaultstarttime}}");
-	$("#mduration").val("90");
+	$("#starttime").val("{{troop.defaultstarttime}}");
+	$("#mduration").val("{{troop.defaultduration}}");
   </script>
   {% endif %}
   <div class="btn-toolbar">  

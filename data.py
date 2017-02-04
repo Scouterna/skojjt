@@ -111,6 +111,7 @@ class Troop(ndb.Model):
 	name = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
 	defaultstarttime = ndb.StringProperty(default="18:30")
+	defaultduration = ndb.IntegerProperty(default=90)
 	rapportID = ndb.IntegerProperty()
 	semester_key = ndb.KeyProperty(kind=Semester)
 
