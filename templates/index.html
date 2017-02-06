@@ -16,13 +16,7 @@
 			  <tbody>
 				{% for item in items %}
                 <tr><td>
-					{% if addlink %}
-						<a href="{{baselink+item.key.urlsafe()}}/">
-					{% endif %}
-						{{ item.getname() }}
-					{% if addlink %}
-						</a>
-					{% endif %}
+					<a href="{{baselink+item.key.urlsafe()}}/">{{item.getname()}}</a>
 				</td>
 				  {% set iperson = loop.index0 %}
 				  {% for meeting in meetings %} {# name is meeting, id is the person #}

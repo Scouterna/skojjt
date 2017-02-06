@@ -106,6 +106,9 @@ class ScoutGroup(ndb.Model):
 	def getname(self):
 		return self.name
 
+	def canAddToWaitinglist(self):
+		return self.scoutnetID != None and self.scoutnetID != "" and self.apikey_waitinglist != None and self.apikey_waitinglist != ""
+
 # avdelning
 class Troop(ndb.Model):
 	name = ndb.StringProperty()
