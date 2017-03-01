@@ -90,12 +90,19 @@ class ScoutnetImporter:
 				if self.commit:
 					troop.put()
 		else:
-			self.report.append("Ny avdelning %s" % (name))
+			self.report.append("Ny avdelning %s, ID=%s" % (name, troop_id))
 			troop = Troop.create(name, troop_id, group_key, semester_key)
 			troop.rapportID = self.rapportID # TODO: should check the highest number in the sgroup, will work for full imports
+			troop.scoutnetID = int(troop_id)
 			self.rapportID += 1
 			if self.commit:
 				troop.put()
+
+		if troop.scoutnetID != int(troop_id):
+			troop.scoutnetID = int(troop_id)
+			self.report.append("Nytt ID=%d för avdelning %s" % (troop.scoutnetID, name))
+			troop.put()
+
 		return troop
 
 	def GetOrCreateGroup(self, name, scoutnetID):

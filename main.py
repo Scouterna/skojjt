@@ -147,8 +147,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			troopperson.commit()
 			if scoutgroup.canAddToWaitinglist():
 				if scoutnet.AddPersonToWaitinglist(
-						scoutgroup, 
-						person.firstname, 
+						scoutgroup,
+						person.firstname,
 						person.lastname,
 						person.personnr,
 						person.email,
@@ -156,7 +156,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 						person.zip_code,
 						person.zip_name,
 						person.mobile,
-						person.phone):
+						person.phone,
+						troop):
 					person.notInScoutnet = False
 					person.put()
 			return redirect(breadcrumbs[-2]['link'])
@@ -491,6 +492,29 @@ def persons(sgroup_url=None, person_url=None, action=None):
 				else:
 					tp.leader = (action == "setasleader")
 					tp.put()
+		if action == "addtowaitinglist":
+			scoutgroup = person.scoutgroup.get()
+			troop = None
+			tps = TroopPerson.query(TroopPerson.person == person.key).fetch(1)
+			if len(tps) == 1:
+				troop = tps[0].troop.get()
+			scoutgroup = person.scoutgroup.get()
+			if scoutgroup.canAddToWaitinglist():
+				if scoutnet.AddPersonToWaitinglist(
+						scoutgroup, 
+						person.firstname, 
+						person.lastname,
+						person.personnr,
+						person.email,
+						person.street,
+						person.zip_code,
+						person.zip_name,
+						person.mobile,
+						person.phone,
+						troop):
+					person.notInScoutnet = False
+					person.put()
+
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)
