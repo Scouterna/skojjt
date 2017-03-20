@@ -22,7 +22,7 @@ app.debug = True
 # the App Engine WSGI application server.
 
 
-reload(sys)  
+reload(sys)
 sys.setdefaultencoding('utf8')
 
 
@@ -482,7 +482,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 				for tp in tps:
 					tp.delete()
 			return redirect(breadcrumbs[-1]['link'])
-		if action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
+		elif action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
 			troop_key = ndb.Key(urlsafe=request.args["troop"])
 			tps = TroopPerson.query(TroopPerson.person == person.key, TroopPerson.troop == troop_key).fetch(1)
 			if len(tps) == 1:
@@ -492,7 +492,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 				else:
 					tp.leader = (action == "setasleader")
 					tp.put()
-		if action == "addtowaitinglist":
+		elif action == "addtowaitinglist":
 			scoutgroup = person.scoutgroup.get()
 			troop = None
 			tps = TroopPerson.query(TroopPerson.person == person.key).fetch(1)
@@ -501,8 +501,8 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			scoutgroup = person.scoutgroup.get()
 			if scoutgroup.canAddToWaitinglist():
 				if scoutnet.AddPersonToWaitinglist(
-						scoutgroup, 
-						person.firstname, 
+						scoutgroup,
+						person.firstname,
 						person.lastname,
 						person.personnr,
 						person.email,
@@ -514,7 +514,6 @@ def persons(sgroup_url=None, person_url=None, action=None):
 						troop):
 					person.notInScoutnet = False
 					person.put()
-
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)
