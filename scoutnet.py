@@ -162,7 +162,7 @@ def ImportScoutnetAsCSV(filename='members.csv'):
 	else:
 		print("Failed")
 		
-def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, mobile, phone):
+def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, mobile, phone, troop):
 	form = {}
 	form['profile[first_name]']=firstname
 	form['profile[last_name]']=lastname
@@ -205,7 +205,12 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	#form['contact_list[contacts][contact_44][contact_type_id]']=44 # Pappa telefon
 
 	form['membership[status]']=1
+	# This does not work (error 400):
+	#if troop != None and troop.scoutnetID != 0:
+	#	form['membership[troop]']=troop.scoutnetID
 
+	logging.info('Adding %s %s to waitinglist' % (firstname, lastname))
+	
 	url = 'https://www.scoutnet.se/api/organisation/register/member?id=' + scoutgroup.scoutnetID + '&key=' + scoutgroup.apikey_waitinglist + '&' + urllib.urlencode(form)
 	logging.info(url)
 	request = urllib2.Request(url)

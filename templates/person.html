@@ -51,7 +51,11 @@
 		</form>
 		<hr/>
  		{% if hasPerson and ep.notInScoutnet %}
-		<em>OBS! Personen finns inte i scoutnet</em>
+		<em>OBS! Personen finns inte i scoutnet</em><br/>
+		{% if (ep.notInScoutnet and scoutgroup.canAddToWaitinglist()) %}
+		<a href="addtowaitinglist" class="btn btn-lg btn-default">Lägg till i scoutnets kölista</a><br/>		
+		<strong>Personen hamnar i scoutnet under "medlemmar som inte godkänts". Du måste godkänna i scoutnet, sätta avgift och avdelning.</strong>
+		{% endif %}
 		<div class="btn-toolbar">
 		{% if not ep.removed %}
 		  <a href="deleteperson" class="btn btn-lg btn-danger">Ta bort</a>
