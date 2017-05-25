@@ -72,6 +72,18 @@ class Semester(ndb.Model):
 
 	def getname(self):
 		return "%04d-%s" % (self.getyear(), "ht" if self.ht else "vt")
+		
+	def getMinDateStr(self):
+		if self.ht:
+			return "%04d-07-01" % (self.getyear())
+		else:
+			return "%04d-01-01" % (self.getyear())
+
+	def getMaxDateStr(self):
+		if self.ht:
+			return "%04d-12-31" % (self.getyear())
+		else:
+			return "%04d-06-30" % (self.getyear())
 
 # kår
 class ScoutGroup(ndb.Model):
@@ -375,7 +387,7 @@ class UserPrefs(ndb.Model):
 		return self.hasaccess and self.hasadminaccess
 
 	def canImport(self):
-		return self.canimport
+		return self.isAdmin() or self.canimport == True
 		
 	def isGroupAdmin(self):
 		return self.hasadminaccess or (self.hasaccess and self.groupadmin and self.groupaccess != None)

@@ -10,8 +10,8 @@
 	<input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% else %}Möte{% endif %}"/>
   </div>
   <div class="form-group">
-	<label for="mdate">Datum</label>
-	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}"/>
+	<label for="mdate">Datum (termin {{semester.getname()}})</label>
+	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
   </div>
   <div class="form-group">
 	<label for="starttime">Starttid</label>

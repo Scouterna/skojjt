@@ -54,4 +54,10 @@
 	 </tbody>
 	</table>
 </div>
+<div class="well">
+<h2>Email länkar till alla</h2>
+<p>Välj den länken som passar ditt mejlprogram bäst:</p>
+<a href="mailto:{% for email in emails %}{{email}},{% endfor %}">Email till alla (kommaseparerad)</a><br/>
+<a href="mailto:{% for email in emails %}{{email}};{% endfor %}">Email till alla (semikolonseparerad)</a><br/>
+</div>
 {% endblock %}

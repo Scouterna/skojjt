@@ -274,7 +274,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			heading=section_title,
 			baselink=baselink,
 			existingmeeting=meeting,
-			breadcrumbs=breadcrumbs)
+			breadcrumbs=breadcrumbs,
+			semester=troop.semester_key.get())
 	else:
 		meetingCount = 0
 		sumMaleAttendenceCount = 0
@@ -437,7 +438,9 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 				breadcrumbs=breadcrumbs,
 				allowance=allowance,
 				troop=troop,
-				user=user)
+				user=user,
+				semester=semester
+				)
 
 @app.route('/persons')
 @app.route('/persons/')
@@ -594,8 +597,11 @@ def scoutgroupsummary(sgroup_url):
 	ages.append(Item('65 -'))
 	leaders = [Item(u't.o.m. 25 år'), Item(u'över 25 år')]
 	boardmebers = [Item('')]
-	
+
+	emails = []
 	for person in Person.query(Person.scoutgroup==sgroup_key, Person.removed==False).fetch():
+		if person.email is not None and len(person.email) != 0 and person.email not in emails:
+			emails.append(person.email)
 		age = person.getyearsoldthisyear(year)
 		index = 0
 		if 7 <= age <= 25:
@@ -627,7 +633,7 @@ def scoutgroupsummary(sgroup_url):
 				leaders[index].men += 1
 
 	ages.append(Item("Totalt", women, men))
-	return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders, breadcrumbs=breadcrumbs)
+	return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders, breadcrumbs=breadcrumbs, emails=emails)
 
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
