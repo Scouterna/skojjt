@@ -67,23 +67,20 @@ class Semester(ndb.Model):
 			semester.put()
 		return semester
 
-	def getyear(self):
-		return self.year
-
 	def getname(self):
-		return "%04d-%s" % (self.getyear(), "ht" if self.ht else "vt")
+		return "%04d-%s" % (self.year, "ht" if self.ht else "vt")
 		
 	def getMinDateStr(self):
 		if self.ht:
-			return "%04d-07-01" % (self.getyear())
+			return "%04d-07-01" % (self.year)
 		else:
-			return "%04d-01-01" % (self.getyear())
+			return "%04d-01-01" % (self.year)
 
 	def getMaxDateStr(self):
 		if self.ht:
-			return "%04d-12-31" % (self.getyear())
+			return "%04d-12-31" % (self.year)
 		else:
-			return "%04d-06-30" % (self.getyear())
+			return "%04d-06-30" % (self.year)
 
 # kår
 class ScoutGroup(ndb.Model):
@@ -174,6 +171,7 @@ class Person(PropertyWriteTracker):
 	zip_name = ndb.StringProperty()
 	troop_roles = ndb.StringProperty(repeated=True)
 	group_roles = ndb.StringProperty(repeated=True)
+	member_years = ndb.IntegerProperty(repeated=True) # a list of years this person have been imported, used for membership reporting
 
 	@staticmethod
 	def create(id, firstname, lastname, personnr, female):

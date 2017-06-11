@@ -175,7 +175,10 @@ class ScoutnetImporter:
 			person.zip_name = p["zip_name"]
 			person.troop_roles = p["troop_roles"]
 			person.group_roles = p["group_roles"]
-			
+			if semester.year not in person.member_years:
+				person.member_years.append(semester.year)
+				person._dirty = True;
+				
 			scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"])
 			person.scoutgroup = scoutgroup.key
 			if len(p["troop"]) == 0:
