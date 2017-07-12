@@ -3,6 +3,7 @@ import codecs
 import datetime
 import logging
 import re
+import json
 
 from google.appengine.api import memcache, users
 
@@ -455,3 +456,60 @@ class UserPrefs(ndb.Model):
 	@staticmethod
 	def create(user, access=False, hasadminaccess=False):
 		return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess)
+
+
+class TaskProgress(ndb.Model):
+	created = ndb.DateTimeProperty(auto_now_add=True, required=True)
+	completed = ndb.DateTimeProperty()
+	name = ndb.StringProperty(required=True)
+	return_url = ndb.StringProperty(required=True)
+	messages = ndb.StringProperty(repeated=True)
+	failed = ndb.BooleanProperty(default=False)
+	lastPut = None
+	
+	def append(self, message):
+		self.messages.append(message)
+		self._putIfNeeded()
+
+	def info(self, message):
+		self.messages.append(message)
+		self._putIfNeeded()
+
+	def warning(self, message):
+		self.messages.append('Warning:' + message)
+		self._putIfNeeded()
+
+	def error(self, message):
+		self.messages.append('Error:' + message)
+		self.failed = True
+		self._putIfNeeded()
+
+	def done(self):
+		self.completed = datetime.datetime.now()
+		self.put()
+
+	def isRunning(self):
+		return self.completed is None
+
+	def put(self):
+		super(TaskProgress, self).put()
+		self.lastPut = datetime.datetime.now()
+
+	def _putIfNeeded(self):
+		if self.lastPut is None or (datetime.datetime.now() - self.lastPut).total_seconds > 5:
+			self.put()
+
+	@staticmethod
+	def cleanup():
+		cutoffdate = datetime.datetime.now() - datetime.timedelta(days=30)
+		keys = TaskProgress.query(TaskProgress.created < cutoffdate).fetch(keys_only=True)
+		ndb.delete_multi(keys)
+
+	def toJson(self):
+		s = '{"datetime": "' + self.created.strftime("%Y%m%d%H%M")+ '",' + \
+			'"name": "' + self.name + '",' + \
+			'"return_url": "' + self.return_url + '",' + \
+			'"messages": ' + json.dumps(self.messages) + ',' + \
+			'"failed": ' + json.dumps(self.failed) + ',' + \
+			'"running": ' + json.dumps(self.isRunning()) + '}'
+		return s

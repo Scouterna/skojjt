@@ -19,6 +19,9 @@ libraries:
 - name: ssl
   version: latest
 
+builtins:
+- deferred: on
+
 handlers:
 - url: /favicon.ico
   static_files: img/favicon.ico
@@ -44,6 +47,16 @@ handlers:
 - url: /fonts
   static_dir: fonts
 
+- url: /progress/.*
+  script: main.app
+  login: required
+  secure: always
+
+- url: /tasks/.*
+  script: main.app
+  login: admin
+  secure: always
+  
 - url: /admin/.*
   script: main.app
   login: admin

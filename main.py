@@ -5,11 +5,14 @@ import datetime
 import urllib
 import json
 import scoutnet
+import time
 import htmlform
 from dakdata import *
 from google.appengine.api import users
 from google.appengine.api import app_identity
 from google.appengine.api import mail
+from google.appengine.api import taskqueue
+from google.appengine.ext import deferred
 import random
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
@@ -571,10 +574,8 @@ def scoutgroupinfo(sgroup_url):
 		scoutgroup.apikey_waitinglist = request.form['apikey_waitinglist'].strip()
 		scoutgroup.apikey_all_members = request.form['apikey_all_members'].strip()
 		scoutgroup.put()
-		logging.info("Done, redirect to: %s", breadcrumbs[-1]['link'])
 		if "import" in request.form:
-			result = RunScoutnetImport(scoutgroup.scoutnetID, scoutgroup.apikey_all_members, user, Semester.getOrCreateCurrent())
-			return render_template('table.html', tabletitle="Importresultat", items=result, rowtitle='Result', breadcrumbs=breadcrumbs)
+			return startAsyncImport(scoutgroup.apikey_all_members, scoutgroup.scoutnetID, Semester.getOrCreateCurrent().key, user, request)
 		else:
 			return redirect(breadcrumbs[-1]['link'])
 	else:
@@ -705,9 +706,57 @@ def import_():
 
 	api_key = request.form.get('apikey').strip()
 	groupid = request.form.get('groupid').strip()
-	semester=ndb.Key(urlsafe=request.form.get('semester')).get()
-	result = RunScoutnetImport(groupid, api_key, user, semester)
-	return render_template('table.html', items=result, tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
+	semester_key=ndb.Key(urlsafe=request.form.get('semester'))
+	return startAsyncImport(api_key, groupid, semester_key, user, request)
+
+
+def startAsyncImport(api_key, groupid, semester_key, user, request):
+	taskProgress = TaskProgress(name='Import', return_url=request.url)
+	taskProgress.put()
+	deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key)
+	return redirect('/progress/' + taskProgress.key.urlsafe())
+
+
+@app.route('/progress/<progress_url>')
+@app.route('/progress/<progress_url>/')
+@app.route('/progress/<progress_url>/<update>')
+@app.route('/progress/<progress_url>/<update>/')
+def importProgress(progress_url, update=None):
+	if update is not None:
+		taskProgress = None
+		for i in range(1, 2):
+			taskProgress = ndb.Key(urlsafe=progress_url).get()
+			if taskProgress is not None:
+				break
+			time.sleep(1)
+
+		if taskProgress is not None:
+			s = taskProgress.toJson()
+		else:
+			s = '{"messages": ["Error: Hittar inte uppgiften"], "failed": "true", "running": "false"}'
+
+		response = make_response(s)
+		response.headers['Content-Type'] = 'application/json'
+		return response
+		
+	breadcrumbs = [{'link':'/', 'text':'Hem'}, {'link':'/import', 'text':'Import'}]
+	return render_template('importresult.html', tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
+
+
+def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
+	semester=semester_key.get()
+	user = user_key.get()
+	progress = None
+	for i in range(1, 3):
+		progress = taskProgress_key.get()
+		if progress is not None:
+			break
+		time.sleep(1) # wait for the eventual consistency
+	success = RunScoutnetImport(groupid, api_key, user, semester, progress)
+	if not success:
+		progress.failed = True
+	progress.info("Import klar")
+	progress.done()
 
 
 @app.route('/admin')
@@ -806,6 +855,15 @@ def groupaccess(userprefs_url=None):
 		breadcrumbs=breadcrumbs,
 		mygroupurl=user.groupaccess.urlsafe(),
 		mygroupname=user.groupaccess.get().getname())
+		
+
+# cron job:
+@app.route('/tasks/cleanup')
+@app.route('/tasks/cleanup/')
+def tasksCleanup():
+	TaskProgress.cleanup()
+	return "", 200
+
 
 @app.route('/admin/deleteall/')
 def dodelete():
@@ -813,7 +871,7 @@ def dodelete():
 	if not user.isAdmin():
 		return "denied", 403
 
-	DeleteAllData() # uncomment to enable this
+	# DeleteAllData() # uncomment to enable this
 	return redirect('/admin/')
 
 	

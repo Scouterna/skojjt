@@ -1,0 +1,75 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<h1>Importresultat</h1>
+<img id="animation" alt="" width="137" height="122"></img>
+<div id="topinfo"></div>
+<div class="table-responsive">
+	<table class="table table-striped" id="resulttable">
+    <tbody>
+    </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+window.maxUpdates = 600;
+function updateProgress(){
+    $("#animation").attr("src","/img/working.gif");
+    $.ajax({
+        url: './update/',
+        dataType: "json",
+        error: function(msg){
+            $("#topinfo").html(msg);
+            $("#animation").attr("src","/img/error.gif");
+            return msg;
+        },
+        success: function(taskProgress){
+            if (taskProgress.failed)
+            {
+                $("#animation").attr("src","/img/error.gif");
+                window.maxUpdates = 0;
+            }
+            else
+            {
+                if (!taskProgress.running)
+                {
+                    $("#animation").attr("src","");
+                    window.maxUpdates = 0;
+                }
+                else
+                {
+                    $("#animation").attr("src","/img/working.gif");
+                }
+            }
+            var rowCount = $("#resulttable tbody tr").length;
+            for(var i=rowCount; i < taskProgress.messages.length; i++)
+            {
+                var message = taskProgress.messages[i];
+                var cls = "info";
+                var n = message.indexOf("Warning:");
+                if (n != -1)
+                {
+                    cls = "warning";
+                    message = message.substring(8);
+                }
+                n = message.indexOf("Error:");
+                if (n != -1)
+                {
+                    cls = "error";
+                    message = message.substring(6);
+                }
+                $("#resulttable tbody").append("<tr><td class='" + cls + "'>" + message + "</td></tr>");
+            }
+            if (window.maxUpdates > 0)
+            {
+                setTimeout(updateProgress, 5000);
+                window.maxUpdates -= 1;
+            }
+        }
+    });
+}
+$(function() {
+    setTimeout(updateProgress, 1000);
+});
+</script>
+{% endblock %}
