@@ -18,15 +18,17 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 		result.error(u"Du måste ange både kårid och api nyckel")
 		return False
 
+	success = True
 	try:
 		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
 	except urllib2.HTTPError as e:
+		success = False
 		logging.error('Scoutnet http error=%s' % str(e))
 		result.error(u"Kunde inte läsa medlämmar från scoutnet, fel:%s" % (str(e)))
 		if e.code == 401:
 			result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
 		
-	if data != None:
+	if success and data != None:
 		importer = ScoutnetImporter(result)
 		success = importer.DoImport(data, semester)
 		if success:
