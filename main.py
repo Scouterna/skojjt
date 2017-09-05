@@ -149,20 +149,23 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			troopperson = TroopPerson.create(troop_key, person.key, False)
 			troopperson.commit()
 			if scoutgroup.canAddToWaitinglist():
-				if scoutnet.AddPersonToWaitinglist(
-						scoutgroup,
-						person.firstname,
-						person.lastname,
-						person.personnr,
-						person.email,
-						person.street,
-						person.zip_code,
-						person.zip_name,
-						person.mobile,
-						person.phone,
-						troop):
-					person.notInScoutnet = False
-					person.put()
+				try:
+					if scoutnet.AddPersonToWaitinglist(
+							scoutgroup,
+							person.firstname,
+							person.lastname,
+							person.personnr,
+							person.email,
+							person.street,
+							person.zip_code,
+							person.zip_name,
+							person.mobile,
+							person.phone,
+							troop):
+						person.notInScoutnet = False
+						person.put()
+				except scoutnet.ScoutnetException as e:
+					return render_template('error.html', error=str(e))
 			return redirect(breadcrumbs[-2]['link'])
 	
 	if request.method == "GET" and len(request.args) > 0 and "action" in request.args:
@@ -506,20 +509,23 @@ def persons(sgroup_url=None, person_url=None, action=None):
 				troop = tps[0].troop.get()
 			scoutgroup = person.scoutgroup.get()
 			if scoutgroup.canAddToWaitinglist():
-				if scoutnet.AddPersonToWaitinglist(
-						scoutgroup,
-						person.firstname,
-						person.lastname,
-						person.personnr,
-						person.email,
-						person.street,
-						person.zip_code,
-						person.zip_name,
-						person.mobile,
-						person.phone,
-						troop):
-					person.notInScoutnet = False
-					person.put()
+				try:
+					if scoutnet.AddPersonToWaitinglist(
+							scoutgroup,
+							person.firstname,
+							person.lastname,
+							person.personnr,
+							person.email,
+							person.street,
+							person.zip_code,
+							person.zip_name,
+							person.mobile,
+							person.phone,
+							troop):
+						person.notInScoutnet = False
+						person.put()
+				except scoutnet.ScoutnetException as e:
+					return render_template('error.html', error=str(e))
 		else:
 			logging.error('unknown action=' + action)
 			abort(404)

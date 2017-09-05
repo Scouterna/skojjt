@@ -162,6 +162,9 @@ def ImportScoutnetAsCSV(filename='members.csv'):
 	else:
 		print("Failed")
 		
+class ScoutnetException(Exception):
+	pass
+
 def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, mobile, phone, troop):
 	form = {}
 	form['profile[first_name]']=firstname
@@ -217,7 +220,12 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	try:
 		response = urllib2.urlopen(request)
 	except urllib2.HTTPError as e:
-		logging.error("Failed to add person, code=%d", e.code)
+		result_json = e.read()
+		logging.error("Failed to add person, code=%d, msg=%s", e.code, result_json)
+		# Typical response:
+		"""{"profile":[{"key":"ssno","value":null,"msg":"Personnumret \u00e4r redan registrerat p\u00e5 medlem '######'. Kontakta Scouternas kansli p\u00e5 scoutnet@scouterna.se f\u00f6r att f\u00e5 hj\u00e4lp."}]}"""
+		j = json.loads(result_json)
+		raise ScoutnetException(j['profile'][0]['msg'])
 		return False
 	   
 	if 200 <= response.getcode() <= 201:
