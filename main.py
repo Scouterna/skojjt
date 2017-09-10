@@ -160,7 +160,6 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 							person.zip_code,
 							person.zip_name,
 							person.mobile,
-							person.phone,
 							troop):
 						person.notInScoutnet = False
 						person.put()
@@ -520,7 +519,6 @@ def persons(sgroup_url=None, person_url=None, action=None):
 							person.zip_code,
 							person.zip_name,
 							person.mobile,
-							person.phone,
 							troop):
 						person.notInScoutnet = False
 						person.put()

@@ -165,7 +165,7 @@ def ImportScoutnetAsCSV(filename='members.csv'):
 class ScoutnetException(Exception):
 	pass
 
-def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, mobile, phone, troop):
+def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, mobile, troop):
 	form = {}
 	form['profile[first_name]']=firstname
 	form['profile[last_name]']=lastname
@@ -184,12 +184,10 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	form['contact_list[contacts][contact_1][details]']=mobile
 	form['contact_list[contacts][contact_1][contact_type_id]']=1 # mobiltelefon
 
-	form['contact_list[contacts][contact_2][details]']=phone
-	form['contact_list[contacts][contact_2][contact_type_id]']=2 # hemtelefon
-
-	form['contact_list[contacts][contact_17][details]']=emailaddress
-	form['contact_list[contacts][contact_17][contact_type_id]']=17 # epost
-	
+	#form['contact_list[contacts][contact_2][details]']=phone
+	#form['contact_list[contacts][contact_2][contact_type_id]']=2 # hemtelefon (removed from scoutnet?)
+	#form['contact_list[contacts][contact_17][details]']=emailaddress
+	#form['contact_list[contacts][contact_17][contact_type_id]']=17 # epost
 	#form['contact_list[contacts][contact_14][details]']=mamma
 	#form['contact_list[contacts][contact_14][contact_type_id]']=14 # Mammas namn
 	#form['contact_list[contacts][contact_33][details]']=mammaepost
@@ -222,10 +220,11 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	except urllib2.HTTPError as e:
 		result_json = e.read()
 		logging.error("Failed to add person, code=%d, msg=%s", e.code, result_json)
-		# Typical response:
+		# Typical responses:
 		"""{"profile":[{"key":"ssno","value":null,"msg":"Personnumret \u00e4r redan registrerat p\u00e5 medlem '######'. Kontakta Scouternas kansli p\u00e5 scoutnet@scouterna.se f\u00f6r att f\u00e5 hj\u00e4lp."}]}"""
-		j = json.loads(result_json)
-		raise ScoutnetException(j['profile'][0]['msg'])
+		"""{"contact_list":[{"key":"contact_17","value":"karin.modig-pallin@vgregion.se","subkey":"contact_type_id","msg":"Invalid. Please choose contact type"}]}"""
+		#j = json.loads(result_json)
+		raise ScoutnetException(result_json.decode('unicode_escape')) # display the raw json message
 		return False
 	   
 	if 200 <= response.getcode() <= 201:
