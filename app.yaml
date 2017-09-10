@@ -21,6 +21,7 @@ libraries:
 
 builtins:
 - deferred: on
+- remote_api: on
 
 handlers:
 - url: /favicon.ico
