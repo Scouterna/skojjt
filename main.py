@@ -859,7 +859,114 @@ def groupaccess(userprefs_url=None):
 		breadcrumbs=breadcrumbs,
 		mygroupurl=user.groupaccess.urlsafe(),
 		mygroupname=user.groupaccess.get().getname())
-		
+
+
+# merge scoutgroups with different names (renamed in scoutnet):
+@app.route('/admin/merge_sg/', methods = ['POST', 'GET'])
+def adminMergeScoutGroups():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		return "denied", 403
+
+	section_title = u'Hem'
+	baselink = '/'
+	breadcrumbs = [{'link':baselink, 'text':section_title}]
+	
+	section_title = u'Admin'
+	baselink += 'admin/'
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+
+	section_title = u'Merge SG'
+	baselink += 'merge_sg/'
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+
+	if request.method == 'POST':
+		oldname = request.form.get('oldname').strip()
+		newname = request.form.get('newname').strip()
+		commit = request.form.get('commit') == 'on'
+		merge_sg(oldname, newname, commit)
+
+	return render_template('merge_sg.html',
+		heading=section_title,
+		baselink=baselink,
+		breadcrumbs=breadcrumbs)
+
+
+def merge_sg(oldname, newname, commit):
+	oldsg = ScoutGroup.getbyname(oldname)
+	if oldsg is None:
+		raise RuntimeError("Old sg name:%s not found" % oldname)
+	
+	newsg = ScoutGroup.getbyname(newname)
+	if newsg is None:
+		raise RuntimeError("New sg name:%s not found" % newname)
+	
+	if not commit: logging.info("*** testmode ***")
+
+	keys_to_delete = []
+	entities_to_put_first = []
+	entities_to_put = []
+	semester = Semester.getOrCreateCurrent()
+
+	keys_to_delete.append(oldsg.key)
+	
+	logging.info("Update all users to the new scoutgroup")
+	for u in UserPrefs.query(UserPrefs.groupaccess == oldsg.key).fetch():
+		u.groupaccess = newsg.key
+		u.activeSemester = semester.key
+		entities_to_put.append(u)
+	
+	logging.info("Moving all persons to the new ScoutGroup:%s", newsg.getname())
+	for oldp in Person.query(Person.scoutgroup == oldsg.key).fetch():
+		logging.info(" * Moving %s %s", oldp.getname(), oldp.personnr)
+		oldp.scoutgroup = newsg.key
+		entities_to_put.append(oldp)
+	
+	logging.info("Move all troops to the new ScoutGroup:%s", newsg.getname())
+	for oldt in Troop.query(Troop.scoutgroup == oldsg.key).fetch():
+		logging.info(" * found old troop for %s, semester=%s", str(oldt.key.id()), oldt.semester_key.get().getname())
+		keys_to_delete.append(oldt.key)
+		newt = Troop.get_by_id(Troop.getid(oldt.scoutnetID, newsg.key, oldt.semester_key), use_memcache=True)
+		if newt is None:
+			logging.info(" * * creating new troop for %s, semester=%s", str(oldt.key.id()), oldt.semester_key.get().getname())
+			newt = Troop.create(oldt.name, oldt.scoutnetID, newsg.key, oldt.semester_key)
+			entities_to_put_first.append(newt) # put first to be able to reference it
+		else:
+			logging.info(" * * already has new troop for %s, semester=%s", str(newt.key.id()), newt.semester_key.get().getname())
+
+		logging.info(" * Move all trooppersons to the new group (it they don't already exist there)")
+		for oldtp in TroopPerson.query(TroopPerson.troop == oldt.key).fetch():
+			keys_to_delete.append(oldtp.key)
+			newtp = TroopPerson.get_by_id(TroopPerson.getid(newt.key, oldtp.person), use_memcache=True)
+			if newtp is None:
+				logging.info(" * * creating new TroopPerson for %s:%s", newt.getname(), oldtp.getname())
+				newtp = TroopPerson.create(newt.key, oldtp.person, oldtp.leader)
+				entities_to_put.append(newtp)
+			else:
+				logging.info(" * * already has TroopPerson for %s:%s", newt.getname(), oldtp.getname())
+
+		logging.info(" * Move all old meetings to the new troop")
+		for oldm in Meeting.query(Meeting.troop==oldt.key).fetch():
+			keys_to_delete.append(oldm.key)
+			newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key), use_memcache=True)
+			if newm is None:
+				logging.info(" * * creating new Meeting for %s:%s", newt.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M"))
+				newm = Meeting.getOrCreate(newt.key, oldm.name, oldm.datetime, oldm.duration)
+				newm.attendingPersons = oldm.attendingPersons
+				entities_to_put.append(newm)
+			else:
+				logging.info(" * * already has Meeting for %s:%s", newt.getname(), newt.datetime.strftime("%Y-%m-%d %H:%M"))
+			
+	logging.info("Putting %d entities first", len(entities_to_put_first))
+	if commit: ndb.put_multi(entities_to_put_first)
+	logging.info("Putting %d entities", len(entities_to_put))
+	if commit: ndb.put_multi(entities_to_put)
+	logging.info("Deleting %d keys", len(keys_to_delete))
+	if commit: ndb.delete_multi(keys_to_delete)
+	logging.info("clear memcache")
+	if commit: ndb.get_context().clear_cache()
+	logging.info("Done!")
+	
 
 # cron job:
 @app.route('/tasks/cleanup')

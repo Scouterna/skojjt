@@ -228,7 +228,7 @@ def DeleteAllData():
 	entries.extend(TroopPerson.query().fetch(keys_only=True))
 	entries.extend(Semester.query().fetch(keys_only=True))
 	entries.extend(TaskProgress.query().fetch(keys_only=True))
-	#entries.extend(UserPrefs.query().fetch(1000, keys_only=True))
+	entries.extend(UserPrefs.query().fetch(keys_only=True))
 	ndb.delete_multi(entries)
 	ndb.get_context().clear_cache() # clear memcache
 

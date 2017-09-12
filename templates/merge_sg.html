@@ -1,0 +1,27 @@
+﻿{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+	<div class="main">
+		<div class="container">
+		<form id="newperson" class="form-horizontal" role="form" name="person" method="POST">
+		  <h1>Slå ihop olika kårnamn</h1>
+			<p>Slår ihop data som tillhör en kår som har bytt namn. Flyttar över avdelningar, avdelningsmedlemmar, möten, personer och användare till den nya kåren.</p>
+			<div class="form-group row">
+			<label for="oldname" class="control-label col-sm-3">Gammalt kårnamn</label>
+			<input type="text" class="form-control" name="oldname" id="oldname"/>
+			</div>
+			<div class="form-group row">
+			<label for="newname" class="control-label col-sm-3">Nytt kårnamn</label>
+			<input type="text" class="form-control" name="newname" id="newname"/>
+			</div>
+			<div class="form-group row">
+			<label for="commit" class="control-label col-sm-3">Spara data</label>
+			<input type="checkbox" class="form-control" name="commit" id="commit" />
+			</div>
+		   <button type="submit" name="submit" class="btn btn-lg btn-primary">Starta</button>
+		  </div>
+		</form>
+		</div>
+	</div>
+</body>
+</html>

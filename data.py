@@ -99,6 +99,10 @@ class ScoutGroup(ndb.Model):
 		return name.lower().replace(' ', '')
 
 	@staticmethod
+	def getbyname(name):
+		return ScoutGroup.get_by_id(ScoutGroup.getid(name), use_memcache=True)
+
+	@staticmethod
 	def create(name, scoutnetID):
 		if len(name) < 2:
 			raise ValueError("Invalid name %s" % (name))
@@ -309,7 +313,7 @@ class TroopPerson(ndb.Model):
 	troop = ndb.KeyProperty(kind=Troop, required=True)
 	person = ndb.KeyProperty(kind=Person, required=True)
 	leader = ndb.BooleanProperty(default=False)
-	sortname = ndb.ComputedProperty(lambda self: self.person.get().getname().lower())
+	sortname = ndb.ComputedProperty(lambda self: self.getname())
 
 	@staticmethod
 	def getid(troop_key, person_key):
@@ -359,7 +363,10 @@ class TroopPerson(ndb.Model):
 		self.put()
 
 	def getname(self):
-		return self.person.get().getname()
+		person = self.person.get()
+		if person is None:
+			return "(None)"
+		return person.getname()
 
 	def gettroopname(self):
 		return self.troop.get().getname()
