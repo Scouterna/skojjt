@@ -159,6 +159,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 							person.street,
 							person.zip_code,
 							person.zip_name,
+							person.phone,
 							person.mobile,
 							troop):
 						person.notInScoutnet = False
@@ -518,6 +519,7 @@ def persons(sgroup_url=None, person_url=None, action=None):
 							person.street,
 							person.zip_code,
 							person.zip_name,
+							person.phone,
 							person.mobile,
 							troop):
 						person.notInScoutnet = False
