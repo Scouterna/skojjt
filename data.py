@@ -222,10 +222,7 @@ class Person(PropertyWriteTracker):
 		return self.birthdate.strftime("%Y%m%d0000")
 
 	def getname(self):
-		pattern = re.compile("[\( -]")
-		fn = self.firstname
-		ln = pattern.split(self.lastname)[0][:12]
-		return fn + " " + ln
+		return self.firstname + " " + self.lastname
 
 	def getyearsoldthisyear(self, year):
 		return year - self.birthdate.year
