@@ -305,6 +305,13 @@ class Meeting(ndb.Model):
 		return self.datetime.strftime("%H:%M")
 	def getname(self):
 		return self.name
+	def getendtime(self):
+		maxEndTime = self.datetime.replace(hour=23,minute=59,second=59)
+		endtime = self.datetime + datetime.timedelta(minutes=self.duration)
+		if endtime > maxEndTime:
+			endtime = maxEndTime # limit to the current day (to keep Stop time after Start time)
+		return endtime.strftime('%H:%M')
+
 
 class TroopPerson(ndb.Model):
 	troop = ndb.KeyProperty(kind=Troop, required=True)

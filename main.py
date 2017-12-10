@@ -271,7 +271,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			semesters=Semester.query(),
 			troops=Troop.getTroopsForUser(sgroup_key, user),
 			breadcrumbs=breadcrumbs)
-	elif key_url!=None and key_url!="dak":
+	elif key_url!=None and key_url!="dak" and key_url!="sensus":
 		meeting = ndb.Key(urlsafe=key_url).get()
 		section_title = meeting.getname()
 		baselink += key_url + "/"
@@ -413,6 +413,36 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			response = make_response(result)
 			response.headers['Content-Type'] = 'application/xml'
 			response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') + '-' + semester.getname() + '.xml;'
+			return response
+		elif key_url == "sensus":
+			leaders = []
+			for tp in trooppersons:
+				if tp.leader:
+					leaders.append(tp.getname())
+			
+			attendenceCount = []
+			attendenceHours = []
+			for imeeting, m in enumerate(meetings):
+				personCount = 0
+				for iperson, p in enumerate(persons):
+					if attendances[imeeting][iperson]:
+						personCount += 1
+				attendenceCount.append(personCount)
+				attendenceHours.append(personCount*m.duration/45)
+			
+			result = render_template(
+						'sensusnarvaro.html', 
+						leaders=leaders, 
+						semester=semester, 
+						meetings=meetings, 
+						persons=persons, 
+						trooppersons=trooppersons, 
+						attendances=attendances, 
+						troop=troop, 
+						scoutgroup=scoutgroup, 
+						attendenceCount=attendenceCount,
+						attendenceHours=attendenceHours)
+			response = make_response(result)
 			return response
 		else:
 			allowance = []
