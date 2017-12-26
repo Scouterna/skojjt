@@ -42,6 +42,8 @@
 			<input type='text' class="form-control" size='10' name='phone' id='phone' value='{% if ep %}{{ep.phone}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
 			<label for='email'>E-post</label>
 			<input type='email' class="form-control" size='50' name='email' id='email' value='{% if ep %}{{ep.email}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			<label for="patrol">Patrull</label>
+			<input type="text" class="form-control" size='50' placeholder="" name="patrol" id="patrol" value="{% if ep %}{{ep.getpatrol()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 		  </div>
 		{% if not ep %}
 		  <div class="btn-toolbar">  

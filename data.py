@@ -236,6 +236,12 @@ class Person(PropertyWriteTracker):
 
 	def isBoardMember(self):
 		return self.group_roles != None and len(self.group_roles) > 0
+		
+	def getpatrol(self):
+		return self.patrool # TODO: fix spelling error
+
+	def setpatrol(self, patrolname):
+		self.patrool = patrolname # TODO: fix spelling error
 
 
 class Meeting(ndb.Model):

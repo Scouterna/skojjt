@@ -8,6 +8,7 @@ import scoutnet
 import time
 import htmlform
 from dakdata import *
+import sensus
 from google.appengine.api import users
 from google.appengine.api import app_identity
 from google.appengine.api import mail
@@ -143,6 +144,8 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			person.street = request.form["street"]
 			person.zip_code = request.form["zip_code"]
 			person.zip_name = request.form["zip_name"]
+			if "patrol" in request.form:
+				person.setpatrol(request.form["patrol"])
 			person.scoutgroup = sgroup_key
 			logging.info("created local person %s", person.getname())
 			person.put()
@@ -205,6 +208,19 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			semester_url = request.args["semester"]
 			user.activeSemester = ndb.Key(urlsafe=semester_url)
 			user.put()
+		elif action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
+			if troop == None or key_url == None:
+				raise ValueError('Missing troop or person')
+			person_key = ndb.Key(urlsafe=key_url)
+			tps = TroopPerson.query(TroopPerson.person == person_key, TroopPerson.troop == troop_key).fetch(1)
+			if len(tps) == 1:
+				tp = tps[0]
+				if action == "removefromtroop":
+					tp.delete()
+				else:
+					tp.leader = (action == "setasleader")
+					tp.put()
+			return "ok"
 		else:
 			logging.error('unknown action=' + action)
 			return "", 404
@@ -249,6 +265,11 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			logging.debug("deleting meeting=%s", meeting.getname())
 			meeting.delete()
 			return redirect(breadcrumbs[-1]['link'])
+		elif action == "savepatrol":
+			patrolperson = ndb.Key(urlsafe=request.form['person']).get()
+			patrolperson.setpatrol(request.form['patrolName'])
+			patrolperson.put()
+			return "ok"
 		else:
 			logging.error('unknown action=' + action)
 			return "", 404
@@ -419,29 +440,53 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			for tp in trooppersons:
 				if tp.leader:
 					leaders.append(tp.getname())
+
+			patrols = []
+			for p in persons:
+				if p.getpatrol() not in patrols:
+					patrols.append(p.getpatrol())
+					
+			sensusdata = sensus.SensusData()
+			sensusdata.foereningsNamn = scoutgroup.getname()
+			sensusdata.foreningsID = scoutgroup.foreningsID
+			sensusdata.organisationsnummer = scoutgroup.organisationsnummer
+			sensusdata.kommunID = scoutgroup.kommunID
+			sensusdata.verksamhetsAar = semester.getname()
 			
-			attendenceCount = []
-			attendenceHours = []
-			for imeeting, m in enumerate(meetings):
-				personCount = 0
-				for iperson, p in enumerate(persons):
-					if attendances[imeeting][iperson]:
-						personCount += 1
-				attendenceCount.append(personCount)
-				attendenceHours.append(personCount*m.duration/45)
+			for patrol in patrols:
+				sensuslista = sensus.SensusLista()
+				sensuslista.NamnPaaKort = patrol
+				
+				for tp in trooppersons:
+					p = personsDict[tp.person]
+					if p.getpatrol() != patrol:
+						continue
+					if tp.leader:
+						sensuslista.ledare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
+					else:
+						sensuslista.deltagare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False))
+					
+				for m in meetings:
+					sammankomst = sensus.Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
+					for tp in trooppersons:
+						p = personsDict[tp.person]
+						if p.getpatrol() != patrol:
+							continue
+						isAttending = tp.person in m.attendingPersons
+
+						p = personsDict[tp.person]
+						if tp.leader:
+							sammankomst.ledare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, isAttending))
+						else:
+							sammankomst.deltagare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, isAttending))
+
+					sensuslista.Sammankomster.append(sammankomst)
+
+				sensusdata.listor.append(sensuslista)
 			
 			result = render_template(
-						'sensusnarvaro.html', 
-						leaders=leaders, 
-						semester=semester, 
-						meetings=meetings, 
-						persons=persons, 
-						trooppersons=trooppersons, 
-						attendances=attendances, 
-						troop=troop, 
-						scoutgroup=scoutgroup, 
-						attendenceCount=attendenceCount,
-						attendenceHours=attendenceHours)
+						'sensusnarvaro.html',
+						sensusdata=sensusdata)
 			response = make_response(result)
 			return response
 		else:
@@ -1014,7 +1059,7 @@ def dodelete():
 	if not user.isAdmin():
 		return "denied", 403
 
-	# DeleteAllData() # uncomment to enable this
+	DeleteAllData() # uncomment to enable this
 	return redirect('/admin/')
 
 	

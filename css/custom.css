@@ -55,4 +55,15 @@ width: 24px; height: 24px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
+.data-dirty
+{
+    background: #f40;
+}
+.data-save-pending
+{
+    background: #fc3;
+}
+.patruller
+{
+    width: 100px;
+}

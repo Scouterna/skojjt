@@ -1,5 +1,4 @@
 ﻿# -*- coding: utf-8 -*-
-import codecs
 from data import *
 from datetime import *
 from google.appengine.ext import ndb
@@ -42,7 +41,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 	
 
 def GetBackupXML():
-	thisdate = datetime.datetime.now()
+	thisdate = datetime.now()
 	xml = '<?xml version="1.0" encoding="utf-8"?>\r\n<data date="' + thisdate.isoformat() + '">\r\n'
 	kinds = metadata.get_kinds()
 	for kind in kinds:
