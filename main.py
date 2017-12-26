@@ -51,8 +51,8 @@ def home():
 
 @app.route('/start')
 @app.route('/start/')
-@app.route('/start/<sgroup_url>')
-@app.route('/start/<sgroup_url>/')
+@app.route('/start/<sgroup_url>', methods = ['POST', 'GET'])
+@app.route('/start/<sgroup_url>/', methods = ['POST', 'GET'])
 @app.route('/start/<sgroup_url>/<troop_url>', methods = ['POST', 'GET'])
 @app.route('/start/<sgroup_url>/<troop_url>/', methods = ['POST', 'GET'])
 @app.route('/start/<sgroup_url>/<troop_url>/<key_url>', methods = ['POST', 'GET'])
@@ -270,6 +270,18 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			patrolperson.setpatrol(request.form['patrolName'])
 			patrolperson.put()
 			return "ok"
+		elif action == "newtroop":
+			troopname = request.form['troopname']
+			troop_id = hash(troopname)
+			conflict = Troop.get_by_id(Troop.getid(troop_id, scoutgroup.key, user.activeSemester), use_memcache=True)
+			if conflict is not None:
+				return "Avdelningen finns redan", 404
+			troop = Troop.create(troopname, troop_id, scoutgroup.key, user.activeSemester)
+			troop.put()
+			troop_key = troop.key
+			logging.info("created local troop %s", troopname)
+			action = ""
+			return redirect(breadcrumbs[-1]['link'])
 		else:
 			logging.error('unknown action=' + action)
 			return "", 404
@@ -405,7 +417,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			dak.kort.NamnPaaKort = troop.getname()
 			# hack generate an "unique" id, if there is none
 			if troop.rapportID == None or troop.rapportID == 0:
-				troop.rapportID = random.randint(100, 1000000)
+				troop.rapportID = random.randint(1000, 1000000)
 				troop.put()
 
 			dak.kort.NaervarokortNummer = str(troop.rapportID)

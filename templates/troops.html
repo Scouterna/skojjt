@@ -25,6 +25,22 @@
 <div class="well">
 <a href="{{groupsummarylink}}"><span class="glyphicon glyphicon-list-alt"></span> Föreningsredovisning</a>
 </div>
+<div class="well">
+		<button data-toggle="collapse" data-target="#bidrag" set-focus="#bidragfocus" class="btn btn-lg btn-info togglebutton">Lägg till avdelning</button>
+		<div id="bidrag" class="collapse well">
+			<em>OBS! avdelningen läggs inte till i scoutnet, bara i skojjt. Du kan använda en skojjt avdelning för att dela upp närvaron i flera grupper.</em>
+			<form role="form" name="newtroop" method="POST" action="./?action=newtroop">
+				<input type="hidden" name="action" value="newtroop" />
+				<div class="form-group">
+				<label for="troopname">Avdelningsnamn</label>
+				<input type="text" class="form-control" size="20" id="troopname" name="troopname" value=""/>
+				</div>
+				<div class="btn-toolbar">
+				<button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Lägg till</button>
+				</div>
+			</form>
+		</div>
+</div>
 {% endif %}
 <script>
 function changeSemester(x)
