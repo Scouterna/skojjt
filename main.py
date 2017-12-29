@@ -467,7 +467,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			
 			for patrol in patrols:
 				sensuslista = sensus.SensusLista()
-				sensuslista.NamnPaaKort = patrol
+				sensuslista.NamnPaaKort = troop.getname() + "/" + patrol
 				
 				for tp in trooppersons:
 					p = personsDict[tp.person]
@@ -486,7 +486,6 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 							continue
 						isAttending = tp.person in m.attendingPersons
 
-						p = personsDict[tp.person]
 						if tp.leader:
 							sammankomst.ledare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, isAttending))
 						else:
