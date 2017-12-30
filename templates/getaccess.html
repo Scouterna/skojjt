@@ -1,0 +1,12 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<form role="form" name="getaccess" method="POST" action="./">
+	<div class="form-group">
+	<label for="sg">Scoutkår</label>
+	<input type="text" class="form-control" size='50' required="1" name="sg" id="sg"/>
+	</div>
+	<div class="btn-toolbar">
+	<input type="submit" class="btn btn-lg" name="import" value="Ge mig access"></input>
+	</div>
+</form>
+{% endblock %}

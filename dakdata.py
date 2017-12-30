@@ -44,24 +44,32 @@ class Sammankomst:
 		return self.datum.strftime('%H:%M:%S')
 		
 	def GetStopTimeString(self):
+		maxEndTime = self.datum.replace(hour=23,minute=59,second=59)
 		endtime = self.datum + datetime.timedelta(minutes=self.duration)
+		if endtime > maxEndTime:
+			endtime = maxEndTime # limit to the current day (to keep Stop time after Start time)
 		return endtime.strftime('%H:%M:%S')
 
 class Narvarokort:
-	NaervarokortNummer="1"
+	NaervarokortNummer=""
 	Sammankomster = []
 	Aktivitet="Moete"
 	Lokal="Scouthuset"
 	NamnPaaKort=""
 	deltagare = []
 	ledare = []
-	
+
+	def __init__(self):
+		self.deltagare = []
+		self.ledare = []
+		self.Sammankomster = []
 	
 class DakData:
-	kommunID = "1480"
-	foreningsID = "3843"
+	kommunID = ""
+	foreningsID = ""
 	foereningsNamn=u""
-	organisationsnummer="857203-7722"
+	organisationsnummer=""
+	kort = None
 	
 	def __init__(self):
 		self.kort = Narvarokort()

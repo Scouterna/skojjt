@@ -1,0 +1,358 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Sensus Närvarolista</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<style>
+			@media print {
+			  .footer {	page-break-before: always; }
+			  .sensuslista { page-break-inside:avoid; }
+			}
+			body {
+				font-family: "Arial";
+				font-size: 10px;
+				margin: 5px 5px 5px 5px;
+				padding: 5px 5px 5px 5px;
+			}
+			.reallySmallText {
+				font-size: 8px;
+			}
+			.header {
+				display: block;
+				padding: 0 0 10px 0; 
+				width: 100%;
+				height: 64px;
+			}
+			.SensusLogo {
+				display: inline-block;
+				position: relative; 
+				height:100%;
+				width: 160px;
+			}
+			img {
+				width: 100px;
+				position:absolute;
+				bottom: 15px;
+				left: 15px;
+				right: auto;
+			}
+			.topRightHeader {
+				margin: 0 50px 50px 5px;
+				position: relative; 
+				display: inline-block;
+				float:right; 
+				clear:right;
+				min-height: 100%;
+			}
+			.informationblock {
+				position: relative;
+				display: flex;
+				margin: 0 5px 0 5px;
+			}
+			.generalInformation {
+			    border-radius: 15px;
+				border: 0.5px solid #000;
+				padding: 5px 5px 5px 10px;
+				font-size: 11px;
+			    flex: 1 0 270px;
+				margin: 0 5px 0 5px;
+			}
+			.leader {
+			    border-radius: 15px;
+				border: 0.5px solid #000;
+				padding: 5px 5px 5px 10px;
+				left: auto;
+			    flex: 1 0 220px;
+				margin: 0 5px 0 15px;
+			}
+			.timesNewRoman {
+				font-family: "Times New Roman", Georgia, Serif;
+			}
+			.italic {
+				font-style: italic;
+			}
+			.bold {
+				font-weight: bold;
+			}
+			.uppercase {
+				text-transform: uppercase;
+				font-size: 16px;
+				font-weight: bold;
+				padding: 16px 0 0 0;
+			}
+			.alignedleft {
+				display: inline-block;
+			}
+			.alignedright {
+				display: inline-block;
+				float:right; 
+				clear:right;
+			
+			}
+			.inline {
+				display: inline-block;
+			}
+			.pageNo {
+				position: relative;
+				bottom: 0; 
+				right: 0;
+				top: auto; 
+				left: auto;
+				font-size: 11px;
+			}
+			.report {
+				margin: 5px 5px 0 5px;
+				width: 100%;
+				border-spacing: 0;
+				border-collapse:collapse;
+			}
+			.report td div, .report th div {
+				overflow: visible;
+				white-space: nowrap;
+				position:absolute;
+				border-collapse:collapse;
+			}
+			td.border, th.border {
+				border-left: 0.5px solid #000;
+			}
+			th {
+				/*background-color: blue;*/
+				border-top: none;
+			}
+			.report tr {
+				display: flex;
+				height: 16px;
+			}
+			.header1Data td, .headerMeeting2 td {
+				border-top: none;
+			}
+			.headerMeeting1 td, .headerMeeting3 td.narvaro, .presenceFirstRow td, .leaderSignHeader td, .leader2SignHeader td, .sensusResponsibleSignHeader td {
+				border-top: 0.5px solid #000;
+			}
+			td.rotate {
+				position: relative;
+			}
+			.rotate div {
+				transform: rotate(-90deg);
+				transform-origin: 0% 0%;
+				position: absolute;
+				bottom: -5px;
+				margin: 0 0 0 0;
+				padding: 0 0 0 0;
+			}
+			.columnEqual {
+			    flex: 1 0 2px;
+			}
+			.Name, .Time, .Weekday, .DateSigned, .Instruction, .numberOfHours, .workingHours, .salary {
+				width: 30px;
+			}
+			.border td {
+				border-left: 0.5px solid #000;
+			}
+			table tr:first-child td:first-child, .sensusInternal {
+				border-top-left-radius: 15px;
+			}
+			table tr:first-child td:last-child, .sensusInternal {
+				border-top-right-radius: 15px;
+			}
+			table tr:last-child td:first-child, .sensusInternal {
+				border-bottom-left-radius: 15px;
+			}
+			table tr:last-child td:last-child, .sensusInternal {
+				border-bottom-right-radius: 15px;
+			}
+			table td:first-child, .sensusInternal {
+				border-left: 0.5px solid #000;
+			}
+			table td:last-child, .sensusInternal{
+				border-right: 0.5px solid #000;
+			}
+			table tr:first-child td, .sensusInternal {
+				border-top: 0.5px solid #000;
+			}
+			table tr:last-child td, .sensusInternal {
+				border-bottom: 0.5px solid #000;
+			}
+			.participant1row1 .narvaro {
+				color: #000;
+				font-weight: bold;
+			}
+			.centerText 
+			{
+				text-align: center;
+			}
+			.sensusInternal table {
+				border-spacing: 0;
+				border-collapse:collapse;
+				border: 0.5px solid #000;
+				width: 80px;
+			}
+			.sensusInternal table td {
+				height: 15px;
+			}
+			.sensusInternal th {
+				height: 10px;
+			}
+			.sensusInternal {
+				margin: 15px 5px 15px 5px;
+				width: 100%;
+				position: relative;
+				overflow: hidden;
+				height: 120px;
+			}
+		</style>
+	</head>
+	<body>
+	{% for sensuslista in sensusdata.listor: %}
+	<div class="sensuslista">
+	<div class="header">
+		<div class="SensusLogo"><img src="data:image/png;base64,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" alt="SENSUS"></div>
+		<div class="topRightHeader">
+			<div class="uppercase">Närvarolista</div>
+			<div>Verksamhetsår {{sensusdata.verksamhetsAar}}</div>
+		</div>
+	</div>
+	<div class="leader">Ledare: <div>{%for l in sensuslista.ledare%}{{l.getname()}}, {%endfor%}</div></div>
+	<table class="report">
+		<tr class="header1Headers">
+			<td class="columnEqual"><div></div></td>
+			<td class="columnEqual"><div>{{sensuslista.NamnPaaKort}}</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div>Mån:</div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div>{{m.GetDateString('%m')}}</div></td>
+			{%endfor%}
+		</tr>
+		<tr class="header1Data">
+			<td class="columnEqual"><div></div></td>
+			<td class="columnEqual"><div>{{sensusdata.foereningsNamn}}</div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div>Dag:</div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div>{{m.GetDateString('%d')}}</div></td>
+			{%endfor%}
+		</tr>
+		<tr class="headerMeeting1 meetingHeaders">
+			<td class="personalID columnEqual"><div>PersonNr</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name border"><div>Namn</div><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div>Tid:</div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border reallySmallText"><div>{{m.GetStartTimeString('%H:%M')}}</div></td>
+			{%endfor%}
+		</tr>
+		<tr class="headerMeeting2 meetingHeaders">
+			<td class="personalID columnEqual"><div></div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name border"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border reallySmallText"><div>{{m.GetStopTimeString('%H:%M')}}</div></td>
+			{%endfor%}
+		</tr>
+		{% for p in sensuslista.getAllPersons() %}{% set iperson = loop.index0 %}{% set isleader = p.Ledare %}
+		<tr class="presenceFirstRow">
+			<td class="personalID columnEqual"><div>{{p.Personnummer}}</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name border"><div>{{p.getname()}}</div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border centerText"><span class="centerText">{%if m.isPersonAttending(p) %}1{% endif %}</span></td>
+			{%endfor%}
+		</tr>
+		{%endfor%}
+		<tr class="leaderSignHeader leaderSignature">
+			<td class="personalID columnEqual"><div>Ledaren intygar att ifyllda uppgifter är riktiga</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div title="Antal deltagare inkl. ledare">Antal:</div></td>
+			{%for count in sensuslista.getAttendantsCountsPerMeeting()%}
+			<td class="narvaro columnEqual border"><div>{{count}}</div></td>
+			{%endfor%}
+		</tr>
+		<tr class="leaderSignData leaderSignature">
+			<td class="personalID columnEqual"><div></div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div></div></td>
+			{%endfor%}
+		</tr>
+		<tr class="leader2SignHeader leader2Signature">
+			<td class="personalID columnEqual"><div>Vikarierande Ledarens underskrift</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div title="Antal studietimmar a 45 min">tim:</div></td>
+			{%for hours in sensuslista.getAttendantsHoursPerMeeting()%}
+			<td class="narvaro columnEqual border"><div>{{hours}}</div></td>
+			{%endfor%}
+		</tr>
+		<tr class="leader2SignData leader2Signature">
+			<td class="personalID columnEqual"><div></div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div></div></td>
+			{%endfor%}
+		</tr>
+		<tr class="sensusResponsibleSignHeader leaderSignature">
+			<td class="personalID columnEqual"><div>Underskrift av ansvarig på studieförbundet</div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div></div></td>
+			{%endfor%}
+		</tr>
+		<tr class="sensusResponsibleSignData leaderSignature">
+			<td class="personalID columnEqual"><div></div></td>
+			<td class="columnEqual"><div></div></td>
+			<td class="sex columnEqual"><div></div></td>
+			<td class="Name"><div></div></td>
+			<td class="DateSigned"><div></div></td>
+			<td class="Instruction"><div></div></td>
+			<td class="numberOfHours border"><div></div></td>
+			{%for m in sensuslista.Sammankomster%}
+			<td class="narvaro columnEqual border"><div></div></td>
+			{%endfor%}
+		</tr>
+	</table>
+	</div>
+	<div class="pagebreak"> </div>
+	{% endfor %}
+	</body>
+</html>

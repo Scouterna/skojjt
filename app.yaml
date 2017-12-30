@@ -19,7 +19,19 @@ libraries:
 - name: ssl
   version: latest
 
+builtins:
+- deferred: on
+- remote_api: on
+
 handlers:
+- url: /favicon.ico
+  static_files: img/favicon.ico
+  upload: img/favicon.ico
+
+- url: /manifest.json
+  static_files: img/manifest.json
+  upload: img/manifest.json
+
 - url: /css
   static_dir: css
 
@@ -36,6 +48,16 @@ handlers:
 - url: /fonts
   static_dir: fonts
 
+- url: /progress/.*
+  script: main.app
+  login: required
+  secure: always
+
+- url: /tasks/.*
+  script: main.app
+  login: admin
+  secure: always
+  
 - url: /admin/.*
   script: main.app
   login: admin

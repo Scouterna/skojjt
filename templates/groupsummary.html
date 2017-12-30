@@ -1,0 +1,63 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<h1>Föreningsredovisning år {{year}}</h1>
+<h2>Åldersfördelning</h2>
+<div class="table-responsive">
+	<table class="table table-striped">
+	  <thead>
+		<tr>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Ålder</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Kvinnor</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Män</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Totalt</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for age in ages %}
+		<tr><td>{{age.age}}</td><td>{{age.women}}</td><td>{{age.men}}</td><td>{{age.women+age.men}}</td></tr>
+		{% endfor %}
+	 </tbody>
+	</table>
+</div>
+<h2>Styrelsemedlemmar</h2>
+<div class="table-responsive">
+	<table class="table table-striped">
+	  <thead>
+		<tr>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Kvinnor</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Män</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Totalt</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for member in boardmebers %}
+		<tr><td>{{member.women}}</td><td>{{member.men}}</td><td>{{member.women+member.men}}</td></tr>
+		{% endfor %}
+	 </tbody>
+	</table>
+</div>
+<h2>Ledare</h2>
+<div class="table-responsive">
+	<table class="table table-striped">
+	  <thead>
+		<tr>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Ålder</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Kvinnor</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Män</th>
+		<th class="col-xs-1 col-sm-1 col-lg-1">Totalt</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for age in leaders %}
+		<tr><td>{{age.age}}</td><td>{{age.women}}</td><td>{{age.men}}</td><td>{{age.women+age.men}}</td></tr>
+		{% endfor %}
+	 </tbody>
+	</table>
+</div>
+<div class="well">
+<h2>Email länkar till alla</h2>
+<p>Välj den länken som passar ditt mejlprogram bäst:</p>
+<a href="mailto:{% for email in emails %}{{email}},{% endfor %}">Email till alla (kommaseparerad)</a><br/>
+<a href="mailto:{% for email in emails %}{{email}};{% endfor %}">Email till alla (semikolonseparerad)</a><br/>
+</div>
+{% endblock %}

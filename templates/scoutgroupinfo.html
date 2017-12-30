@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block main %}
+<form role="form" name="scoutgroupinfo" method="POST" action="./">
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="organisationsnummer">Organisationsnummer</label>
+	<input type="text" class="form-control" name="organisationsnummer" value="{{scoutgroup.organisationsnummer|default("", True)}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="foreningsID">Kommunens förenings ID</label>
+	<input type="text" class="form-control" id="foreningsID" name="foreningsID" value="{{scoutgroup.foreningsID|default("", True)}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="kommunID">Kommun ID</label>
+	<input type="text" class="form-control" id="kommunID" name="kommunID" value="{{scoutgroup.kommunID|default("", True)}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="scoutnetID">Scoutnets kår ID</label>
+	<input type="text" class="form-control" id="scoutnetID" name="scoutnetID" value="{{scoutgroup.scoutnetID|default("", True)}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="apikey_all_members">Scoutnets all members apikey</label>
+	<input type="text" class="form-control" id="apikey_all_members" name="apikey_all_members" value="{{scoutgroup.apikey_all_members|default("", True)}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+	<label for="apikey_waitinglist">Scoutnets waitinglist apikey</label>
+	<input type="text" class="form-control" id="apikey_waitinglist" name="apikey_waitinglist" value="{{scoutgroup.apikey_waitinglist|default("", True)}}"/>
+  </div>
+  <div class="btn-toolbar col-xs-12 col-sm-6">
+	<button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Spara</button>
+	<input type="submit" class="btn btn-lg" name="import" value="Spara och Starta import" />
+  </div>
+</form>
+{% endblock %}

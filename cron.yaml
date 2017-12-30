@@ -1,0 +1,4 @@
+cron:
+- description: cleanup job
+  url: /tasks/cleanup/
+  schedule: every day 04:00

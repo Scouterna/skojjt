@@ -6,12 +6,12 @@
   <input type="hidden" name="action" value="addmeeting"/>
 {% endif %}
   <div class="form-group">
-	<label for="name">Namn</label>
+	<label for="mname">Namn</label>
 	<input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% else %}Möte{% endif %}"/>
   </div>
   <div class="form-group">
-	<label for="mdate">Datum</label>
-	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}"/>
+	<label for="mdate">Datum (termin {{semester.getname()}})</label>
+	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
   </div>
   <div class="form-group">
 	<label for="starttime">Starttid</label>
@@ -24,8 +24,8 @@
   {% if not hasMeeting %}
   <script>
 	$("#mdate").val(getTodaysDateString());
-	$("#starttime").val("{{defaultstarttime}}");
-	$("#mduration").val("90");
+	$("#starttime").val("{{troop.defaultstarttime}}");
+	$("#mduration").val("{{troop.defaultduration}}");
   </script>
   {% endif %}
   <div class="btn-toolbar">  

@@ -5,7 +5,13 @@ WSGI applications specified in app.yaml are loaded.
 """
 
 from google.appengine.ext import vendor
+import os
+import logging
 
 # Third-party libraries are stored in "lib", vendoring will make
 # sure that they are importable by the application.
 vendor.add('lib')
+
+if os.environ.get('SERVER_SOFTWARE','').startswith('Development'):
+	logging.info("*** Dev mode ** ")
+	remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = ('REMOTE_ADDR', ['127.0.0.1'])

@@ -27,10 +27,22 @@
 			</div>
 			<div class="form-group row">
 			<label for="groupaccess" class="control-label col-sm-3">Kår:</label>
+			{% set sgroupname = '' %}
+			{% set sgroupurlkey = '' %}
+			{% set u = userprefs %}
+			{% if u.groupaccess != None %}
+				{% set group = u.groupaccess.get() %}
+				{% set sgroupurlkey = u.groupaccess.urlsafe() %}
+				{% if group == None %}
+					{% set sgroupname = sgroupurlkey %}
+				{% else %}
+					{% set sgroupname = group.getname() %}
+				{% endif %}
+			{% endif %}
 			<select class="form-control form-control-lg" name="groupaccess" id="groupaccess">
 				<option value=""></option>
 				{% for scoutgroup in scoutgroups %}
-				<option value="{{scoutgroup.key.urlsafe()}}" {% if userprefs.groupaccess != None and userprefs.groupaccess.urlsafe()==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
+				<option value="{{scoutgroup.key.urlsafe()}}" {% if sgroupurlkey==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
 				{% endfor %}
 			</select><br/>
 			</div>
