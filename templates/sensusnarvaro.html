@@ -38,35 +38,11 @@
 				left: 15px;
 				right: auto;
 			}
-			.topRightHeader {
-				margin: 0 50px 50px 5px;
-				position: relative; 
-				display: inline-block;
-				float:right; 
-				clear:right;
-				min-height: 100%;
-			}
-			.informationblock {
-				position: relative;
-				display: -webkit-flex; /* Safari */
-				display: -ms-flexbox;
-				display: flex;
-				margin: 0 5px 0 5px;
-			}
-			.generalInformation {
-			    border-radius: 15px;
-				border: 0.5px solid #000;
-				padding: 5px 5px 5px 10px;
-				font-size: 11px;
-			    flex: 1 0 270px;
-				margin: 0 5px 0 5px;
-			}
 			.leader {
 			    border-radius: 15px;
 				border: 0.5px solid #000;
 				padding: 5px 5px 5px 10px;
 				left: auto;
-			    flex: 1 0 220px;
 				margin: 0 5px 0 15px;
 			}
 			.timesNewRoman {
@@ -84,129 +60,75 @@
 				font-weight: bold;
 				padding: 16px 0 0 0;
 			}
-			.alignedleft {
-				display: inline-block;
-			}
-			.alignedright {
-				display: inline-block;
-				float:right; 
-				clear:right;
-			
-			}
-			.inline {
-				display: inline-block;
-			}
-			.pageNo {
-				position: relative;
-				bottom: 0; 
-				right: 0;
-				top: auto; 
-				left: auto;
-				font-size: 11px;
-			}
+            table {
+                table-layout: auto;
+            }
 			.report {
 				margin: 5px 5px 0 5px;
 				width: 100%;
 				border-spacing: 0;
-				border-collapse:collapse;
 			}
 			.report td div, .report th div {
 				overflow: visible;
 				white-space: nowrap;
-				position:absolute;
 				border-collapse:collapse;
 			}
 			td.border, th.border {
 				border-left: 0.5px solid #000;
 			}
-			th {
-				/*background-color: blue;*/
-				border-top: none;
-			}
 			.report tr {
-				display: -webkit-flex; /* Safari */
-				display: -ms-flexbox;
-				display: flex;
 				height: 16px;
 			}
 			.header1Data td, .headerMeeting2 td {
 				border-top: none;
 			}
-			.headerMeeting1 td, .headerMeeting3 td.narvaro, .presenceFirstRow td, .leaderSignHeader td, .leader2SignHeader td, .sensusResponsibleSignHeader td {
+			.presenceFirstRow td, .leaderSignHeader td, .headerMeeting1 td, .leader2SignHeader td, .sensusResponsibleSignHeader td {
 				border-top: 0.5px solid #000;
 			}
-			td.rotate {
-				position: relative;
-			}
-			.rotate div {
-				transform: rotate(-90deg);
-				transform-origin: 0% 0%;
-				position: absolute;
-				bottom: -5px;
-				margin: 0 0 0 0;
-				padding: 0 0 0 0;
-			}
+
 			.columnEqual {
-			    flex: 1 0 1em;
 				min-width: 1.5em;
 				min-height: 1.5em;  
 			}
-			.Name, .Time, .Weekday, .DateSigned, .Instruction, .numberOfHours, .workingHours, .salary {
-				width: 30px;
+            .personalID {
+				min-width: 20em;
+				min-height: 1.5em;
+                padding-left: 1.5em
+			}
+            .Name {
+				min-width: 20em;
+				min-height: 1.5em;
 			}
 			.border td {
 				border-left: 0.5px solid #000;
 			}
-			table tr:first-child td:first-child, .sensusInternal {
+			table tr:first-child td:first-child {
 				border-top-left-radius: 15px;
 			}
-			table tr:first-child td:last-child, .sensusInternal {
+			table tr:first-child td:last-child {
 				border-top-right-radius: 15px;
 			}
-			table tr:last-child td:first-child, .sensusInternal {
+			table tr:last-child td:first-child {
 				border-bottom-left-radius: 15px;
 			}
-			table tr:last-child td:last-child, .sensusInternal {
+			table tr:last-child td:last-child {
 				border-bottom-right-radius: 15px;
 			}
-			table td:first-child, .sensusInternal {
+			table td:first-child {
 				border-left: 0.5px solid #000;
 			}
-			table td:last-child, .sensusInternal{
+			table td:last-child{
 				border-right: 0.5px solid #000;
 			}
-			table tr:first-child td, .sensusInternal {
+			table tr:first-child td {
 				border-top: 0.5px solid #000;
 			}
-			table tr:last-child td, .sensusInternal {
+			table tr:last-child td {
 				border-bottom: 0.5px solid #000;
-			}
-			.participant1row1 .narvaro {
-				color: #000;
-				font-weight: bold;
 			}
 			.centerText 
 			{
 				text-align: center;
-			}
-			.sensusInternal table {
-				border-spacing: 0;
-				border-collapse:collapse;
-				border: 0.5px solid #000;
-				width: 80px;
-			}
-			.sensusInternal table td {
-				height: 15px;
-			}
-			.sensusInternal th {
-				height: 10px;
-			}
-			.sensusInternal {
-				margin: 15px 5px 15px 5px;
-				width: 100%;
-				position: relative;
-				overflow: hidden;
-				height: 120px;
 			}
 		</style>
 	</head>
@@ -223,48 +145,32 @@
 	<div class="leader">Ledare: <div>{%for l in sensuslista.ledare%}{{l.getname()}}, {%endfor%}</div></div>
 	<table class="report">
 		<tr class="header1Headers">
-			<td class="columnEqual"><div></div></td>
-			<td class="columnEqual"><div>{{sensuslista.NamnPaaKort}}</div></td>
-			<td class="columnEqual"><div></div></td>
+			<td class="personalID"><div>{{sensuslista.NamnPaaKort}}</div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div>Mån:</div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div>{{m.GetDateString('%m')}}</div></td>
 			{%endfor%}
 		</tr>
 		<tr class="header1Data">
-			<td class="columnEqual"><div></div></td>
-			<td class="columnEqual"><div>{{sensusdata.foereningsNamn}}</div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>{{sensusdata.foereningsNamn}}</div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div>Dag:</div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div>{{m.GetDateString('%d')}}</div></td>
 			{%endfor%}
 		</tr>
 		<tr class="headerMeeting1 meetingHeaders">
-			<td class="personalID columnEqual"><div>PersonNr</div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>PersonNr</div></td>
 			<td class="Name border"><div>Namn</div><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div>Tid:</div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border reallySmallText"><div>{{m.GetStartTimeString('%H:%M')}}</div></td>
 			{%endfor%}
 		</tr>
 		<tr class="headerMeeting2 meetingHeaders">
-			<td class="personalID columnEqual"><div></div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div></div></td>
 			<td class="Name border"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border reallySmallText"><div>{{m.GetStopTimeString('%H:%M')}}</div></td>
@@ -272,12 +178,8 @@
 		</tr>
 		{% for p in sensuslista.getAllPersons() %}{% set iperson = loop.index0 %}{% set isleader = p.Ledare %}
 		<tr class="presenceFirstRow">
-			<td class="personalID columnEqual"><div>{{p.Personnummer}}</div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>{{p.Personnummer}}</div></td>
 			<td class="Name border"><div>{{p.getname()}}</div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border centerText"><span class="centerText">{%if m.isPersonAttending(p) %}1{% endif %}</span></td>
@@ -285,72 +187,48 @@
 		</tr>
 		{%endfor%}
 		<tr class="leaderSignHeader leaderSignature">
-			<td class="personalID columnEqual"><div>Ledaren intygar att ifyllda uppgifter är riktiga</div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>Ledaren intygar att ifyllda uppgifter är riktiga</div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div title="Antal deltagare inkl. ledare">Antal:</div></td>
 			{%for count in sensuslista.getAttendantsCountsPerMeeting()%}
 			<td class="narvaro columnEqual border"><div>{{count}}</div></td>
 			{%endfor%}
 		</tr>
 		<tr class="leaderSignData leaderSignature">
-			<td class="personalID columnEqual"><div></div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div></div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div></div></td>
 			{%endfor%}
 		</tr>
 		<tr class="leader2SignHeader leader2Signature">
-			<td class="personalID columnEqual"><div>Vikarierande Ledarens underskrift</div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>Vikarierande Ledarens underskrift</div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div title="Antal studietimmar a 45 min">tim:</div></td>
 			{%for hours in sensuslista.getAttendantsHoursPerMeeting()%}
 			<td class="narvaro columnEqual border"><div>{{hours}}</div></td>
 			{%endfor%}
 		</tr>
 		<tr class="leader2SignData leader2Signature">
-			<td class="personalID columnEqual"><div></div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div></div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div></div></td>
 			{%endfor%}
 		</tr>
 		<tr class="sensusResponsibleSignHeader leaderSignature">
-			<td class="personalID columnEqual"><div>Underskrift av ansvarig på studieförbundet</div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div>Underskrift av ansvarig på studieförbundet</div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div></div></td>
 			{%endfor%}
 		</tr>
 		<tr class="sensusResponsibleSignData leaderSignature">
-			<td class="personalID columnEqual"><div></div></td>
-			<td class="columnEqual"><div></div></td>
-			<td class="sex columnEqual"><div></div></td>
+			<td class="personalID"><div></div></td>
 			<td class="Name"><div></div></td>
-			<td class="DateSigned"><div></div></td>
-			<td class="Instruction"><div></div></td>
 			<td class="numberOfHours border"><div></div></td>
 			{%for m in sensuslista.Sammankomster%}
 			<td class="narvaro columnEqual border"><div></div></td>
