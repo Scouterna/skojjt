@@ -48,6 +48,8 @@
 			}
 			.informationblock {
 				position: relative;
+				display: -webkit-flex; /* Safari */
+				display: -ms-flexbox;
 				display: flex;
 				margin: 0 5px 0 5px;
 			}
@@ -122,6 +124,8 @@
 				border-top: none;
 			}
 			.report tr {
+				display: -webkit-flex; /* Safari */
+				display: -ms-flexbox;
 				display: flex;
 				height: 16px;
 			}
@@ -143,7 +147,9 @@
 				padding: 0 0 0 0;
 			}
 			.columnEqual {
-			    flex: 1 0 2px;
+			    flex: 1 0 1em;
+				min-width: 1.5em;
+				min-height: 1.5em;  
 			}
 			.Name, .Time, .Weekday, .DateSigned, .Instruction, .numberOfHours, .workingHours, .salary {
 				width: 30px;
