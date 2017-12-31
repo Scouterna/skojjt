@@ -183,7 +183,7 @@ def start(sgroup_url=None, troop_url=None, key_url=None):
 			logging.debug("name=%s", name)
 			jsonstr='['
 			personCounter = 0
-			for person in Person().query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname, -Person.removed):
+			for person in Person().query(Person.scoutgroup == sgroup_key).order(Person.removed, Person.firstname, Person.lastname):
 				if person.getname().lower().find(name) != -1:
 					if personCounter != 0:
 						jsonstr += ', '
