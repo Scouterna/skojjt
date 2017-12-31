@@ -627,10 +627,10 @@ def persons(sgroup_url=None, person_url=None, action=None):
 			username=user.getname())
 	elif person==None:
 		section_title = 'Personer'
-		return render_template('index.html',
+		return render_template('persons.html',
 			heading=section_title,
 			baselink=baselink,
-			items=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(), # TODO: memcache
+			persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(), # TODO: memcache
 			breadcrumbs=breadcrumbs,
 			username=user.getname())
 	else:
@@ -844,10 +844,15 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
 		if progress is not None:
 			break
 		time.sleep(1) # wait for the eventual consistency
-	success = RunScoutnetImport(groupid, api_key, user, semester, progress)
-	if not success:
-		progress.failed = True
-	progress.info("Import klar")
+	try:
+		success = RunScoutnetImport(groupid, api_key, user, semester, progress)
+		if not success:
+			progress.info("Importen misslyckades")
+			progress.failed = True
+		else:
+			progress.info("Import klar")
+	except Exception as e: # catch all exceptions so that defer stops running it again (automatic retry)
+		progress.info("Importfel: " + str(e))
 	progress.done()
 
 
@@ -1070,7 +1075,7 @@ def dodelete():
 	if not user.isAdmin():
 		return "denied", 403
 
-	DeleteAllData() # uncomment to enable this
+	# DeleteAllData() # uncomment to enable this
 	return redirect('/admin/')
 
 	

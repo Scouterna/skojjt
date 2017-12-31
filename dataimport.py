@@ -143,6 +143,7 @@ class ScoutnetImporter:
 		
 		personsToSave = []
 		troopPersonsToSave = []
+		activePersons = set() # person.ids that was seen in this import
 
 		for p in list:
 			id = int(p["id"])
@@ -166,8 +167,10 @@ class ScoutnetImporter:
 					p["personnr"],
 					p["female"])
 				self.result.append("Ny person:%s %s %s" % (id, p["firstname"], p["lastname"]))
+			
+			activePersons.add(id)
 
-			person.removed = not p["active"]
+			person.removed = False
 			person.patrool = p["patrool"]
 			person.email = p["email"]
 			person.phone = p["phone"]
@@ -203,14 +206,17 @@ class ScoutnetImporter:
 						troopPersonsToSave.append(tp)
 						self.result.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
 
-			if person.removed:
-				self.result.append(u"%s borttagen, tar bort från avdelningar" % (person.getname()))
-				if self.commit:
-					tps = TroopPerson.query(TroopPerson.person==person.key).fetch()
-					if self.commit:
-						for tp in tps:
-							tp.delete()
-						person.key.delete()
+		# check if old persons are still members, mark persons not imported in the pass as removed
+		if len(personsToSave) > 0: # protect agains a failed import, with no persons maring everyone as removed
+			previousPersons = Person.query(Person.scoutgroup == scoutgroup.key, Person.removed != True)
+			for previousPersonKey in previousPersons.iter(keys_only=True):
+				if previousPersonKey.id() not in activePersons:
+					personToMarkAsRemoved = previousPersonKey.get()
+					personToMarkAsRemoved.removed = True
+					self.result.append(u"%s finns inte i scoutnet, markeras som borttagen" % (personToMarkAsRemoved.getname()))
+					if personToMarkAsRemoved in personsToSave:
+						raise Exception('A removed person cannot be in that list')
+					personsToSave.append(personToMarkAsRemoved)
 			
 		if self.commit:
 			ndb.put_multi(personsToSave)

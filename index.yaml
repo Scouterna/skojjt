@@ -31,6 +31,11 @@ indexes:
 
 - kind: Person
   properties:
+  - name: scoutgroup
+  - name: removed
+
+- kind: Person
+  properties:
   - name: troop
   - name: lastname
   - name: firstname

@@ -243,6 +243,14 @@ class Person(PropertyWriteTracker):
 	def setpatrol(self, patrolname):
 		self.patrool = patrolname # TODO: fix spelling error
 
+	def getMemberYearsString(self):
+		return ','.join(str(y) for y in self.member_years)
+
+	def getPostadress(self):
+		if self.zip_code is None or self.zip_name is None:
+			return ''
+		return self.zip_code + ' ' + self.zip_name
+
 
 class Meeting(ndb.Model):
 	datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
