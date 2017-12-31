@@ -5,8 +5,9 @@
 	<div class="main">
 		<form id="newperson" role="form" name="person" method="POST">
 		  <input type="hidden" name="action" value="newperson"/>
-		  <h1>{% if ep %}{{ep.getname()}}{% else %}Registrera ny person{% endif %}</h1>
+		  <h1>{% if ep %}{{ep.getnameWithStatus()}}{% else %}Registrera ny person{% endif %}</h1>
 			{% if ep %}
+			{% if ep.removed == True %}<div class="well btn-toolbar"><em>Personen är borttagen i scoutnet</em><br/></div>{% endif %}
 			<div class="form-group">
 				Kontakt:
 				{% if ep.mobile != "" %}
@@ -58,14 +59,6 @@
 		<a href="addtowaitinglist" class="btn btn-lg btn-default">Lägg till i scoutnets kölista</a><br/>		
 		<strong>Personen hamnar i scoutnet under "medlemmar som inte godkänts". Du måste godkänna i scoutnet, sätta avgift och avdelning.</strong>
 		{% endif %}
-		<div class="btn-toolbar">
-		{% if not ep.removed %}
-		  <a href="deleteperson" class="btn btn-lg btn-danger">Ta bort</a>
-		{% else %}
-		  <em>Personen är borttagen</em><br/>
-		  <a href="addbackperson" class="btn btn-lg btn-danger">Lägg till igen</a>
-		{% endif %}
-		</div>
 		{% endif %}
 		{% if hasPerson %}
         <div class="table-responsive">

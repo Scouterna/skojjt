@@ -15,9 +15,9 @@
 	  </thead>
 	  <tbody>
 		{% for person in persons %}{% set iperson = loop.index0 %}{% set isleader = trooppersons[iperson].leader %}
-		<tr class="{{person.key.urlsafe()}}"><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.firstname}} {{person.lastname}}{% if isleader %} (Ledare){% endif %}">
+		<tr class="{{person.key.urlsafe()}}"><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.getname()}}{% if isleader %} (Ledare){% endif %}{%if person.removed %} borttagen i scoutnet{%endif%}">
 			<a href="{{baselink+person.key.urlsafe()}}/">
-			{{loop.index}}:{{person.getname()}}{% if isleader %}(L){% endif %}
+			{{loop.index}}:{{person.getnameWithStatus()}}{% if isleader %}(L){% endif %}
 			</a>
 		</td>
 		<td class="removebutton extrainfo" style="display:none">

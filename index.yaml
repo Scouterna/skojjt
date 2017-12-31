@@ -32,6 +32,14 @@ indexes:
 - kind: Person
   properties:
   - name: scoutgroup
+  - name: firstname
+  - name: lastname
+  - name: removed
+    direction: desc
+
+- kind: Person
+  properties:
+  - name: scoutgroup
   - name: removed
 
 - kind: Person

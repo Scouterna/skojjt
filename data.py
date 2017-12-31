@@ -224,6 +224,11 @@ class Person(PropertyWriteTracker):
 	def getname(self):
 		return self.firstname + " " + self.lastname
 
+	def getnameWithStatus(self):
+		if self.removed == True:
+			return self.firstname + " " + self.lastname + ' (B)'
+		return self.firstname + " " + self.lastname
+
 	def getyearsoldthisyear(self, year):
 		return year - self.birthdate.year
 	
