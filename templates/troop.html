@@ -15,7 +15,7 @@
 	  </thead>
 	  <tbody>
 		<tr>
-			<td class="name-field">Välj alla/ingen</td>
+			<td class="name-field"></td>
 			<td class="removebutton extrainfo" style="display:none"></td>
 			<td class="patruller extrainfo" style="display:none" width="100"></td>
 			<td class="personnr extrainfo" style="display:none"></td>
@@ -219,8 +219,6 @@ $(document).ready(function() {
 
 	function toggleParticipants(meeting_url, checked)
 	{
-		var leaders = 0;
-		var scouts = 0;
 		var name = 'cb' + meeting_url;
 		var checkboxes = $('input:checkbox[name="' + name + '"]');
 		for (var cb=0; cb < checkboxes.length; cb++)
