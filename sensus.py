@@ -53,10 +53,10 @@ class Sammankomst:
 
 	def GetDateString(self, format='%Y-%m-%d'):
 		return self.datum.strftime(format)
-	
+
 	def GetStartTimeString(self, format='%H:%M:%S'):
 		return self.datum.strftime(format)
-		
+	
 	def GetStopTimeString(self, format='%H:%M:%S'):
 		maxEndTime = self.datum.replace(hour=23,minute=59,second=59)
 		endtime = self.datum + datetime.timedelta(minutes=self.duration)
@@ -93,11 +93,7 @@ class SensusLista:
 	def getAttendantsHoursPerMeeting(self):
 		attendantsHours = []
 		for m in self.Sammankomster:
-			personCount = 0
-			for d in m.getAllPersons():
-				if d.Attending:
-					personCount += 1
-			attendantsHours.append(personCount*m.duration/45)
+			attendantsHours.append(m.duration/45)
 		return attendantsHours
 
 class SensusData:
@@ -107,7 +103,7 @@ class SensusData:
 	organisationsnummer=""
 	verksamhetsAar = ""
 	listor = []
-	
+
 	def __init__(self):
 		self.listor = []
 	
