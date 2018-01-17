@@ -26,13 +26,6 @@ indexes:
 - kind: Person
   properties:
   - name: scoutgroup
-  - name: removed
-  - name: firstname
-  - name: lastname
-
-- kind: Person
-  properties:
-  - name: scoutgroup
   - name: firstname
   - name: lastname
 
@@ -48,6 +41,13 @@ indexes:
   properties:
   - name: scoutgroup
   - name: removed
+
+- kind: Person
+  properties:
+  - name: scoutgroup
+  - name: removed
+  - name: firstname
+  - name: lastname
 
 - kind: Person
   properties:
