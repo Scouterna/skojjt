@@ -14,8 +14,24 @@
 		</tr>
 	  </thead>
 	  <tbody>
+		<tr>
+			<td class="name-field"></td>
+			<td class="removebutton extrainfo" style="display:none"></td>
+			<td class="patruller extrainfo" style="display:none" width="100"></td>
+			<td class="personnr extrainfo" style="display:none"></td>
+			{% for meeting in meetings %}
+			<td>
+				{% if loop.index == 1 %}
+				<input title="Välj alla / ingen" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
+				{% else %}
+				<div></div>
+				{% endif %}
+			</td>
+			{% endfor %}
+		</tr>
 		{% for person in persons %}{% set iperson = loop.index0 %}{% set isleader = trooppersons[iperson].leader %}
-		<tr class="{{person.key.urlsafe()}}"><td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.getname()}}{% if isleader %} (Ledare){% endif %}{%if person.removed %} borttagen i scoutnet{%endif%}">
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.getname()}}{% if isleader %} (Ledare){% endif %}{%if person.removed %} borttagen i scoutnet{%endif%}">
 			<a href="{{baselink+person.key.urlsafe()}}/">
 			{{loop.index}}:{{person.getnameWithStatus()}}{% if isleader %}(L){% endif %}
 			</a>
@@ -200,6 +216,26 @@ $(document).ready(function() {
 		updateParticipantCount(meeting_url);
 		$(".saveinfo").html("<br/>Klicka för att spara:");
 	});
+
+	function toggleParticipants(meeting_url, checked)
+	{
+		var name = 'cb' + meeting_url;
+		var checkboxes = $('input:checkbox[name="' + name + '"]');
+		for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			checkboxes[cb].checked = checked
+		}
+	}
+
+	$('.attendance-tgl').click(function(event) {
+		meeting_url = event.target.name.slice(3);
+		var btn = $('#btn'+meeting_url);
+		btn.addClass('data-dirty');
+		toggleParticipants(meeting_url, event.target.checked);
+		updateParticipantCount(meeting_url);
+		$(".saveinfo").html("<br/>Klicka för att spara:");
+	});
+
 	function resetDirtyButton(btn) {
 		btn.removeClass('data-dirty data-save-pending');
 		if (!isDirty()) { 
