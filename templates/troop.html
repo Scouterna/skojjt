@@ -15,17 +15,13 @@
 	  </thead>
 	  <tbody>
 		<tr>
-			<td class="name-field"></td>
+			<td class="name-field"><strong>Välj alla / ingen:</strong></td>
 			<td class="removebutton extrainfo" style="display:none"></td>
 			<td class="patruller extrainfo" style="display:none" width="100"></td>
 			<td class="personnr extrainfo" style="display:none"></td>
 			{% for meeting in meetings %}
 			<td>
-				{% if loop.index == 1 %}
-				<input title="Välj alla / ingen" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
-				{% else %}
-				<div></div>
-				{% endif %}
+			<input title="Välj alla / ingen" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
 			</td>
 			{% endfor %}
 		</tr>
@@ -197,6 +193,7 @@ $(document).ready(function() {
 			}
 		}
 		$('#span' + meeting_url).html('' + scouts + '/' + leaders);
+		updateCheckAllCheckbox(meeting_url);
 	}
 	function updateAllParticipantCount()
 	{
@@ -225,6 +222,14 @@ $(document).ready(function() {
 		{
 			checkboxes[cb].checked = checked
 		}
+	}
+	function updateCheckAllCheckbox(meeting_url)
+	{
+		var checkboxes = $('input:checkbox[name="cb' + meeting_url + '"]');
+		var checkedcheckboxes = $('input:checkbox[name="cb' + meeting_url + '"]:checked');
+		var toggleallcheckbox = $('input:checkbox[name="tgl' + meeting_url + '"]')[0];
+		toggleallcheckbox.checked = checkedcheckboxes.length !== 0 && checkedcheckboxes.length === checkboxes.length;
+		toggleallcheckbox.indeterminate = checkedcheckboxes.length !== 0 && checkedcheckboxes.length !== checkboxes.length;
 	}
 
 	$('.attendance-tgl').click(function(event) {
