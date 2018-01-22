@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataimport import UserPrefs, ndb, logging, Semester
-from import_funcs import startAsyncImport
+from imports import startAsyncImport
 
 from flask import Blueprint, render_template, redirect, request
 
@@ -40,4 +40,3 @@ def show(sgroup_url):
 			baselink=baselink,
 			scoutgroup=scoutgroup,
 			breadcrumbs=breadcrumbs)
-            

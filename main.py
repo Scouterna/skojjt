@@ -1,7 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from data import *
 from dataimport import *
-from import_funcs import startAsyncImport
 import datetime
 import urllib
 import json
@@ -14,8 +13,13 @@ from google.appengine.api import users
 from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
-from google.appengine.ext import deferred
 import random
+
+from imports import import_page, progress
+from groupsummary import groupsummary
+from scoutgroupinfo import scoutgroupinfo
+from persons import persons
+from start import start
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
 from werkzeug import secure_filename
@@ -50,95 +54,12 @@ def home():
 						   personsurl=personsurl
 						   )
 
-from start import start
 app.register_blueprint(start, url_prefix='/start')
-
-from persons import persons
 app.register_blueprint(persons, url_prefix='/persons')
-
-from scoutgroupinfo import scoutgroupinfo
 app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
-
-@app.route('/groupsummary/<sgroup_url>')
-@app.route('/groupsummary/<sgroup_url>/')
-def scoutgroupsummary(sgroup_url):
-	user = UserPrefs.current()
-	if not user.canImport():
-		return "denied", 403
-	if sgroup_url is None:
-		return "missing group", 404
-
-	if user.activeSemester is None:
-		semester = Semester.getOrCreateCurrent()
-	else:
-		semester = user.activeSemester.get()
-		
-	sgroup_key = ndb.Key(urlsafe=sgroup_url)
-	scoutgroup = sgroup_key.get()
-	breadcrumbs = [{'link':'/', 'text':'Hem'}]
-	baselink = "/groupsummary/" + sgroup_url
-	section_title = "Föreningsredovisning - " + scoutgroup.getname()
-	breadcrumbs.append({'link':baselink, 'text':section_title})
-	class Item():
-		age = 0
-		women = 0
-		men = 0
-		def __init__(self, age, women=0, men=0):
-			self.age = age
-			self.women = women
-			self.men = men
-
-	year = datetime.datetime.now().year - 1 # previous year
-	women = 0
-	men = 0
-	startage = 7
-	endage = 25
-	ages = [Item('0 - 6')]
-	ages.extend([Item(i) for i in range(startage, endage+1)])
-	ages.append(Item('26 - 64'))
-	ages.append(Item('65 -'))
-	leaders = [Item(u't.o.m. 25 år'), Item(u'över 25 år')]
-	boardmebers = [Item('')]
-
-	emails = []
-	for person in Person.query(Person.scoutgroup==sgroup_key, Person.removed==False).fetch():
-		if person.member_years is None or semester.year not in person.member_years:
-			continue
-		if person.email is not None and len(person.email) != 0 and person.email not in emails:
-			emails.append(person.email)
-		age = person.getyearsoldthisyear(year)
-		index = 0
-		if 7 <= age <= 25:
-			index = age-startage + 1
-		elif age < 7:
-			index = 0
-		elif 26 <= age <= 64:
-			index = endage - startage + 2
-		else:
-			index = endage - startage + 3
-			
-		if person.female:
-			women += 1
-			ages[index].women += 1
-		else:
-			men += 1
-			ages[index].men += 1
-
-		if person.isBoardMember():
-			if person.female:
-				boardmebers[0].women += 1
-			else:
-				boardmebers[0].men += 1
-		if person.isLeader():
-			index = 0 if age <= 25 else 1
-			if person.female:
-				leaders[index].women += 1
-			else:
-				leaders[index].men += 1
-
-	ages.append(Item("Totalt", women, men))
-	return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders, breadcrumbs=breadcrumbs, emails=emails, year=semester.year)
-
+app.register_blueprint(groupsummary, url_prefix='/groupsummary')
+app.register_blueprint(import_page, url_prefix='/import')
+app.register_blueprint(progress, url_prefix='/<progress_url>')
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
@@ -160,52 +81,6 @@ def getaccess():
 		return render_template('getaccess.html',
 			baselink=baselink,
 			breadcrumbs=breadcrumbs)
-
-@app.route('/import')
-@app.route('/import/', methods = ['POST', 'GET'])
-def import_():
-	user = UserPrefs.current()
-	if not user.canImport():
-		return "denied", 403
-
-	breadcrumbs = [{'link':'/', 'text':'Hem'},
-				   {'link':'/import', 'text':'Import'}]
-
-	currentSemester = Semester.getOrCreateCurrent()
-	semesters=[currentSemester]
-	semesters.extend(Semester.query(Semester.key!=currentSemester.key))
-	if request.method != 'POST':
-		return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, user=user, semesters=semesters)
-
-	api_key = request.form.get('apikey').strip()
-	groupid = request.form.get('groupid').strip()
-	semester_key=ndb.Key(urlsafe=request.form.get('semester'))
-	return startAsyncImport(api_key, groupid, semester_key, user, request)
-
-@app.route('/progress/<progress_url>')
-@app.route('/progress/<progress_url>/')
-@app.route('/progress/<progress_url>/<update>')
-@app.route('/progress/<progress_url>/<update>/')
-def importProgress(progress_url, update=None):
-	if update is not None:
-		taskProgress = None
-		for i in range(1, 2):
-			taskProgress = ndb.Key(urlsafe=progress_url).get()
-			if taskProgress is not None:
-				break
-			time.sleep(1)
-
-		if taskProgress is not None:
-			s = taskProgress.toJson()
-		else:
-			s = '{"messages": ["Error: Hittar inte uppgiften"], "failed": "true", "running": "false"}'
-
-		response = make_response(s)
-		response.headers['Content-Type'] = 'application/json'
-		return response
-		
-	breadcrumbs = [{'link':'/', 'text':'Hem'}, {'link':'/import', 'text':'Import'}]
-	return render_template('importresult.html', tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
 
 
 

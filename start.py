@@ -14,7 +14,6 @@ from google.appengine.api import users
 from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
-from google.appengine.ext import deferred
 
 from flask import Blueprint, render_template, redirect, request, make_response
 
