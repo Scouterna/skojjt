@@ -59,7 +59,7 @@ app.register_blueprint(persons, url_prefix='/persons')
 app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
 app.register_blueprint(groupsummary, url_prefix='/groupsummary')
 app.register_blueprint(import_page, url_prefix='/import')
-app.register_blueprint(progress, url_prefix='/<progress_url>')
+app.register_blueprint(progress, url_prefix='/progress')
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():

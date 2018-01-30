@@ -31,9 +31,10 @@ def import_():
 
 progress = Blueprint('progress_page', 'progress', template_folder='templates')
 
-@progress.route('/')
-@progress.route('/<update>')
-@progress.route('/<update>/')
+@progress.route('/<progress_url>')
+@progress.route('/<progress_url>/')
+@progress.route('/<progress_url>/<update>')
+@progress.route('/<progress_url>/<update>/')
 def importProgress(progress_url, update=None):
 	if update is not None:
 		taskProgress = None
