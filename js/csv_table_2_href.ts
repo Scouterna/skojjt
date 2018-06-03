@@ -30,9 +30,9 @@ document.addEventListener(
 			for(const tr of table_element.getElementsByTagName("tr"))
 			{
 				const data_row: string[] = [];
-				for(const element of tr.children)
+				for(const element of (<HTMLTableRowElement>tr).children)
 				{
-					const inputs: HTMLInputElement[] = element.getElementsByTagName("input");
+					const inputs = (<HTMLInputElement[]> element.getElementsByTagName("input"));
 					if(inputs.length > 0)
 					{
 						const input = inputs[0];
