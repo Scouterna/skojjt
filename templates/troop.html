@@ -110,6 +110,8 @@
 <div id="report" class="collapse well">
 <div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
 <div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
+<div><a href="#" class="btn btn-lg btn-info" id="xls_export" download="{{heading}}.xls">Exportera XLS</a></div>
+<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
 </div>
 </div>
 <script>
@@ -336,6 +338,66 @@ $(document).ready(function() {
 			$('#tblSearchResults').remove();
 		}
 	});
+
+	// <editor-fold desc="CSV Export, csv_table_2_href.ts">
+	var base64encode = function (string) {
+		return btoa(encodeURIComponent(string)
+			.replace(/%([0-9A-F]{2})/g, function (match, p1) {
+				return String.fromCharCode(parseInt(p1, 16));
+			}));
+	};
+	var table2data = function (table_element) {
+		var data = [];
+		for (var _i = 0, _a = table_element.getElementsByTagName("tr"); _i < _a.length; _i++) {
+			var tr = _a[_i];
+			var data_row = [];
+			for (var _b = 0, _c = tr.children; _b < _c.length; _b++) {
+				var element = _c[_b];
+				var inputs = element.getElementsByTagName("input");
+				if (inputs.length > 0) {
+					var input = inputs[0];
+					if (input.type === "checkbox") {
+						if (input.checked) {
+							data_row.push("1");
+							continue;
+						}
+						data_row.push("");
+						continue;
+					}
+					data_row.push(input.value);
+					continue;
+				}
+				//data_row.push(element.innerText);
+				data_row.push(element.innerText);
+			}
+			data.push(data_row);
+		}
+		return data;
+	};
+	var data2csv = function (data, separator, surround, escape) {
+		if (surround === void 0) { surround = "\""; }
+		if (escape === void 0) { escape = "\"\""; }
+		return (surround && surround.length > 0) ?
+			data.map(function (row) { return row.map(function (cell) { return surround + ("" + cell).replace(new RegExp(surround, "g"), escape) + surround; })
+				.join(separator); })
+				.join("\n")
+			:
+			data.map(function (row) { return row.join(separator); })
+				.join("\n");
+	};
+	var csv2href = function (csv_data, mime_type) {
+		if (mime_type === void 0) { mime_type = "text/csv"; }
+		return "data:" + mime_type + ";base64," + base64encode(csv_data);
+	};
+	var csv_link = document.getElementById("csv_export");
+	csv_link.addEventListener("click", function (click_event) {
+		return csv_link.href = csv2href(data2csv(table2data(document.getElementsByTagName("table")[0]), ";"));
+	});
+	var xls_link = document.getElementById("xls_export");
+	xls_link.addEventListener("click", function (click_event) {
+		return xls_link.href = csv2href(data2csv(table2data(document.getElementsByTagName("table")[0]), "\t"));
+	});
+	// </editor-fold>
 });
 function isDirty()
 {
