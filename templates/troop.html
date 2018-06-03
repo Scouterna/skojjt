@@ -391,11 +391,11 @@ $(document).ready(function() {
 	};
 	var csv_link = document.getElementById("csv_export");
 	csv_link.addEventListener("click", function (click_event) {
-		return csv_link.href = csv2href(data2csv(table2data(document.getElementsByTagName("table")[0]), ";"));
+		return csv_link.href = csv2href(data2csv(table2data(document.getElementById("maintable")), ";"));
 	});
 	var xls_link = document.getElementById("xls_export");
 	xls_link.addEventListener("click", function (click_event) {
-		return xls_link.href = csv2href(data2csv(table2data(document.getElementsByTagName("table")[0]), "\t"));
+		return xls_link.href = csv2href(data2csv(table2data(document.getElementById("maintable")), "\t"));
 	});
 	// </editor-fold>
 });
