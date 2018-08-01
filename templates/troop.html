@@ -313,24 +313,7 @@ $(document).ready(function() {
 		var val = $('#namesearch').val();
 		if (val && val.length > 1)
 		{
-			delay($.ajax({
-				url: '.',
-				type: 'GET',
-				data: 'action=lookupperson&name=' + val,
-				async: true,
-				success: function(data, textStatus, jqXHR) {
-					arr = JSON.parse(data);
-					t = '';
-					$('#tblSearchResults').remove();
-					table = $('<table id="tblSearchResults" class="table table-striped"/>');
-					for (var x in arr)
-					{
-						table.append($('<tr><td><a href="' + arr[x].url + '?action=addperson"> + ' + arr[x].name + '</a></td></tr>'));
-					}
-					$('#nameResults').append(table);
-					return data;
-				}
-			}), 1000);
+			delay(makeSearchRequest(val), 1000);
 		}
 		else
 		{
@@ -398,7 +381,36 @@ $(document).ready(function() {
 		return xls_link.href = csv2href(data2csv(table2data(document.getElementById("maintable")), "\t"));
 	});
 	// </editor-fold>
+
+  var xhrLookupPerson;
+
+  function makeSearchRequest(val) {
+    if (xhrLookupPerson) {
+      xhrLookupPerson.abort();
+    }
+
+    return function() {
+      xhrLookupPerson = $.ajax({
+        url: '.',
+        type: 'GET',
+        data: 'action=lookupperson&name=' + val,
+        async: true,
+        success: function(data, textStatus, jqXHR) {
+          var arr = JSON.parse(data);
+          $('#tblSearchResults').remove();
+          var table = $('<table id="tblSearchResults" class="table table-striped"/>');
+          for (var x in arr) {
+              table.append($('<tr><td><a href="' + arr[x].url + '?action=addperson"> + ' + arr[x].name +
+                  '</a></td></tr>'));
+          }
+          $('#nameResults').append(table);
+          return data;
+        }
+      });
+    };
+  }
 });
+
 function isDirty()
 {
 	var dd = $('.data-dirty');
