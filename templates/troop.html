@@ -311,13 +311,17 @@ $(document).ready(function() {
 	})();
 	$('#namesearch').on('keyup', function() {
 		var val = $('#namesearch').val();
+		if (timerID != 0)
+		{
+			clearTimeout(timerID);
+			timerID = 0;
+		}
 		if (val && val.length > 1)
 		{
-			delay(makeSearchRequest(val), 1000);
+			delay(makeSearchRequest(val), 750);
 		}
 		else
 		{
-			clearTimeout(timerID);
 			$('#tblSearchResults').remove();
 		}
 	});
