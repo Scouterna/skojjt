@@ -30,6 +30,7 @@ http://ukf.umea.se/aktivitetskort
 ### Hur man testar/utvecklar i Windows:
 * Klona git-repon till lokal dator.
 * Installera Python 2.7 och Google App Engine SDK (GAE). 
+	https://storage.googleapis.com/appengine-sdks/featured/GoogleAppEngine-1.9.73.msi
 * Starta GAE. Lägg till skojjt med File|Add existing application...
 * Markera skojjt i listan kicka start, sen browse.
 * Man kan också köra Visual Studio Code för att få brytpunkter i koden.
