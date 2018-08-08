@@ -22,7 +22,6 @@ from persons import persons
 from start import start
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
-from werkzeug import secure_filename
 import sys
 
 app = Flask(__name__)
