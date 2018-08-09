@@ -17,6 +17,23 @@ from google.appengine.api import taskqueue
 
 from flask import Blueprint, render_template, redirect, request, make_response
 
+def semester_sort(a, b):
+	a_name = a.getname()
+	b_name = b.getname()
+
+	a_year = a_name[:4]
+	b_year = b_name[:4]
+
+	if a_year == b_year:
+		if a_name[-2:] == "ht":
+			return 1
+		else:
+			return -1
+	elif a_year > b_year:
+		return 1
+	else:
+		return -1
+
 start = Blueprint('start_page', __name__, template_folder='templates')
 
 @start.route('/')
@@ -270,7 +287,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
 			groupsummarylink='/groupsummary/' + sgroup_url + '/',
 			user=user,
-			semesters=Semester.query(),
+			semesters=sorted(Semester.query(), semester_sort),
 			troops=Troop.getTroopsForUser(sgroup_key, user),
 			breadcrumbs=breadcrumbs)
 	elif key_url!=None and key_url!="dak" and key_url!="sensus":
