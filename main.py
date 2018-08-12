@@ -373,6 +373,13 @@ def dobackup():
 	thisdate = datetime.datetime.now()
 	response.headers['Content-Disposition'] = 'attachment; filename=skojjt-backup-' + str(thisdate.isoformat()) + '.xml'
 	return response
+
+@app.route('/admin/test_email')
+@app.route('/admin/test_email/')
+def adminTestEmail():
+	user = UserPrefs.current()
+	scoutnet.sendRegistrationQueueInformationEmail(user.groupaccess.get())
+	return "ok"
 	
 @app.errorhandler(404)
 def page_not_found(e):

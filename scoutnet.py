@@ -8,6 +8,11 @@ import codecs
 import logging
 import sys
 import json
+from flask import render_template
+from google.appengine.api import mail
+from google.appengine.runtime import apiproxy_errors
+from google.appengine.ext.webapp.mail_handlers import BounceNotificationHandler
+from data import *
 
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
@@ -118,4 +123,22 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	if 200 <= response.getcode() <= 201:
 		result_json = response.read()
 		logging.info("Added person: " + result_json)
+		sendRegistrationQueueInformationEmail(scoutgroup)
 		return True
+
+
+def sendRegistrationQueueInformationEmail(scoutgroup):
+	try:
+		message = mail.EmailMessage(
+			sender="noreply@skojjt.appspotmail.com",
+			subject=u"Ny person i scoutnets kölista",
+			body=render_template("email_queueinfo.txt",	scoutgroup=scoutgroup)
+			)
+		user=UserPrefs.current()
+		message.to=user.getemail()
+		message.send()
+
+	except apiproxy_errors.OverQuotaError as message:
+		# Log the error.
+		logging.error(message)
+	

@@ -1,0 +1,4 @@
+﻿Du har registrerat en ny person till scoutnets kölista.
+Du måste nu godkänna personen i scoutnet, sätta avgift, avdelning och patrull.
+Direktlänk:
+https://www.scoutnet.se/organisation/group/home/{{scoutgroup.scoutnetID}}#viewgroup_tabmenu_tab_allmembers_pane~waiting
