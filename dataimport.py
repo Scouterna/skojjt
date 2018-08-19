@@ -148,15 +148,19 @@ class ScoutnetImporter:
 		for p in list:
 			id = int(p["id"])
 			person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
+			personnr = p["personnr"].replace('-', '')
+			if len(personnr) < 12:
+				self.result.warning(u"%s %s har inte korrekt personnummer: '%s', hoppar över personen" % (p["firstname"], p["lastname"], personnr))
+				continue
 			if person == None:
-				id = p["personnr"].replace('-', '')
+				id = personnr
 				person = Person.get_by_id(id, use_memcache=True) # attempt to find using personnr, created as a local person
 
 			if person != None:
 				person.firstname = p["firstname"]
 				person.lastname = p["lastname"]
 				person.female = p["female"]
-				person.setpersonnr(p["personnr"])
+				person.setpersonnr(personnr)
 				if person.notInScoutnet != None:
 					person.notInScoutnet = False
 			else:
