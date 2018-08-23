@@ -38,10 +38,15 @@ _hextobyte = dict(
     ((a + b).encode(), int(a + b, 16))
     for a in _hexdigits for b in _hexdigits
 )
+_bytetohex = [
+    ('%%%02X' % char).encode('ascii') for char in range(256)
+]
 
 
-_URLTuple = fix_tuple_repr(namedtuple('_URLTuple',
-                                      ['scheme', 'netloc', 'path', 'query', 'fragment']))
+_URLTuple = fix_tuple_repr(namedtuple(
+    '_URLTuple',
+    ['scheme', 'netloc', 'path', 'query', 'fragment']
+))
 
 
 class BaseURL(_URLTuple):
@@ -71,7 +76,10 @@ class BaseURL(_URLTuple):
         """
         rv = self.host
         if rv is not None and isinstance(rv, text_type):
-            rv = _encode_idna(rv)
+            try:
+                rv = _encode_idna(rv)
+            except UnicodeError:
+                rv = rv.encode('ascii', 'ignore')
         return to_native(rv, 'ascii', 'ignore')
 
     @property
@@ -466,7 +474,7 @@ def url_quote(string, charset='utf-8', errors='strict', safe='/:', unsafe=''):
         if char in safe:
             rv.append(char)
         else:
-            rv.extend(('%%%02X' % char).encode('ascii'))
+            rv.extend(_bytetohex[char])
     return to_native(bytes(rv))
 
 

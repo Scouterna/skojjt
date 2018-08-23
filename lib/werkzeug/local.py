@@ -8,6 +8,7 @@
     :copyright: (c) 2014 by the Werkzeug Team, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
+import copy
 from functools import update_wrapper
 from werkzeug.wsgi import ClosingIterator
 from werkzeug._compat import PY2, implements_bool
@@ -171,8 +172,8 @@ class LocalManager(object):
 
     """Local objects cannot manage themselves. For that you need a local
     manager.  You can pass a local manager multiple locals or add them later
-    by appending them to `manager.locals`.  Everytime the manager cleans up
-    it, will clean up all the data left in the locals for this context.
+    by appending them to `manager.locals`.  Every time the manager cleans up,
+    it will clean up all the data left in the locals for this context.
 
     The `ident_func` parameter can be added to override the default ident
     function for the wrapped locals.
@@ -284,13 +285,17 @@ class LocalProxy(object):
         session = LocalProxy(lambda: get_current_request().session)
 
     .. versionchanged:: 0.6.1
-       The class can be instanciated with a callable as well now.
+       The class can be instantiated with a callable as well now.
     """
-    __slots__ = ('__local', '__dict__', '__name__')
+    __slots__ = ('__local', '__dict__', '__name__', '__wrapped__')
 
     def __init__(self, local, name=None):
         object.__setattr__(self, '_LocalProxy__local', local)
         object.__setattr__(self, '__name__', name)
+        if callable(local) and not hasattr(local, '__release_local__'):
+            # "local" is a callable that is not an instance of Local or
+            # LocalManager: mark it as a wrapped function.
+            object.__setattr__(self, '__wrapped__', local)
 
     def _get_current_object(self):
         """Return the current object.  This is useful if you want the real
@@ -411,3 +416,5 @@ class LocalProxy(object):
     __rfloordiv__ = lambda x, o: o // x._get_current_object()
     __rmod__ = lambda x, o: o % x._get_current_object()
     __rdivmod__ = lambda x, o: x._get_current_object().__rdivmod__(o)
+    __copy__ = lambda x: copy.copy(x._get_current_object())
+    __deepcopy__ = lambda x, memo: copy.deepcopy(x._get_current_object(), memo)

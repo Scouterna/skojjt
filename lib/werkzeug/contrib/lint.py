@@ -19,7 +19,11 @@
     :copyright: (c) 2014 by the Werkzeug Team, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 from warnings import warn
 
 from werkzeug.datastructures import Headers
@@ -168,7 +172,7 @@ class GuardedIterator(object):
             elif 100 <= status_code < 200 or status_code == 204:
                 if content_length != 0:
                     warn(HTTPWarning('%r responses must have an empty '
-                                     'content length') % status_code)
+                                     'content length' % status_code))
                 if bytes_sent:
                     warn(HTTPWarning('%r responses must not have a body' %
                                      status_code))
@@ -276,7 +280,10 @@ class LintMiddleware(object):
     def check_headers(self, headers):
         etag = headers.get('etag')
         if etag is not None:
-            if etag.startswith('w/'):
+            if etag.startswith(('W/', 'w/')):
+                if etag.startswith('w/'):
+                    warn(HTTPWarning('weak etag indicator should be upcase.'),
+                         stacklevel=4)
                 etag = etag[2:]
             if not (etag[:1] == etag[-1:] == '"'):
                 warn(HTTPWarning('unquoted etag emitted.'), stacklevel=4)
