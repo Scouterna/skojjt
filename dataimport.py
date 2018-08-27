@@ -23,7 +23,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 	except urllib2.HTTPError as e:
 		success = False
 		logging.error('Scoutnet http error=%s' % str(e))
-		result.error(u"Kunde inte läsa medlämmar från scoutnet, fel:%s" % (str(e)))
+		result.error(u"Kunde inte läsa medlemmar från scoutnet, fel:%s" % (str(e)))
 		if e.code == 401:
 			result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
 		
