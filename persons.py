@@ -77,7 +77,16 @@ def show(sgroup_url=None, person_url=None, action=None):
 							person.zip_name,
 							person.phone,
 							person.mobile,
-							troop):
+							troop,
+							"",
+							"",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+					):
 						person.notInScoutnet = False
 						person.put()
 				except scoutnet.ScoutnetException as e:
