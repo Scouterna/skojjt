@@ -80,7 +80,8 @@ class ContactFields():
 	Anhorig_2_mobiltelefon=39
 	Anhorig_2_hemtelefon=44
 
-def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, phone, mobile, troop):
+def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emailaddress, address_line1, zip_code, zip_name, phone, mobile, troop,
+						   anhorig1_name, anhorig1_email, anhorig1_mobile, anhorig1_telefon, anhorig2_name, anhorig2_email, anhorig2_mobile, anhorig2_telefon):
 	form = {}
 	form['profile[first_name]']=firstname
 	form['profile[last_name]']=lastname
@@ -94,12 +95,32 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 	form['address_list[addresses][address_1][address_type]']=0 # 0=Hemadress, 1=Tillfällig adress
 	form['address_list[addresses][address_1][country_code]']=752 # Sweden
 	form['address_list[addresses][address_1][is_primary]']=1
+	form['profile[preferred_culture]'] = 'sv' # Språk
 	form['profile[product_subscription_8]'] = 1 # Medlemstidningen
+	form['profile[newsletter]'] = 1 # Nyhetsbrev
 
 	form['contact_list[contacts][contact_1][details]']=mobile
 	form['contact_list[contacts][contact_1][contact_type_id]']=ContactFields.Mobiltelefon
 	form['contact_list[contacts][contact_2][details]']=phone
 	form['contact_list[contacts][contact_2][contact_type_id]']=ContactFields.Hemtelefon
+
+	form['contact_list[contacts][contact_3][details]']=anhorig1_name
+	form['contact_list[contacts][contact_3][contact_type_id]']=ContactFields.Anhorig_1_namn
+	form['contact_list[contacts][contact_4][details]']=anhorig1_email
+	form['contact_list[contacts][contact_4][contact_type_id]']=ContactFields.Anhorig_1_e_post
+	form['contact_list[contacts][contact_5][details]']=anhorig1_mobile
+	form['contact_list[contacts][contact_5][contact_type_id]']=ContactFields.Anhorig_1_mobiltelefon
+	form['contact_list[contacts][contact_6][details]']=anhorig1_telefon
+	form['contact_list[contacts][contact_6][contact_type_id]']=ContactFields.Anhorig_1_hemtelefon
+
+	form['contact_list[contacts][contact_7][details]']=anhorig2_name
+	form['contact_list[contacts][contact_7][contact_type_id]']=ContactFields.Anhorig_2_namn
+	form['contact_list[contacts][contact_8][details]']=anhorig2_email
+	form['contact_list[contacts][contact_8][contact_type_id]']=ContactFields.Anhorig_2_e_post
+	form['contact_list[contacts][contact_9][details]']=anhorig2_mobile
+	form['contact_list[contacts][contact_9][contact_type_id]']=ContactFields.Anhorig_2_mobiltelefon
+	form['contact_list[contacts][contact_10][details]']=anhorig2_telefon
+	form['contact_list[contacts][contact_10][contact_type_id]']=ContactFields.Anhorig_2_hemtelefon
 
 	form['membership[status]']=1
 

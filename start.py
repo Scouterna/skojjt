@@ -150,7 +150,16 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 							person.zip_name,
 							person.phone,
 							person.mobile,
-							troop):
+							troop,
+							request.form['anhorig1_name'],
+							request.form['anhorig1_email'],
+							request.form['anhorig1_mobile'],
+							request.form['anhorig1_phone'],
+							request.form['anhorig2_name'],
+							request.form['anhorig2_email'],
+							request.form['anhorig2_mobile'],
+							request.form['anhorig2_phone']
+					):
 						person.notInScoutnet = False
 						person.put()
 				except scoutnet.ScoutnetException as e:
