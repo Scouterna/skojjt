@@ -136,7 +136,7 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 		logging.error("Failed to add person, code=%d, msg=%s", e.code, result_json)
 		# Typical responses:
 		"""{"profile":[{"key":"ssno","value":null,"msg":"Personnumret \u00e4r redan registrerat p\u00e5 medlem '######'. Kontakta Scouternas kansli p\u00e5 scoutnet@scouterna.se f\u00f6r att f\u00e5 hj\u00e4lp."}]}"""
-		"""{"contact_list":[{"key":"contact_17","value":"karin.modig-pallin@vgregion.se","subkey":"contact_type_id","msg":"Invalid. Please choose contact type"}]}"""
+		"""{"contact_list":[{"key":"contact_17","value":"example@mail.com","subkey":"contact_type_id","msg":"Invalid. Please choose contact type"}]}"""
 		#j = json.loads(result_json)
 		raise ScoutnetException(result_json.decode('unicode_escape')) # display the raw json message
 		return False
