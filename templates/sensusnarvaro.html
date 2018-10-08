@@ -150,7 +150,7 @@
 			<div>Verksamhetsår {{sensusdata.verksamhetsAar}}</div>
 		</div>
 	</div>
-	<div class="leader">Ledare: <div>{%for l in sensuslista.ledare%}{{l.getname()}}, {%endfor%}</div></div>
+	<div class="leader">Ledare: <div>{%for l in sensuslista.ledare%}{{l.getname()}} epost:{{l.Epost}} tel:{{l.MobilNr}}, {%endfor%}</div></div>
 	<table class="report">
 		<tr class="header1Headers">
 			<td class="personalID"><div>{{sensuslista.NamnPaaKort}}</div></td>
