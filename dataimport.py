@@ -146,6 +146,10 @@ class ScoutnetImporter:
 		activePersons = set() # person.ids that was seen in this import
 
 		for p in list:
+			if p["sex"] != scoutnet.SEX_FEMALE and p["sex"] != scoutnet.SEX_MALE:
+				self.result.warning(u"%s %s %s har inget kön satt, hoppar över personen" % (p["id"], p["firstname"], p["lastname"]))
+				continue
+
 			id = int(p["id"])
 			person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
 			personnr = p["personnr"].replace('-', '')
@@ -159,7 +163,7 @@ class ScoutnetImporter:
 			if person != None:
 				person.firstname = p["firstname"]
 				person.lastname = p["lastname"]
-				person.female = p["female"]
+				person.female = p["sex"] == scoutnet.SEX_FEMALE
 				person.setpersonnr(personnr)
 				if person.notInScoutnet != None:
 					person.notInScoutnet = False
@@ -169,7 +173,7 @@ class ScoutnetImporter:
 					p["firstname"],
 					p["lastname"],
 					p["personnr"],
-					p["female"])
+					p["sex"] == scoutnet.SEX_FEMALE)
 				self.result.append("Ny person:%s %s %s" % (id, p["firstname"], p["lastname"]))
 			
 			activePersons.add(id)

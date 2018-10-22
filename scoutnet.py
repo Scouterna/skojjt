@@ -14,6 +14,10 @@ from google.appengine.runtime import apiproxy_errors
 from google.appengine.ext.webapp.mail_handlers import BounceNotificationHandler
 from data import *
 
+# constants
+SEX_FEMALE = 2
+SEX_MALE = 1
+
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
 	request = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
@@ -39,10 +43,7 @@ def GetScoutnetDataListJson(json_data):
 		m["firstname"] = GetValueFromJsonObject(p, 'first_name')
 		m["lastname"] = GetValueFromJsonObject(p, 'last_name')
 		m["personnr"] = GetValueFromJsonObject(p, 'ssno')
-		sex = GetValueFromJsonObject(p, 'sex')
-		if sex == "Annat":
-			continue # ignore non-persons
-		m["female"] = sex != 'Man'
+		m['sex'] = int(GetValueFromJsonObject(p, 'sex', 'raw_value'))
 		m["patrool"] = GetValueFromJsonObject(p, 'patrol')
 		m["active"] = GetValueFromJsonObject(p, 'status') == 'Aktiv'
 		m["email"] = GetValueFromJsonObject(p, 'email')
