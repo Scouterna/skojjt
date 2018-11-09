@@ -83,7 +83,7 @@ document.addEventListener(
 		xls_link.addEventListener(
 			"click",
 			(click_event) =>
-				xls_link.href = csv2href(data2csv(table2data((<HTMLTableElement>document.getElementById("maintable"))), "\t")),
+				xls_link.href = csv2href("\ufeff" + data2csv(table2data((<HTMLTableElement>document.getElementById("maintable"))), "\t")),
 		)
 		;
 	},
