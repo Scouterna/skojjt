@@ -7,7 +7,7 @@
 			<th class="troopnames">{{semestername}}<br/><span class="heading">{{heading}}</span></th>
 			<th class="removebutton extrainfo col-hidden" style="display:none"></th>
 			<th class="patruller extrainfo col-hidden" style="display:none" width="100">Patrull</th>
-			<th class="personnr extrainfo col-hidden" style="display:none">Personnr</th>
+			<th class="birthday extrainfo col-hidden" style="display:none">Födelsedatum</th>
 			{% for meeting in meetings %}
 			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/><span title="{{meeting.getdate()}} {{meeting.gettime()}}">{{meeting.getdate()}}</span></span></div></th>
 			{% endfor %}
@@ -18,7 +18,7 @@
 			<td class="name-field"><strong>Välj alla / ingen:</strong></td>
 			<td class="removebutton extrainfo" style="display:none"></td>
 			<td class="patruller extrainfo" style="display:none" width="100"></td>
-			<td class="personnr extrainfo" style="display:none"></td>
+			<td class="birthday extrainfo" style="display:none"></td>
 			{% for meeting in meetings %}
 			<td>
 			<input title="Välj alla / ingen" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
@@ -43,7 +43,7 @@
 				</span>
 			</div>
 		</td>
-		<td class="personnr extrainfo" style="display:none">{{person.personnr}}</td>
+		<td class="birthday extrainfo" style="display:none">{{person.getbirthdatestring()}}</td>
 		{% for meeting in meetings %} {# name is meeting, id is the person #}{% set imeeting = loop.index0 %}
 			<td><input title="{{meeting.getdate()}}: {{person.getname()}}" class="attendance-cb checkbox big-checkbox" name="cb{{meeting.key.urlsafe()}}" id="{{person.key.urlsafe()}}" type="checkbox" {%if attendances[imeeting][iperson]%}checked=""{% endif %}/></td>
 		{% endfor %}
@@ -51,7 +51,7 @@
 		{% endfor %}
 		{% if meetings %}
 		<tr><td class="troopnames"><button id="chkExtrainfo" type="button" class="btn btn-info" data-toggle="button" name="chkExtrainfo" autocomplete="off">Visa mer &raquo;</button>
-		<span class="saveinfo">&nbsp;</span></td><td class="removebutton extrainfo" style="display:none"/></td><td class="patruller extrainfo" style="display:none"></td><td class="personnr extrainfo" style="display:none"></td>
+		<span class="saveinfo">&nbsp;</span></td><td class="removebutton extrainfo" style="display:none"/></td><td class="patruller extrainfo" style="display:none"></td><td class="birthday extrainfo" style="display:none"></td>
 		{% endif %}
 		{% for meeting in meetings %}
 		<td>

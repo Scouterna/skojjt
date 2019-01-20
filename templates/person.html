@@ -40,8 +40,13 @@
 				</div>
 				<div class="col-xs-12 col-sm-6 col-md-4">
 					<div class="form-group">
+						{% if ep %}
+						<label for="birthdate">Födelsedatum</label>
+						{{ep.getbirthdatestring()}}
+						{% else %}
 						<label for="personnummer">Personnummer</label>
-						<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDDXXXX" name="personnummer" id="personnummer" value="{% if ep %}{{ep.personnr}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+						<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDDXXXX" name="personnummer" id="personnummer"/>
+						{% endif %}
 					</div>
 				</div>
 				<div class="col-xs-12 col-sm-6 col-md-4">

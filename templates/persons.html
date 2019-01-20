@@ -8,7 +8,7 @@
 			  <thead>
 				<tr>
 					<th>Namn</th>
-					<th>Personnr</th>
+					<th>Födelsedatum</th>
 					<th>Email</th>
 					<th>Telefon</th>
 					<th>Mobil</th>
@@ -22,7 +22,7 @@
 				{% for person in persons %}
           <tr>
 						<td><a href="{{baselink+person.key.urlsafe()}}/">{{person.getname()}}</a></td>
-						<td>{{person.personnr}}</td>
+						<td>{{person.getbirthdatestring()}}</td>
 						<td>{{person.email}}</td>
 						<td>{{person.phone}}</td>
 						<td>{{person.mobile}}</td>
