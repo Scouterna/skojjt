@@ -18,7 +18,7 @@ class ExcelReport:
 		ws['E1'] = self.dak.kort.NaervarokortNummer
 		ws['I1'] = self.semester.year
 		ws['D2'] = self.dak.kort.NamnPaaKort
-		ws['D3'] = self.dak.kort.Aktivitet
+		ws['D3'] = "Scouting"
 		ws['D4'] = self.dak.kort.Lokal
 		if self.semester.ht:
 			ws['C7'] = 'X'
