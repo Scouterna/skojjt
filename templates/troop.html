@@ -111,7 +111,6 @@
 <div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
 <div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
 <div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
-<div><a href="#" class="btn btn-lg btn-info" id="xls_export" download="{{heading}}.xls">Exportera XLS</a></div>
 <div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
 </div>
 </div>
@@ -380,10 +379,6 @@ $(document).ready(function() {
 	var csv_link = document.getElementById("csv_export");
 	csv_link.addEventListener("click", function (click_event) {
 		return csv_link.href = csv2href(data2csv(table2data(document.getElementById("maintable")), ";"));
-	});
-	var xls_link = document.getElementById("xls_export");
-	xls_link.addEventListener("click", function (click_event) {
-		return xls_link.href = csv2href("\ufeff" + data2csv(table2data(document.getElementById("maintable")), "\t"));
 	});
 	// </editor-fold>
 
