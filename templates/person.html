@@ -19,6 +19,33 @@
 				{% if ep.email != "" %}
 					<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
 				{% endif %}
+				{% if ep.alt_email %}
+				<label for="email">Alternativ Email:</label><a href="mailto:{{ep.alt_email}}">{{ep.alt_email}}</a>
+			  {% endif %}
+			</div>
+			<div class="form-group">
+				Anhörig 1:
+				{% if ep.mum_name %}
+					<label for="name">Namn:</label>{{ep.mum_name}}
+				{% endif %}
+				{% if ep.mum_mobile %}
+				<label for="mobile">Mobil:</label><a href="tel:{{ep.mum_mobile}}">{{ep.mum_mobile}}</a>
+			  {% endif %}
+				{% if ep.mum_email %}
+					<label for="email">Email:</label><a href="mailto:{{ep.mum_email}}">{{ep.mum_email}}</a>
+				{% endif %}
+			</div>
+			<div class="form-group">
+				Anhörig 2:
+				{% if ep.dad_name%}
+					<label for="name">Namn:</label>{{ep.dad_name}}
+				{% endif %}
+				{% if ep.dad_mobile %}
+				<label for="mobile">Mobil:</label><a href="tel:{{ep.dad_mobile}}">{{ep.dad_mobile}}</a>
+			  {% endif %}
+				{% if ep.dad_email %}
+					<label for="email">Email:</label><a href="mailto:{{ep.dad_email}}">{{ep.dad_email}}</a>
+				{% endif %}
 			</div>
 			{% endif %}
 		  {% if (not hasPerson and not scoutgroup.canAddToWaitinglist()) or (hasPerson and ep.notInScoutnet) %}
