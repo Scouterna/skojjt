@@ -41,3 +41,22 @@ http://ukf.umea.se/aktivitetskort
 * Konfigurera GAE `gcloud init
 * Deploy kod `gcloud app deploy` från git mappen
 * Testa appen `gcloud app browse`
+
+### Hur man testar/utvecklar på Mac:
+* Använd homebrew för att installera Python 2.7 och Google App Engine.
+    + Installera homebrew om inte redan gjort 
+    + Installera python2 i homebrew
+    + Installera Google App Engine (ligger i en cask eftersom den är binär)
+        - `brew cask info google-cloud-sdk`
+        - `brew tap caskroom/cask`
+        - `brew cask install google-cloud-sdk`
+        - `source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.bash.inc`
+        - `source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.bash.inc`
+* Konfigurera GAE `gcloud init`
+* Kör lokal test-server och admin fönster:
+  + `dev_server.py app.yaml`
+  + `open http://localhost:8080`
+* Deploy projektet `skojjt-X`(ditt val av namn)
+  + `gcloud app deploy index.yaml --project skojjt-X`
+  + `gcloud app deploy app.yaml --project skojjt-X`
+* Testa appen `gcloud app browse`
