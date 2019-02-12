@@ -492,7 +492,7 @@ class UserPrefs(ndb.Model):
 
 	@staticmethod
 	def create(user, access=False, hasadminaccess=False):
-		return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess)
+		return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess, activeSemester=Semester.getOrCreateCurrent().key)
 
 
 class TaskProgress(ndb.Model):
