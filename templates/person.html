@@ -69,7 +69,7 @@
 					<div class="form-group">
 						{% if ep %}
 						<label for="birthdate">Födelsedatum</label>
-						<input type="text" class="form-control" size='10' required="1" placeholder="Födelsedatum" name="birthdate" id="birthdate" value="{{ep.getbirthdatestring()}}"/>
+						<input type="text" class="form-control" size='10' required="1" placeholder="Födelsedatum" name="birthdate" id="birthdate" value="{{ep.getbirthdatestring()}}" readonly/>
 						{% else %}
 						<label for="personnummer">Personnummer</label>
 						<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDDXXXX" name="personnummer" id="personnummer"/>
