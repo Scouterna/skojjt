@@ -2,9 +2,10 @@
 <body>
 {% include "navigation.html" %}
 <div class="main"><div class="container"><div class="jumbotron">
-	<img src="/img/logo.png" alt="logo" />
+	<img src="/img/logo.png" alt="logo" /><br />
+	<img src="/img/stglogo.png" alt="stglogo" width="80%"/>
   <div class="btn-toolbar">
-	<h2 class=>Välkommen {{user.getname()}}</h2>
+	<h3 class=>Välkommen {{user.getname()}}</h3>
 	<a href="{{starturl}}" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-check"></span> Närvaroregistrering</a>
 	<a href="{{personsurl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-user"></span> Personregister</a>
   </div>
