@@ -66,7 +66,7 @@ def scoutgroupsummary(sgroup_url):
 		else:
 			index = endage - startage + 3
 			
-		if person.female:
+		if person.isFemale():
 			women += 1
 			ages[index].women += 1
 		else:
@@ -74,13 +74,13 @@ def scoutgroupsummary(sgroup_url):
 			ages[index].men += 1
 
 		if person.isBoardMember():
-			if person.female:
+			if person.isFemale():
 				boardmebers[0].women += 1
 			else:
 				boardmebers[0].men += 1
 		if person.isLeader():
 			index = 0 if age <= 25 else 1
-			if person.female:
+			if person.isFemale():
 				leaders[index].women += 1
 			else:
 				leaders[index].men += 1

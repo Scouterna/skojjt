@@ -162,7 +162,6 @@ class Person(PropertyWriteTracker):
 	lastname = ndb.StringProperty(required=True)
 	birthdate = ndb.DateProperty(required=True) # could be a computed property from personnr
 	personnr = ndb.StringProperty()
-	female = ndb.BooleanProperty(required=True)
 	troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops
 	patrool = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
@@ -186,21 +185,19 @@ class Person(PropertyWriteTracker):
 	member_years = ndb.IntegerProperty(repeated=True) # a list of years this person have been imported, used for membership reporting
 
 	@staticmethod
-	def create(id, firstname, lastname, personnr, female):
+	def create(id, firstname, lastname, personnr):
 		person = Person(id=id,
 			firstname=firstname,
-			lastname=lastname,
-			female=female)
+			lastname=lastname)
 		person.setpersonnr(personnr)
 		return person
 
 	@staticmethod
-	def createlocal(firstname, lastname, personnr, female, mobile, phone, email):
+	def createlocal(firstname, lastname, personnr, mobile, phone, email):
 		person = Person(
 			id=personnr.replace('-', ''), # using personnr as id for local persons
 			firstname=firstname,
 			lastname=lastname,
-			female=female,
 			mobile=mobile,
 			phone=phone,
 			email=email,
@@ -215,6 +212,9 @@ class Person(PropertyWriteTracker):
 	@staticmethod
 	def getIsFemale(personnummer):
 		return False if int(personnummer[-2])&1 == 1 else True
+	
+	def isFemale(self):
+		return Person.getIsFemale(self.personnr)
 		
 	def setpersonnr(self, pnr):
 		self.personnr = pnr.replace('-', '')

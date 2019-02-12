@@ -14,9 +14,6 @@ from google.appengine.runtime import apiproxy_errors
 from google.appengine.ext.webapp.mail_handlers import BounceNotificationHandler
 from data import *
 
-# constants
-SEX_FEMALE = 2
-SEX_MALE = 1
 
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):

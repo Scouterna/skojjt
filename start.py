@@ -123,8 +123,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			person = Person.createlocal(
 				request.form['firstname'], 
 				request.form['lastname'], 
-				pnr, 
-				Person.getIsFemale(pnr),
+				pnr,
 				request.form['mobile'],
 				request.form['phone'],
 				request.form['email'])
@@ -353,7 +352,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 					if troopperson.leader:
 						if age >= 13 and age <= 100:
 							if femaleLeadersAttendenceCount+maleLeadersAttendenceCount < 2:
-								if person.female:
+								if person.isFemale():
 									femaleLeadersAttendenceCount += 1
 								else:
 									maleLeadersAttendenceCount += 1
@@ -362,7 +361,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 							ageProblemDesc.append(person.getname() + ": " + str(age))
 					else:
 						if age >= 7 and age <= 25:
-							if person.female:
+							if person.isFemale():
 								femaleAttendenceCount += 1
 							else:
 								maleAttendenceCount += 1
