@@ -21,6 +21,12 @@
 	<label for="mduration">Längd (minuter)</label>
 	<input type="number" class="form-control" name="duration" id="mduration" value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"/>
   </div>
+  <div class="form-group">
+    <label for="meeting_information">Mötesinformation (plats, klädsel, packning, mm)</label>
+    <textarea type="text" class="form-control" name="meeting_information" id="meeting_information">
+        {% if hasMeeting %}{{existingmeeting.meeting_information}}{% endif %}
+    </textarea>
+  </div>
   {% if not hasMeeting %}
   <script>
 	$("#mdate").val(getTodaysDateString());

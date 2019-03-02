@@ -20,6 +20,7 @@ from groupsummary import groupsummary
 from scoutgroupinfo import scoutgroupinfo
 from persons import persons
 from start import start
+from coming import coming_blueprint
 
 from flask import Flask, render_template, abort, redirect, url_for, request, make_response
 import sys
@@ -59,6 +60,7 @@ app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
 app.register_blueprint(groupsummary, url_prefix='/groupsummary')
 app.register_blueprint(import_page, url_prefix='/import')
 app.register_blueprint(progress, url_prefix='/progress')
+app.register_blueprint(coming_blueprint, url_prefix='/coming')
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():

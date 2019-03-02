@@ -168,6 +168,7 @@ class Person(PropertyWriteTracker):
 	notInScoutnet = ndb.BooleanProperty()
 	removed = ndb.BooleanProperty()
 	email = ndb.StringProperty()
+	email_lower = ndb.ComputedProperty(lambda self: self.email.lower())
 	phone = ndb.StringProperty()
 	mobile = ndb.StringProperty()
 	alt_email = ndb.StringProperty()
@@ -262,6 +263,12 @@ class Person(PropertyWriteTracker):
 		if self.zip_code is None or self.zip_name is None:
 			return ''
 		return self.zip_code + ' ' + self.zip_name
+		
+	@staticmethod
+	def rewriteAll():
+		personsToSave = [person for person in Person.query().fetch()]
+		ndb.put_multi(personsToSave)
+		logging.info("rewrote: %d persons", len(personsToSave))
 
 
 class Meeting(ndb.Model):
@@ -271,6 +278,7 @@ class Meeting(ndb.Model):
 	duration = ndb.IntegerProperty(default=90, required=True) #minutes
 	semester = ndb.KeyProperty(kind=Semester, required=False) # TODO: remove
 	attendingPersons = ndb.KeyProperty(kind=Person, repeated=True) # list of attending persons' keys
+	meeting_information = ndb.StringProperty(required=False)
 
 	@staticmethod
 	def __getMemcacheKeyString(troop_key):
@@ -406,6 +414,15 @@ class TroopPerson(ndb.Model):
 		semester = troop.semester_key.get()
 		return self.troop.get().getname() + ' - ' + semester.getname()
 
+# Handle information about if a person will attend a meeting
+class ComingPersson(ndb.Model):
+	meeting_key = ndb.KeyProperty(kind=Meeting, required=True)
+	person_key = ndb.KeyProperty(kind=Person, required=True)
+	iscoming = ndb.BooleanProperty(required=True)
+	datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
+	comment = ndb.StringProperty(required=False)
+
+
 class UserPrefs(ndb.Model):
 	userid = ndb.StringProperty(required=True)
 	hasaccess = ndb.BooleanProperty(required=True)
@@ -446,7 +463,7 @@ class UserPrefs(ndb.Model):
 	
 	def attemptAutoGroupAccess(self):
 		if self.groupaccess is None:
-			persons = Person.query(self.email == Person.email).fetch()
+			persons = Person.query(self.email.lower() == Person.email_lower).fetch()
 			if persons is not None and len(persons) > 0:
 				person = persons[0]
 				if person.isLeader():
@@ -550,3 +567,31 @@ class TaskProgress(ndb.Model):
 			'"failed": ' + json.dumps(self.failed) + ',' + \
 			'"running": ' + json.dumps(self.isRunning()) + '}'
 		return s
+
+# This is how to track what data-schema changes have been made in this instance.
+# All changes to the data format is a named feature.
+# If the feature does not exist in the database the schema must be updated and then we add the DataSchemaFeatureUpgrades to note that the upgrade has been performed.
+class DataSchemaFeatureUpgrades(ndb.Model):
+	created = ndb.DateTimeProperty(auto_now_add=True, required=True)
+
+	@staticmethod
+	def add(featureName):
+		feature = DataSchemaFeatureUpgrades(id=featureName)
+		feature.put()
+	
+	@staticmethod
+	def hasFeature(featureName):
+		return DataSchemaFeatureUpgrades.get_by_id(featureName) != None
+
+	@staticmethod
+	def PerformAllUpdates():
+		DataSchemaFeatureUpgrades.UpgradeIfNeeded("UpgradeAddLowecaseEmailToPerson", Person.rewriteAll)
+
+	@staticmethod
+	def UpgradeIfNeeded(featureName, upgradeDelegate):
+		if DataSchemaFeatureUpgrades.hasFeature(featureName):
+			return
+		logging.info("executing upgrade: %s", featureName)
+		upgradeDelegate()
+		DataSchemaFeatureUpgrades.add(featureName)
+		logging.info("upgrade done: %s", featureName)

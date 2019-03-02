@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block main %}
+<style>
+.tickmark {
+	display: none;
+}
+input:checked + .tickmark {
+	display: inline;
+}
+</style>
+<div class="well">
+	<h1 class="page-header">Kommer på mötet</h1>
+	<form role="form" name="coming" method="POST" action="./">
+		<div class="form-group row" data-toggle="buttons">
+			<p>{{meeting_title}}</p>
+			<p>{{meeting_date}}</p>
+			<p>{{meeting_information}}</p>
+			<div class="btn-group col-sm-6" role="group" aria-label="Ja">
+				<label class="radio-inline btn btn-success btn-lg form-control" for="btn-yes">
+					<input id="btn-yes" type="radio" name="coming" class="btn btn-primary btn-success btn-lg" data-toggle="button" aria-pressed="false" autocomplete="off" 
+					{% if yes %}checked=""{% endif %}
+					value="yes"><span class="tickmark glyphicon glyphicon-ok" aria-hidden="true"> </span><span>Ja, jag kommer</span></label>
+			</div>
+			<div class="btn-group col-sm-6" role="group" aria-label="Nej">
+				<label class="radio-inline btn btn-danger btn-lg form-control" for="btn-no">
+					<input id="btn-no" type="radio" name="coming" class="btn btn-primary btn-success btn-lg" data-toggle="button" aria-pressed="false" autocomplete="off"
+					{% if no %}checked=""{% endif %}
+					value="no"><span class="tickmark glyphicon glyphicon-ok" aria-hidden="true"> </span><span>Nej, jag kommer inte</span></label>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="comment">Kommentar:</label>
+			<input type="text" class="form-control input-lg" name="comment" id="comment" placeholder="Kommentar" value="{{comment}}"/>
+		</div>
+		<div class="form-group row">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" class="btn btn-primary btn-lg" name="import">Skicka</button>
+			</div>
+		</div>
+	</form>
+</div>
+{% endblock %}
