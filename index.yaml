@@ -23,6 +23,11 @@ indexes:
   - name: datetime
     direction: desc
 
+- kind: Meeting
+  properties:
+    - name: attendingPersons
+    - name: datetime
+
 - kind: Person
   properties:
   - name: scoutgroup
