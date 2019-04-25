@@ -9,6 +9,7 @@ import scoutnet
 from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, Meeting, Troop, ScoutGroup, Semester
 from dakdata import DakData, Deltagare, Sammankomst
 import sensus
+import lagerbidrag
 from excelreport import ExcelReport
 
 from google.appengine.api import users
@@ -299,7 +300,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			semesters=sorted(Semester.query(), semester_sort),
 			troops=Troop.getTroopsForUser(sgroup_key, user),
 			breadcrumbs=breadcrumbs)
-	elif key_url!=None and key_url!="dak" and key_url!="sensus" and key_url!="excel": #todo: change this to something sensible!
+	elif key_url!=None and key_url!="dak" and key_url!="sensus" and key_url!="lagerbidrag" and key_url!="excel": #todo: change this to something sensible!
 		meeting = ndb.Key(urlsafe=key_url).get()
 		section_title = meeting.getname()
 		baselink += key_url + "/"
@@ -500,6 +501,20 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			result = render_template(
 						'sensusnarvaro.html',
 						sensusdata=sensusdata)
+			response = make_response(result)
+			return response
+		elif key_url == "lagerbidrag":
+
+			fromDate = request.form['fromDate']
+			toDate = request.form['toDate']
+			site = request.form['site']
+			bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, site, fromDate, toDate)
+
+			result = render_template(
+				'lagerbidrag.html',
+				bidrag=bidrag.bidrag,
+				persons=bidrag.persons,
+				numbers=bidrag.numbers)
 			response = make_response(result)
 			return response
 		else:

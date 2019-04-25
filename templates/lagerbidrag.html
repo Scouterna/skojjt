@@ -1,0 +1,80 @@
+
+<table>
+  <tr>
+    <td colspan="2">
+      <div class="label">Kontaktperson för övernattningen</div>
+      {{bidrag.contact}}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div class="label">Kår</div>
+      {{bidrag.kar}}
+    </td>
+    <td>
+      <div class="label">Bankkonto</div>
+      {{bidrag.account}}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div class="label">Datum för övernattning</div>
+      {{bidrag.dateFrom}} - {{bidrag.dateTo}}
+    </td>
+    <td>
+      <div class="label">Plats för övernattningen</div>
+      {{bidrag.site}}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div class="label">Adress</div>
+      {{bidrag.address}}
+    </td>
+    <td>
+      <div class="label">Postadress</div>
+      {{bidrag.zipCode}}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div class="label">Telefon</div>
+      {{bidrag.phone}}
+    </td>
+    <td>
+      <div class="label">E-post</div>
+      {{bidrag.email}}
+    </td>
+  </tr>
+</table>
+
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Namn på deltagare</th>
+      <th>Födelseår</th>
+      <th></th>
+      <th>Namn på deltagare</th>
+      <th>Födelseår</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for number in numbers %}
+    <tr>
+      <td>{{number+1}}</td>
+      <td>{{persons[number].name}}</td>
+      <td>{{persons[number].year}}</td>
+      <td>{{number+26}}</td>
+      <td>{{persons[number+25].name}}</td>
+      <td>{{persons[number+25].year}}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+Antal nätter: {{bidrag.nights}} <br />
+Antal 7-25: {{bidrag.under26}} <br />
+Antal över 26: {{bidrag.over26}} <br />
+
