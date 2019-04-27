@@ -428,5 +428,11 @@ $(window).on('beforeunload', function(){
 	//(e || window.event).returnValue = confirmationMessage; //Gecko + IE
 	return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
 });
+
+setInterval(function() {
+	if (isDirty()) {
+		$(".data-dirty").click();
+	}
+}, 3000);
 </script>
 {% endblock %}
