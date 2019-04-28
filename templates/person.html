@@ -215,10 +215,10 @@
 					<a href="/start/{{group_key.urlsafe()}}/{{troop.key.urlsafe()}}/">{{tp.getFullTroopname()}}</a>{% if tp.leader %} - Ledare{% endif %}
 				</td>
 				<td>
-					<a href="removefromtroop?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort från avdelning</a>
+					{% if tp.isOpen() %}<a href="removefromtroop?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort från avdelning</a>{% endif %}
 				</td>
 				<td>
-					{% if tp.leader %}<a href="removeasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort som ledare</a>{% else %}<a href="setasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Gör till ledare</a>{% endif %}
+					{% if tp.isOpen() %}{% if tp.leader %}<a href="removeasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort som ledare</a>{% else %}<a href="setasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Gör till ledare</a>{% endif %}{% endif %}
 				</td>
 				</tr>
 			    {% endfor %}

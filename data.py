@@ -84,6 +84,9 @@ class Semester(ndb.Model):
 		else:
 			return "%04d-06-30" % (self.year)
 
+	def isOpen(self):
+		return not self.locked
+
 # kår
 class ScoutGroup(ndb.Model):
 	name = ndb.StringProperty(required=True)
@@ -412,6 +415,11 @@ class TroopPerson(ndb.Model):
 		troop = self.troop.get()
 		semester = troop.semester_key.get()
 		return self.troop.get().getname() + ' - ' + semester.getname()
+
+	def isOpen(self):
+		troop = self.troop.get()
+		semester = troop.semester_key.get()
+		return semester.isOpen()
 
 class UserPrefs(ndb.Model):
 	userid = ndb.StringProperty(required=True)

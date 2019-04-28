@@ -4,7 +4,7 @@
 <label for="semester" class="control-label col-sm-3">Termin:</label>
 <select class="form-control form-control-lg" name="semester" id="semester" onchange="changeSemester(this)">
 {% for semester in semesters %}
-	<option value="{{semester.key.urlsafe()}}" {% if user.activeSemester==semester.key %}selected=""{% endif %}>{{semester.getname()}}</option>
+	<option value="{{semester.key.urlsafe()}}" {% if user.activeSemester==semester.key %}selected=""{% endif %}>{{semester.getname()}} {% if semester.locked %} - Låst{% endif %}</option>
 {% endfor %}
 </select><br/>
 <div class="table-responsive">
@@ -36,6 +36,7 @@
 <div class="well">
 	<a href="{{groupsummarylink}}"><span class="glyphicon glyphicon-list-alt"></span> Föreningsredovisning</a>
 </div>
+{% if semester.isOpen() %}
 <div class="well">
 	<button data-toggle="collapse" data-target="#bidrag" set-focus="#bidragfocus" class="btn btn-lg btn-info togglebutton">Lägg till avdelning</button>
 	<div id="bidrag" class="collapse well">
@@ -52,6 +53,7 @@
 		</form>
 	</div>
 </div>
+{% endif %}
 {% endif %}
 <script>
 function changeSemester(x)

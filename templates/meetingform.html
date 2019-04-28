@@ -1,5 +1,6 @@
 {% set hasMeeting = True if existingmeeting is defined else False %}
 <form role="form" name="meeting" method="POST">
+  <fieldset {% if semester.locked %}disabled="disabled"{% endif %}>
 {% if hasMeeting %}
   <input type="hidden" name="action" value="updatemeeting"/>
 {% else %}
@@ -31,8 +32,9 @@
   <div class="btn-toolbar">  
   <button type="submit" name="submit" class="btn btn-lg btn-primary">{% if hasMeeting %}Spara{% else %}Lägg till{% endif %}</button>
   </div>
+  </fieldset>
 </form>
-{% if hasMeeting %}
+{% if hasMeeting and semester.isOpen() %}
 <hr/>
 <form role="form" name="deletemeeting" method="POST">
   <input type="hidden" name="action" value="deletemeeting"/>
