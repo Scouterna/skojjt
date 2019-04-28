@@ -32,6 +32,7 @@ class PropertyWriteTracker(ndb.Model):
 class Semester(ndb.Model):
 	year = ndb.IntegerProperty(required=True)
 	ht = ndb.BooleanProperty(required=True)
+	locked = ndb.BooleanProperty(required=False)
 
 	@staticmethod
 	def getid(year, ht):

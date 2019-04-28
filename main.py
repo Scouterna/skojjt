@@ -33,6 +33,22 @@ app.debug = True
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+def semester_sort(a, b):
+	a_name = a.getname()
+	b_name = b.getname()
+
+	a_year = a_name[:4]
+	b_year = b_name[:4]
+
+	if a_year == b_year:
+		if a_name[-2:] == "ht":
+			return 1
+		else:
+			return -1
+	elif a_year > b_year:
+		return 1
+	else:
+		return -1
 
 @app.route('/')
 def home():
@@ -182,6 +198,38 @@ def groupaccess(userprefs_url=None):
 		mygroupurl=user.groupaccess.urlsafe(),
 		mygroupname=user.groupaccess.get().getname())
 
+@app.route('/admin/semester/', methods = ['POST', 'GET'])
+def adminSemester():
+	user = UserPrefs.current()
+	if not user.isAdmin():
+		return "denied", 403
+
+	section_title = u'Hem'
+	baselink = '/'
+	breadcrumbs = [{'link':baselink, 'text':section_title}]
+
+	section_title = u'Admin'
+	baselink += 'admin/'
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+
+	section_title = u'Terminer'
+	baselink += 'semester/'
+	breadcrumbs.append({'link':baselink, 'text':section_title})
+
+	semesters = sorted(Semester.query(), semester_sort, reverse=True)
+
+	if request.method == 'POST':
+		locked_semesters = request.form.getlist('locked')
+
+		for s in semesters:
+			s.locked = s.key.urlsafe() in locked_semesters
+			s.put()
+
+	return render_template('semesters.html',
+						   heading="Terminer",
+                           baselink=baselink,
+                           breadcrumbs=breadcrumbs,
+						   semesters=semesters)
 
 # merge scoutgroups with different names (renamed in scoutnet):
 @app.route('/admin/merge_sg/', methods = ['POST', 'GET'])

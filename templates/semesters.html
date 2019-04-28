@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block main %}
+<h1 class="page-header">{{heading}}</h1>
+<form name="semesters" method="POST">
+<div class="table-responsive">
+  <table id="maintable" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Namn</th>
+        <th>Låst?</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for semester in semesters %}
+    <tr>
+      <td>{{semester.getname()}}</td>
+      <td><input name="locked" value="{{semester.key.urlsafe()}}" type="checkbox" {% if semester.locked %}checked="checked"{% endif %}  /></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+  <button type="submit" class="btn btn-lg btn-primary">Spara</button>
+</form>
+{% endblock %}
