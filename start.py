@@ -71,17 +71,19 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		breadcrumbs.append({'link':baselink, 'text':troop.getname()})
 		semester = troop.semester_key.get()
 
+	lockedTroop = semester.locked
+
 	if key_url == "settings":
 		section_title = u'Inställningar'
 		baselink += "settings/"
 		breadcrumbs.append({'link':baselink, 'text':section_title})
-		if semester.isOpen() and request.method == "POST":
+		if not lockedTroop and request.method == "POST":
 			troop.defaultstarttime = request.form['defaultstarttime']
 			troop.defaultduration = int(request.form['defaultduration'])
 			troop.rapportID = int(request.form['rapportID'])
 			troop.put()
 			
-		form = htmlform.HtmlForm('troopsettings', disabled=semester.locked)
+		form = htmlform.HtmlForm('troopsettings', disabled=lockedTroop)
 		form.AddField('defaultstarttime', troop.defaultstarttime, 'Avdelningens vanliga starttid')
 		form.AddField('defaultduration', troop.defaultduration, u'Avdelningens vanliga mötestid i minuter', 'number')
 		form.AddField('rapportID', troop.rapportID, 'Unik rapport ID för kommunens närvarorapport', 'number')
@@ -93,7 +95,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 	if key_url == "delete":
 		if troop == None:
 			return "", 404
-		if semester.isOpen() and len(request.form) > 0 and "confirm" in request.form:
+		if not lockedTroop and len(request.form) > 0 and "confirm" in request.form:
 			if not user.isGroupAdmin():
 				return "", 403
 			troop.delete()
@@ -121,7 +123,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 				breadcrumbs=breadcrumbs,
 				trooppersons=[],
 				scoutgroup=scoutgroup)
-		elif semester.isOpen() and request.method == "POST":
+		elif not lockedTroop and request.method == "POST":
 			pnr = request.form['personnummer'].replace('-','')
 			person = Person.createlocal(
 				request.form['firstname'], 
@@ -192,7 +194,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			jsonstr+=']'
 			return jsonstr
 		elif action == "addperson":
-			if troop == None or key_url == None or semester.locked:
+			if troop == None or key_url == None or lockedTroop:
 				raise ValueError('Missing troop or person')
 			person_key = ndb.Key(urlsafe=key_url)
 			person = person_key.get()
@@ -207,7 +209,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			user.activeSemester = ndb.Key(urlsafe=semester_url)
 			user.put()
 		elif action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
-			if troop == None or key_url == None or semester.locked:
+			if troop == None or key_url == None or lockedTroop:
 				raise ValueError('Missing troop or person')
 			person_key = ndb.Key(urlsafe=key_url)
 			tps = TroopPerson.query(TroopPerson.person == person_key, TroopPerson.troop == troop_key).fetch(1)
@@ -226,7 +228,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 	if request.method == "POST" and len(request.form) > 0 and "action" in request.form:
 		action=request.form["action"]
 		if action == "saveattendance":
-			if troop == None or scoutgroup == None or key_url == None or semester.locked:
+			if troop == None or scoutgroup == None or key_url == None or lockedTroop:
 				raise ValueError('Missing troop or group')
 
 			meeting = ndb.Key(urlsafe=key_url).get()
@@ -239,7 +241,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			meeting.put()
 			return "ok"
 		elif action == "addmeeting" or action == "updatemeeting":
-			if troop == None or scoutgroup == None or key_url == None or semester.locked:
+			if troop == None or scoutgroup == None or lockedTroop:
 				raise ValueError('Missing troop or group')
 
 			mname = request.form['name']
@@ -262,7 +264,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			meeting.commit()
 			return redirect(breadcrumbs[-1]['link'])
 		elif action == "deletemeeting":
-			if troop == None or scoutgroup == None or key_url == None or semester.locked:
+			if troop == None or scoutgroup == None or key_url == None or lockedTroop:
 				raise ValueError('Missing troop or group')
 
 			meeting = ndb.Key(urlsafe=key_url).get()
@@ -270,7 +272,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			meeting.delete()
 			return redirect(breadcrumbs[-1]['link'])
 		elif action == "savepatrol":
-			if troop == None or scoutgroup == None or key_url == None or semester.locked:
+			if troop == None or scoutgroup == None or lockedTroop:
 				raise ValueError('Missing troop or group')
 
 			patrolperson = ndb.Key(urlsafe=request.form['person']).get()
@@ -278,7 +280,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			patrolperson.put()
 			return "ok"
 		elif action == "newtroop":
-			if semester.locked:
+			if lockedTroop:
 				raise ValueError('Termin låst')
 			troopname = request.form['troopname']
 			troop_id = hash(troopname)
