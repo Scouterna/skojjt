@@ -45,7 +45,7 @@ class LagerBidrag():
         self.under26 = 0
         self.over26 = 0
 
-def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, site, fromDate, toDate):
+def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, site, fromDate, toDate):
     container = LagerBidragContainer()
 
     from_date_time = datetime.datetime.strptime(fromDate + " 00:00", "%Y-%m-%d %H:%M")
@@ -53,6 +53,12 @@ def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, site, fromDate, to
     year = to_date_time.year
 
     bidrag=LagerBidrag(scoutgroup.getname())
+    bidrag.email = scoutgroup.epost
+    bidrag.phone = scoutgroup.telefon
+    bidrag.address = scoutgroup.adress
+    bidrag.zipCode = scoutgroup.postadress
+    bidrag.account = scoutgroup.bankkonto
+    bidrag.contact = contactperson
     bidrag.site = site
     bidrag.dateFrom=from_date_time.strftime("%Y-%m-%d")
     bidrag.dateTo=to_date_time.strftime("%Y-%m-%d")

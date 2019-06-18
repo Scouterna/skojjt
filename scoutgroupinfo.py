@@ -29,6 +29,12 @@ def show(sgroup_url):
 		scoutgroup.kommunID = request.form['kommunID'].strip()
 		scoutgroup.apikey_waitinglist = request.form['apikey_waitinglist'].strip()
 		scoutgroup.apikey_all_members = request.form['apikey_all_members'].strip()
+		scoutgroup.bankkonto = request.form['bankkonto'].strip()
+		scoutgroup.epost = request.form['epost'].strip()
+		scoutgroup.telefon = request.form['telefon'].strip()
+		scoutgroup.adress = request.form['adress'].strip()
+		scoutgroup.postadress = request.form['postadress'].strip()
+		scoutgroup.default_lagerplats = request.form['lagerplats'].strip()
 		scoutgroup.put()
 		if "import" in request.form:
 			return startAsyncImport(scoutgroup.apikey_all_members, scoutgroup.scoutnetID, Semester.getOrCreateCurrent().key, user, request)

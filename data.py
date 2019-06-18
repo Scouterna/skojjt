@@ -93,6 +93,12 @@ class ScoutGroup(ndb.Model):
 	kommunID = ndb.StringProperty(default="1480")
 	apikey_waitinglist = ndb.StringProperty(required=False, default="")
 	apikey_all_members  = ndb.StringProperty(required=False, default="")
+	bankkonto = ndb.StringProperty(required=False, default="")
+	adress = ndb.StringProperty(required=False, default="")
+	postadress = ndb.StringProperty(required=False, default="")
+	epost = ndb.StringProperty(required=False, default="")
+	telefon = ndb.StringProperty(required=False, default="")
+	default_lagerplats = ndb.StringProperty(required=False, default="")
 
 	@staticmethod
 	def getid(name):

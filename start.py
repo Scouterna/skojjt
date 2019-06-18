@@ -508,7 +508,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			fromDate = request.form['fromDate']
 			toDate = request.form['toDate']
 			site = request.form['site']
-			bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, site, fromDate, toDate)
+			contactperson = request.form['contactperson']
+			bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
 
 			result = render_template(
 				'lagerbidrag.html',
@@ -549,5 +550,6 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 				allowance=allowance,
 				troop=troop,
 				user=user,
-				semester=semester
+				semester=semester,
+			    lagerplats=scoutgroup.default_lagerplats
 				)
