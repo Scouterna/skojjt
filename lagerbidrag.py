@@ -78,6 +78,9 @@ def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, sit
     # Filter out persons participation at least 3 days
     container.persons = [p for p in container.persons if p.days >= 3]
 
+    # Sort by number of days to get the persons over 26 with most days first
+    container.persons.sort(key=lambda x: x.days, reverse=True)
+
     # sum number of persons and days for person under 26
     for person in container.persons:
         if person.age > 25:
