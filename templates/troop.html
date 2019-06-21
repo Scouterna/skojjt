@@ -108,10 +108,36 @@
 </div>
 <button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
 <div id="report" class="collapse well">
-<div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
-<div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
-<div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
-<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
+	<div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
+	<div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
+	<div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
+	<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info">Lägerbidrag Göteborg</a></div>
+	<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
+</div>
+
+<div id="lagerbidrag_info" class="collapse well">
+	<form role="form" method="POST" action="./lagerbidrag/">
+		<div class="form-group col-xs-12 col-sm-6">
+			<label for="contactperson">Kontaktperson</label>
+			<input type="text" class="form-control" id="contactperson" name="contactperson" value=""/>
+		</div>
+		<div class="form-group col-xs-12 col-sm-6">
+			<label for="site">Plats</label>
+			<input type="text" class="form-control" id="site" name="site" value="{{lagerplats}}"/>
+		</div>
+		<div class="form-group col-xs-12 col-sm-6">
+			<label for="fromDate">Datum från</label>
+			<input type="date" required class="form-control" name="fromDate" id="fromDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+		</div>
+		<div class="form-group col-xs-12 col-sm-6">
+			<label for="toDate">Datum till</label>
+			<input type="date" required class="form-control" name="toDate" id="toDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+		</div>
+		<div class="btn-toolbar col-xs-12 col-sm-6">
+			<button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Skapa pdf</button>
+		</div>
+		<div class="clearfix"></div>
+	</form>
 </div>
 </div>
 <script>

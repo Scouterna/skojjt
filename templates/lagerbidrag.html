@@ -1,0 +1,191 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Ansökan om lägerbidrag - Göteborgs scoutdistrikt</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 10px;
+        margin: 0;
+        padding: 15px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 14px;
+      }
+
+      table {
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+
+      table td {
+        border: 1px solid #000;
+        padding: 5px;
+        vertical-align: top;
+      }
+
+      table th {
+        background: #bfbfbf;
+        text-align: center;
+        padding: 5px;
+        border: 1px solid #000;
+        font-weight: normal;
+      }
+
+      .general-info, .persons {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .general-info .label {
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      .general-info td {
+        height: 28px;
+      }
+
+      .person-number {
+        text-align: center;
+        width: 50px;
+      }
+
+      .person-year {
+        text-align: center;
+        width: 100px;
+      }
+
+      .summary {
+        float: right;
+        width: 200px;
+      }
+
+      .bidrag-summary {
+        width: 50px;
+        text-align: center;
+      }
+
+      .sign-box {
+        float: left;
+      }
+
+      .sign {
+        width: 430px;
+        height: 30px;
+        border-bottom: 1px solid #000;
+        margin-bottom: 10px;
+      }
+
+
+    </style>
+  </head>
+  <body>
+    <h1>Ansökan om lägerbidrag - Göteborgs scoutdistrikt</h1>
+
+    <table class="general-info">
+      <tbody>
+        <tr>
+          <td colspan="2">
+            <div class="label">Kontaktperson för övernattningen</div>
+            {{bidrag.contact}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="label">Kår</div>
+            {{bidrag.kar}}
+          </td>
+          <td>
+            <div class="label">Bankkonto</div>
+            {{bidrag.account}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="label">Datum för övernattning</div>
+            {{bidrag.dateFrom}} - {{bidrag.dateTo}}
+          </td>
+          <td>
+            <div class="label">Plats för övernattningen</div>
+            {{bidrag.site}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="label">Adress</div>
+            {{bidrag.address}}
+          </td>
+          <td>
+            <div class="label">Postadress</div>
+            {{bidrag.zipCode}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="label">Telefon</div>
+            {{bidrag.phone}}
+          </td>
+          <td>
+            <div class="label">E-post</div>
+            {{bidrag.email}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="persons">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Namn på deltagare</th>
+          <th>Födelseår</th>
+          <th></th>
+          <th>Namn på deltagare</th>
+          <th>Födelseår</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for number in numbers %}
+        <tr>
+          <td class="person-number">{{number+1}}</td>
+          <td>{{persons[number].name}}</td>
+          <td class="person-year">{{persons[number].year}}</td>
+          <td class="person-number">{{number+26}}</td>
+          <td>{{persons[number+25].name}}</td>
+          <td class="person-year">{{persons[number+25].year}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="sign-box">
+      Uppgifterna är korrekta och bekräftas med underskrift från KO eller annan av KS utsedd person:<br />
+      <div class="sign">&nbsp;</div>
+
+      Namnförtydligan:<br />
+      <div class="sign">&nbsp;</div>
+
+    </div>
+
+    <table class="summary">
+      <tbody>
+        <tr>
+          <td>Antal nätter:</td>
+          <td class="bidrag-summary">{{bidrag.nights}}</td>
+        </tr>
+        <tr>
+          <td>Antal 7-25:</td>
+          <td class="bidrag-summary">{{bidrag.under26}}</td>
+        </tr>
+        <tr>
+          <td>Antal över 25:</td>
+          <td class="bidrag-summary">{{bidrag.over26}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
