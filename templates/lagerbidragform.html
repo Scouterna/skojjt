@@ -1,0 +1,25 @@
+<form role="form" target="_blank" method="POST" action="./lagerbidrag/">
+  <div class="col-xs-12 col-sm-12">
+    <h4>Lägerbidrag för Göteborgs kommun</h4>
+    Hur man sökerbidraget hittar ni <a href="https://web.cdn.scouterna.net/uploads/sites/79/2019/01/lagerbidrag_ifyllbar.pdf">här</a>.
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+    <label for="contactperson">Kontaktperson</label>
+    <input type="text" class="form-control" id="contactperson" name="contactperson" value=""/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+    <label for="site">Plats</label>
+    <input type="text" class="form-control" id="site" name="site" value="{{lagerplats}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+    <label for="fromDate">Datum från (åååå-mm-dd)</label>
+    <input type="date" required class="form-control" placeholder="åååå-mm-dd" name="fromDate" id="fromDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+  </div>
+  <div class="form-group col-xs-12 col-sm-6">
+    <label for="toDate">Datum till (åååå-mm-dd)</label>
+    <input type="date" required class="form-control" placeholder="åååå-mm-dd" name="toDate" id="toDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+  </div>
+  <div class="btn-toolbar col-xs-12 col-sm-6">
+    <button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Skapa rapport</button>
+  </div>
+</form>
