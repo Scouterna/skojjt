@@ -26,6 +26,11 @@ indexes:
   properties:
   - name: troop
   - name: datetime
+
+- kind: Meeting
+  properties:
+  - name: troop
+  - name: datetime
     direction: desc
 
 - kind: Person
