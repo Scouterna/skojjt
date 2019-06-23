@@ -8,12 +8,13 @@
         font-family: Arial, Helvetica, sans-serif;
         font-size: 10px;
         margin: 0;
-        padding: 15px;
+        padding: 0 15px;
       }
 
       h1 {
         text-align: center;
         font-size: 14px;
+        margin-top: 0;
       }
 
       table {
@@ -154,9 +155,9 @@
           <td class="person-number">{{number+1}}</td>
           <td>{{persons[number].name}}</td>
           <td class="person-year">{{persons[number].year}}</td>
-          <td class="person-number">{{number+26}}</td>
-          <td>{{persons[number+25].name}}</td>
-          <td class="person-year">{{persons[number+25].year}}</td>
+          <td class="person-number">{{number+bidrag.divider+1}}</td>
+          <td>{{persons[number+bidrag.divider].name}}</td>
+          <td class="person-year">{{persons[number+bidrag.divider].year}}</td>
         </tr>
       {% endfor %}
       </tbody>

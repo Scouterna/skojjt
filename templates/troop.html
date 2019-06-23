@@ -66,79 +66,72 @@
 	  </tbody>
 	</table>
 </div>
-<div class="well">
-<button data-toggle="collapse" data-target="#newmeeting" set-focus="#mname" class="btn btn-info btn-lg togglebutton">Nytt möte</button>
-<div id="newmeeting" class="collapse">
-{% include "meetingform.html" %}
-</div>
-<button data-toggle="collapse" data-target="#newmember" set-focus="#namesearch" class="btn btn-lg btn-info togglebutton">Lägg till person</button>
-<div id="newmember" class="collapse">
-<h2>Lägg till avdelningsmedlem</h2>
-<div class="well"><div>Sök namn från registret:</div>
-	<div id="scrollable-dropdown-menu">
-		<input id="namesearch" type="text" placeholder="Namn" autocomplete="off"/>
-	</div>
-	<div id="nameResults"></div>
-</div>
-<div class="divider-vertical well">
-<a href="newperson" class="btn btn-lg btn-warning">Registrera ny person</a>
-</div>
-</div>
-<button data-toggle="collapse" data-target="#bidrag" set-focus="#bidragfocus" class="btn btn-lg btn-info togglebutton">Bidragsinfo</button>
-<div id="bidrag" class="collapse well">
-<a name="bidraginfo" id="bidragfocus"></a>
-<table id="allowance" class="table table-striped display nowrap">
-  <thead>
-  <tr><th>Bidrag</th><th>&nbsp;</th></tr>
-  </thead>
-  <tbody id="allowanceinfo">
-	{% for a in allowance %}
-	<tr><td>{{ a['name'] }}</td><td>{{ a['value'] }}</td></tr>
-	{% endfor %}
-  </tbody>
-</table>
-</div>
-<button data-toggle="collapse" data-target="#settings" set-focus="#settingslink" class="btn btn-lg btn-info togglebutton">Inställningar</button>
-<div id="settings" class="collapse well">
-<a id="settingslink" href="./settings"><span class="glyphicon glyphicon-cog"></span> Avdelningens Inställningar</a>
-{% if user.isGroupAdmin() %}
-<hr/>
-<a id="delete" href="./delete"><span class="glyphicon glyphicon-trash"></span> Radera avdelningen</a>
-{% endif %}
-</div>
-<button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
-<div id="report" class="collapse well">
-	<div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
-	<div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
-	<div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
-	<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info">Lägerbidrag Göteborg</a></div>
-	<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
-</div>
 
-<div id="lagerbidrag_info" class="collapse well">
-	<form role="form" method="POST" action="./lagerbidrag/">
-		<div class="form-group col-xs-12 col-sm-6">
-			<label for="contactperson">Kontaktperson</label>
-			<input type="text" class="form-control" id="contactperson" name="contactperson" value=""/>
+<div class="well">
+	<div class="col-xs-12">
+		<button data-toggle="collapse" data-target="#newmeeting" set-focus="#mname" class="btn btn-info btn-lg togglebutton">Nytt möte</button>
+		<div id="newmeeting" class="collapse">
+			{% include "meetingform.html" %}
 		</div>
-		<div class="form-group col-xs-12 col-sm-6">
-			<label for="site">Plats</label>
-			<input type="text" class="form-control" id="site" name="site" value="{{lagerplats}}"/>
+		<button data-toggle="collapse" data-target="#newmember" set-focus="#namesearch" class="btn btn-lg btn-info togglebutton">Lägg till person</button>
+		<div id="newmember" class="collapse">
+			<h2>Lägg till avdelningsmedlem</h2>
+			<div class="well"><div>Sök namn från registret:</div>
+				<div id="scrollable-dropdown-menu">
+					<input id="namesearch" type="text" placeholder="Namn" autocomplete="off"/>
+				</div>
+				<div id="nameResults"></div>
+			</div>
+			<div class="divider-vertical well">
+				<a href="newperson" class="btn btn-lg btn-warning">Registrera ny person</a>
+			</div>
 		</div>
-		<div class="form-group col-xs-12 col-sm-6">
-			<label for="fromDate">Datum från</label>
-			<input type="date" required class="form-control" name="fromDate" id="fromDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+		<button data-toggle="collapse" data-target="#bidrag" set-focus="#bidragfocus" class="btn btn-lg btn-info togglebutton">Bidragsinfo</button>
+		<div id="bidrag" class="collapse well">
+			<a name="bidraginfo" id="bidragfocus"></a>
+			<table id="allowance" class="table table-striped display nowrap">
+				<thead>
+				<tr>
+					<th>Bidrag</th>
+					<th>&nbsp;</th>
+				</tr>
+				</thead>
+				<tbody id="allowanceinfo">
+				{% for a in allowance %}
+				<tr>
+					<td>{{ a['name'] }}</td>
+					<td>{{ a['value'] }}</td>
+				</tr>
+				{% endfor %}
+				</tbody>
+			</table>
 		</div>
-		<div class="form-group col-xs-12 col-sm-6">
-			<label for="toDate">Datum till</label>
-			<input type="date" required class="form-control" name="toDate" id="toDate" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+		<button data-toggle="collapse" data-target="#settings" set-focus="#settingslink" class="btn btn-lg btn-info togglebutton">Inställningar</button>
+		<div id="settings" class="collapse well">
+			<a id="settingslink" href="./settings"><span class="glyphicon glyphicon-cog"></span> Avdelningens Inställningar</a>
+			{% if user.isGroupAdmin() %}
+			<hr/>
+			<a id="delete" href="./delete"><span class="glyphicon glyphicon-trash"></span> Radera avdelningen</a>
+			{% endif %}
 		</div>
-		<div class="btn-toolbar col-xs-12 col-sm-6">
-			<button type="submit" name="submit" class="btn btn-lg btn-primary btn-default">Skapa pdf</button>
+		<button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
+	</div>
+
+	<div id="report" class="collapse col-xs-12">
+		<div class="well col-xs-12 col-md-6">
+			<div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
+			<div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
+			<div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
+			<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info">Lägerbidrag Göteborg</a></div>
+			<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
 		</div>
-		<div class="clearfix"></div>
-	</form>
-</div>
+
+		<div id="lagerbidrag_info" class="collapse well col-xs-12 col-md-6">
+			{% include "lagerbidragform.html" %}
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
 </div>
 <script>
 $(document).ready(function() {

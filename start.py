@@ -4,7 +4,7 @@ import urllib
 import random
 import htmlform
 
-
+from operator import attrgetter
 import scoutnet
 from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, Meeting, Troop, ScoutGroup, Semester
 from dakdata import DakData, Deltagare, Sammankomst
@@ -63,11 +63,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
 
 	troop = None
-	if troop_url!=None:
+	semester = user.activeSemester.get()
+	if troop_url!=None and troop_url != 'lagerbidrag':
 		baselink+=troop_url+"/"
 		troop_key = ndb.Key(urlsafe=troop_url)
 		troop = troop_key.get()
 		breadcrumbs.append({'link':baselink, 'text':troop.getname()})
+		semester = troop.semester_key.get()
 
 	if key_url == "settings":
 		section_title = u'Inställningar'
@@ -289,6 +291,22 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			baselink=baselink,
 			items=ScoutGroup.getgroupsforuser(user),
 			breadcrumbs=breadcrumbs)
+	elif troop_url == "lagerbidrag":
+		fromDate = request.form['fromDate']
+		toDate = request.form['toDate']
+		site = request.form['site']
+		contactperson = request.form['contactperson']
+		troops = Troop.getTroopsForUser(sgroup_key, user)
+		bidrag = lagerbidrag.createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
+
+		result = render_template(
+			'lagerbidrag.html',
+			bidrag=bidrag.bidrag,
+			persons=bidrag.persons,
+			numbers=bidrag.numbers)
+		response = make_response(result)
+		return response
+
 	elif troop==None:
 		section_title = 'Avdelningar'
 		return render_template('troops.html',
@@ -297,8 +315,10 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
 			groupsummarylink='/groupsummary/' + sgroup_url + '/',
 			user=user,
+		    semester=semester,
 			semesters=sorted(Semester.query(), semester_sort),
-			troops=Troop.getTroopsForUser(sgroup_key, user),
+			troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
+		    lagerplats=scoutgroup.default_lagerplats,
 			breadcrumbs=breadcrumbs)
 	elif key_url!=None and key_url!="dak" and key_url!="sensus" and key_url!="lagerbidrag" and key_url!="excel": #todo: change this to something sensible!
 		meeting = ndb.Key(urlsafe=key_url).get()
@@ -336,7 +356,6 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			persons.append(person)
 			personsDict[personKey] = person
 		
-		semester = troop.semester_key.get()
 		year = semester.year
 		for meeting in meetings:
 			maleAttendenceCount = 0
