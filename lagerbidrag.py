@@ -147,7 +147,7 @@ def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date,
             bidrag.over26 = bidrag.over26 + 1
         elif person.age > 6:
             bidrag.under26 = bidrag.under26 + 1
-            bidrag.nights += person.days
+            bidrag.nights += person.days - 1
 
     # Count number of days for person 26 or older
     allowed_26_and_older = math.floor(bidrag.under26 / 3)
@@ -157,7 +157,7 @@ def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date,
             break
         if person.age > 25:
             count_26_and_older += 1
-            bidrag.nights += person.days
+            bidrag.nights += person.days - 1
 
     container.persons.sort(person_sort)
 
