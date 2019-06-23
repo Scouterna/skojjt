@@ -297,15 +297,17 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		site = request.form['site']
 		contactperson = request.form['contactperson']
 		troops = Troop.getTroopsForUser(sgroup_key, user)
-		bidrag = lagerbidrag.createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
-
-		result = render_template(
-			'lagerbidrag.html',
-			bidrag=bidrag.bidrag,
-			persons=bidrag.persons,
-			numbers=bidrag.numbers)
-		response = make_response(result)
-		return response
+		try:
+			bidrag = lagerbidrag.createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
+			result = render_template(
+				'lagerbidrag.html',
+				bidrag=bidrag.bidrag,
+				persons=bidrag.persons,
+				numbers=bidrag.numbers)
+			response = make_response(result)
+			return response
+		except ValueError as e:
+			return render_template('error.html', error=str(e))
 
 	elif troop==None:
 		section_title = 'Avdelningar'
@@ -528,15 +530,18 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			toDate = request.form['toDate']
 			site = request.form['site']
 			contactperson = request.form['contactperson']
-			bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
+			try:
+				bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
+				result = render_template(
+					'lagerbidrag.html',
+					bidrag=bidrag.bidrag,
+					persons=bidrag.persons,
+					numbers=bidrag.numbers)
+				response = make_response(result)
+				return response
+			except ValueError as e:
+				return render_template('error.html', error=str(e))
 
-			result = render_template(
-				'lagerbidrag.html',
-				bidrag=bidrag.bidrag,
-				persons=bidrag.persons,
-				numbers=bidrag.numbers)
-			response = make_response(result)
-			return response
 		else:
 			allowance = []
 			allowance.append({'name':'Antal möten:', 'value':meetingCount})
