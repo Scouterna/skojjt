@@ -67,9 +67,7 @@ def createLagerbidragGroup(scoutgroup, troops, contactperson, site, from_date, t
     persons = []
     person_ids = {}
 
-    delta = to_date_time.date() - from_date_time.date()
-    if delta.days > 14:
-        raise ValueError('Lägret kan max vara 14 dagar')
+    validateLagetbidragInput(from_date_time, to_date_time)
 
     for troop in troops:
         # Count number of days participating
@@ -96,9 +94,7 @@ def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, sit
     year = to_date_time.year
     persons = []
 
-    delta = to_date_time.date() - from_date_time.date()
-    if delta.days > 14:
-        raise ValueError('Lägret kan max vara 14 dagar')
+    validateLagetbidragInput(from_date_time, to_date_time)
 
     # Collect number of persons
     for troopperson in trooppersons:
@@ -113,6 +109,14 @@ def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, sit
                 person.days += 1
 
     return createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date, to_date)
+
+def validateLagetbidragInput(from_date_time, to_date_time):
+
+    delta = to_date_time.date() - from_date_time.date()
+    if delta.days > 14:
+        raise ValueError('Lägret får max vara 14 nätter')
+    if delta.days < 2:
+        raise ValueError('Lägret måsta vara minst 2 nätter')
 
 
 def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date, to_date):
