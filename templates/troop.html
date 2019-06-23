@@ -91,11 +91,17 @@
 			<a name="bidraginfo" id="bidragfocus"></a>
 			<table id="allowance" class="table table-striped display nowrap">
 				<thead>
-				<tr><th>Bidrag</th><th>&nbsp;</th></tr>
+				<tr>
+					<th>Bidrag</th>
+					<th>&nbsp;</th>
+				</tr>
 				</thead>
 				<tbody id="allowanceinfo">
 				{% for a in allowance %}
-				<tr><td>{{ a['name'] }}</td><td>{{ a['value'] }}</td></tr>
+				<tr>
+					<td>{{ a['name'] }}</td>
+					<td>{{ a['value'] }}</td>
+				</tr>
 				{% endfor %}
 				</tbody>
 			</table>

@@ -63,11 +63,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
 
 	troop = None
+	semester = user.activeSemester.get()
 	if troop_url!=None and troop_url != 'lagerbidrag':
 		baselink+=troop_url+"/"
 		troop_key = ndb.Key(urlsafe=troop_url)
 		troop = troop_key.get()
 		breadcrumbs.append({'link':baselink, 'text':troop.getname()})
+		semester = troop.semester_key.get()
 
 	if key_url == "settings":
 		section_title = u'Inställningar'
@@ -313,6 +315,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
 			groupsummarylink='/groupsummary/' + sgroup_url + '/',
 			user=user,
+		    semester=semester,
 			semesters=sorted(Semester.query(), semester_sort),
 			troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
 		    lagerplats=scoutgroup.default_lagerplats,
@@ -353,7 +356,6 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			persons.append(person)
 			personsDict[personKey] = person
 		
-		semester = troop.semester_key.get()
 		year = semester.year
 		for meeting in meetings:
 			maleAttendenceCount = 0
