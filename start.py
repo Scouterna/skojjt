@@ -4,7 +4,7 @@ import urllib
 import random
 import htmlform
 
-
+from operator import attrgetter
 import scoutnet
 from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, Meeting, Troop, ScoutGroup, Semester
 from dakdata import DakData, Deltagare, Sammankomst
