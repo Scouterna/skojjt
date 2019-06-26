@@ -29,10 +29,20 @@ class HtmlForm():
 		for field in self.fields:
 			s += '<div class="form-group">'
 			s += '<label for="' + field[0] + '">' + field[2] + '</label>'
-			s += '<input {% if disabled %}disabled="disabled{% endif %} type="' + field[3] + '" class="form-control" size="50" {% if field[4] %}required=""{% endif %} name="' + field[0] + '" id="' + field[0] + '" value="' + str(field[1]) + '"/>'
+			s += '<input '
+			if self.disabled:
+				s += 'disabled="disabled '
+			s += 'type="' + field[3] + '" class="form-control" size="50" '
+
+			if field[4]:
+				s += 'required="required" '
+			s += 'name="' + field[0] + '" id="' + field[0] + '" value="' + str(field[1]) + '"/>'
 			s += '</div>'
 		s += '<div class="btn-toolbar">'
-		s += '<button {% if disabled %}disabled="disabled{% endif %} type="submit" name="submit" class="btn btn-lg ' + self.buttonType +'">' + self.submittext + '</button>'
+		s += '<button '
+		if self.disabled:
+			s += 'disabled="disabled '
+		s += 'type="submit" name="submit" class="btn btn-lg ' + self.buttonType +'">' + self.submittext + '</button>'
 		s += '</div>'
 		s += '</form>'
 		return s
