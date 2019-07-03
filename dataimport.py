@@ -136,7 +136,7 @@ class ScoutnetImporter:
 			return False
 
 		list = scoutnet.GetScoutnetDataListJson(data)
-		self.result.append("antal personer=%d" % (len(list)-1))
+		self.result.append("antal personer=%d" % len(list))
 		if len(list) < 1:
 			self.result.error(u"för få rader: %d st" % len(list))
 			return False
