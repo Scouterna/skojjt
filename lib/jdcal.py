@@ -42,15 +42,10 @@ from __future__ import division
 from __future__ import print_function
 import math
 
-__version__ = "1.4"
+__version__ = "1.4.1"
 
 MJD_0 = 2400000.5
 MJD_JD2000 = 51544.5
-
-
-def fpart(x):
-    """Return fractional part of given number."""
-    return math.modf(x)[0]
 
 
 def ipart(x):

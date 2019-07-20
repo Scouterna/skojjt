@@ -5,11 +5,12 @@
 
     Implements various helpers.
 
-    :copyright: (c) 2015 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+    :copyright: 2010 Pallets
+    :license: BSD-3-Clause
 """
 
 import os
+import socket
 import sys
 import pkgutil
 import posixpath
@@ -17,31 +18,22 @@ import mimetypes
 from time import time
 from zlib import adler32
 from threading import RLock
+import unicodedata
 from werkzeug.routing import BuildError
 from functools import update_wrapper
 
-try:
-    from werkzeug.urls import url_quote
-except ImportError:
-    from urlparse import quote as url_quote
-
+from werkzeug.urls import url_quote
 from werkzeug.datastructures import Headers, Range
 from werkzeug.exceptions import BadRequest, NotFound, \
     RequestedRangeNotSatisfiable
 
-# this was moved in 0.7
-try:
-    from werkzeug.wsgi import wrap_file
-except ImportError:
-    from werkzeug.utils import wrap_file
-
+from werkzeug.wsgi import wrap_file
 from jinja2 import FileSystemLoader
 
 from .signals import message_flashed
 from .globals import session, _request_ctx_stack, _app_ctx_stack, \
      current_app, request
-from ._compat import string_types, text_type
-
+from ._compat import string_types, text_type, PY2
 
 # sentinel
 _missing = object()
@@ -54,11 +46,41 @@ _os_alt_seps = list(sep for sep in [os.path.sep, os.path.altsep]
                     if sep not in (None, '/'))
 
 
-def get_debug_flag(default=None):
+def get_env():
+    """Get the environment the app is running in, indicated by the
+    :envvar:`FLASK_ENV` environment variable. The default is
+    ``'production'``.
+    """
+    return os.environ.get('FLASK_ENV') or 'production'
+
+
+def get_debug_flag():
+    """Get whether debug mode should be enabled for the app, indicated
+    by the :envvar:`FLASK_DEBUG` environment variable. The default is
+    ``True`` if :func:`.get_env` returns ``'development'``, or ``False``
+    otherwise.
+    """
     val = os.environ.get('FLASK_DEBUG')
+
+    if not val:
+        return get_env() == 'development'
+
+    return val.lower() not in ('0', 'false', 'no')
+
+
+def get_load_dotenv(default=True):
+    """Get whether the user has disabled loading dotenv files by setting
+    :envvar:`FLASK_SKIP_DOTENV`. The default is ``True``, load the
+    files.
+
+    :param default: What to return if the env var isn't set.
+    """
+    val = os.environ.get('FLASK_SKIP_DOTENV')
+
     if not val:
         return default
-    return val not in ('0', 'false', 'no')
+
+    return val.lower() in ('0', 'false', 'no')
 
 
 def _endpoint_from_view_func(view_func):
@@ -254,7 +276,7 @@ def url_for(endpoint, **values):
     :param values: the variable arguments of the URL rule
     :param _external: if set to ``True``, an absolute URL is generated. Server
       address can be changed via ``SERVER_NAME`` configuration variable which
-      defaults to `localhost`.
+      falls back to the `Host` header, then to the IP and port of the request.
     :param _scheme: a string specifying the desired URL scheme. The `_external`
       parameter must be set to ``True`` or a :exc:`ValueError` is raised. The default
       behavior uses the same scheme as the current request, or
@@ -266,40 +288,40 @@ def url_for(endpoint, **values):
     """
     appctx = _app_ctx_stack.top
     reqctx = _request_ctx_stack.top
+
     if appctx is None:
-        raise RuntimeError('Attempted to generate a URL without the '
-                           'application context being pushed. This has to be '
-                           'executed when application context is available.')
+        raise RuntimeError(
+            'Attempted to generate a URL without the application context being'
+            ' pushed. This has to be executed when application context is'
+            ' available.'
+        )
 
     # If request specific information is available we have some extra
     # features that support "relative" URLs.
     if reqctx is not None:
         url_adapter = reqctx.url_adapter
         blueprint_name = request.blueprint
-        if not reqctx.request._is_old_module:
-            if endpoint[:1] == '.':
-                if blueprint_name is not None:
-                    endpoint = blueprint_name + endpoint
-                else:
-                    endpoint = endpoint[1:]
-        else:
-            # TODO: get rid of this deprecated functionality in 1.0
-            if '.' not in endpoint:
-                if blueprint_name is not None:
-                    endpoint = blueprint_name + '.' + endpoint
-            elif endpoint.startswith('.'):
+
+        if endpoint[:1] == '.':
+            if blueprint_name is not None:
+                endpoint = blueprint_name + endpoint
+            else:
                 endpoint = endpoint[1:]
+
         external = values.pop('_external', False)
 
     # Otherwise go with the url adapter from the appctx and make
     # the URLs external by default.
     else:
         url_adapter = appctx.url_adapter
+
         if url_adapter is None:
-            raise RuntimeError('Application was not able to create a URL '
-                               'adapter for request independent URL generation. '
-                               'You might be able to fix this by setting '
-                               'the SERVER_NAME config variable.')
+            raise RuntimeError(
+                'Application was not able to create a URL adapter for request'
+                ' independent URL generation. You might be able to fix this by'
+                ' setting the SERVER_NAME config variable.'
+            )
+
         external = values.pop('_external', True)
 
     anchor = values.pop('_anchor', None)
@@ -330,6 +352,7 @@ def url_for(endpoint, **values):
         values['_external'] = external
         values['_anchor'] = anchor
         values['_method'] = method
+        values['_scheme'] = scheme
         return appctx.app.handle_url_build_error(error, endpoint, values)
 
     if anchor is not None:
@@ -380,7 +403,7 @@ def flash(message, category='message'):
     #     session.setdefault('_flashes', []).append((category, message))
     #
     # This assumed that changes made to mutable structures in the session are
-    # are always in sync with the session object, which is not true for session
+    # always in sync with the session object, which is not true for session
     # implementations that use external storage for keeping their keys/values.
     flashes = session.get('_flashes', [])
     flashes.append((category, message))
@@ -478,7 +501,16 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
        The `attachment_filename` is preferred over `filename` for MIME-type
        detection.
 
-    :param filename_or_fp: the filename of the file to send in `latin-1`.
+    .. versionchanged:: 1.0
+        UTF-8 filenames, as specified in `RFC 2231`_, are supported.
+
+    .. _RFC 2231: https://tools.ietf.org/html/rfc2231#section-4
+
+    .. versionchanged:: 1.0.3
+        Filenames are encoded with ASCII instead of Latin-1 for broader
+        compatibility with WSGI servers.
+
+    :param filename_or_fp: the filename of the file to send.
                            This is relative to the :attr:`~Flask.root_path`
                            if a relative path is specified.
                            Alternatively a file object might be provided in
@@ -534,8 +566,22 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
         if attachment_filename is None:
             raise TypeError('filename unavailable, required for '
                             'sending as attachment')
-        headers.add('Content-Disposition', 'attachment',
-                    filename=attachment_filename)
+
+        if not isinstance(attachment_filename, text_type):
+            attachment_filename = attachment_filename.decode('utf-8')
+
+        try:
+            attachment_filename = attachment_filename.encode('ascii')
+        except UnicodeEncodeError:
+            filenames = {
+                'filename': unicodedata.normalize(
+                    'NFKD', attachment_filename).encode('ascii', 'ignore'),
+                'filename*': "UTF-8''%s" % url_quote(attachment_filename, safe=b""),
+            }
+        else:
+            filenames = {'filename': attachment_filename}
+
+        headers.add('Content-Disposition', 'attachment', **filenames)
 
     if current_app.use_x_sendfile and filename:
         if file is not None:
@@ -584,18 +630,13 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
                  'headers' % filename, stacklevel=2)
 
     if conditional:
-        if callable(getattr(Range, 'to_content_range_header', None)):
-            # Werkzeug supports Range Requests
-            # Remove this test when support for Werkzeug <0.12 is dropped
-            try:
-                rv = rv.make_conditional(request, accept_ranges=True,
-                                         complete_length=fsize)
-            except RequestedRangeNotSatisfiable:
-                if file is not None:
-                    file.close()
-                raise
-        else:
-            rv = rv.make_conditional(request)
+        try:
+            rv = rv.make_conditional(request, accept_ranges=True,
+                                     complete_length=fsize)
+        except RequestedRangeNotSatisfiable:
+            if file is not None:
+                file.close()
+            raise
         # make sure we don't send x-sendfile for servers that
         # ignore the 304 status code for x-sendfile.
         if rv.status_code == 304:
@@ -748,19 +789,38 @@ def _matching_loader_thinks_module_is_package(loader, mod_name):
         loader.__class__.__name__)
 
 
-def find_package(import_name):
-    """Finds a package and returns the prefix (or None if the package is
-    not installed) as well as the folder that contains the package or
-    module as a tuple.  The package path returned is the module that would
-    have to be added to the pythonpath in order to make it possible to
-    import the module.  The prefix is the path below which a UNIX like
-    folder structure exists (lib, share etc.).
-    """
-    root_mod_name = import_name.split('.')[0]
+def _find_package_path(root_mod_name):
+    """Find the path where the module's root exists in"""
+    if sys.version_info >= (3, 4):
+        import importlib.util
+
+        try:
+            spec = importlib.util.find_spec(root_mod_name)
+            if spec is None:
+                raise ValueError("not found")
+        # ImportError: the machinery told us it does not exist
+        # ValueError:
+        #    - the module name was invalid
+        #    - the module name is __main__
+        #    - *we* raised `ValueError` due to `spec` being `None`
+        except (ImportError, ValueError):
+            pass  # handled below
+        else:
+            # namespace package
+            if spec.origin in {"namespace", None}:
+                return os.path.dirname(next(iter(spec.submodule_search_locations)))
+            # a package (with __init__.py)
+            elif spec.submodule_search_locations:
+                return os.path.dirname(os.path.dirname(spec.origin))
+            # just a normal module
+            else:
+                return os.path.dirname(spec.origin)
+
+    # we were unable to find the `package_path` using PEP 451 loaders
     loader = pkgutil.get_loader(root_mod_name)
-    if loader is None or import_name == '__main__':
+    if loader is None or root_mod_name == '__main__':
         # import name is not found, or interactive/main module
-        package_path = os.getcwd()
+        return os.getcwd()
     else:
         # For .egg, zipimporter does not have get_filename until Python 2.7.
         if hasattr(loader, 'get_filename'):
@@ -774,17 +834,29 @@ def find_package(import_name):
             # Google App Engine's HardenedModulesHook
             #
             # Fall back to imports.
-            __import__(import_name)
-            filename = sys.modules[import_name].__file__
+            __import__(root_mod_name)
+            filename = sys.modules[root_mod_name].__file__
         package_path = os.path.abspath(os.path.dirname(filename))
 
         # In case the root module is a package we need to chop of the
         # rightmost part.  This needs to go through a helper function
         # because of python 3.3 namespace packages.
-        if _matching_loader_thinks_module_is_package(
-                loader, root_mod_name):
+        if _matching_loader_thinks_module_is_package(loader, root_mod_name):
             package_path = os.path.dirname(package_path)
 
+    return package_path
+
+
+def find_package(import_name):
+    """Finds a package and returns the prefix (or None if the package is
+    not installed) as well as the folder that contains the package or
+    module as a tuple.  The package path returned is the module that would
+    have to be added to the pythonpath in order to make it possible to
+    import the module.  The prefix is the path below which a UNIX like
+    folder structure exists (lib, share etc.).
+    """
+    root_mod_name, _, _ = import_name.partition('.')
+    package_path = _find_package_path(root_mod_name)
     site_parent, site_folder = os.path.split(package_path)
     py_prefix = os.path.abspath(sys.prefix)
     if package_path.startswith(py_prefix):
@@ -830,43 +902,56 @@ class locked_cached_property(object):
 
 
 class _PackageBoundObject(object):
+    #: The name of the package or module that this app belongs to. Do not
+    #: change this once it is set by the constructor.
+    import_name = None
+
+    #: Location of the template files to be added to the template lookup.
+    #: ``None`` if templates should not be added.
+    template_folder = None
+
+    #: Absolute path to the package on the filesystem. Used to look up
+    #: resources contained in the package.
+    root_path = None
 
     def __init__(self, import_name, template_folder=None, root_path=None):
-        #: The name of the package or module.  Do not change this once
-        #: it was set by the constructor.
         self.import_name = import_name
-
-        #: location of the templates.  ``None`` if templates should not be
-        #: exposed.
         self.template_folder = template_folder
 
         if root_path is None:
             root_path = get_root_path(self.import_name)
 
-        #: Where is the app root located?
         self.root_path = root_path
-
         self._static_folder = None
         self._static_url_path = None
 
     def _get_static_folder(self):
         if self._static_folder is not None:
             return os.path.join(self.root_path, self._static_folder)
+
     def _set_static_folder(self, value):
         self._static_folder = value
-    static_folder = property(_get_static_folder, _set_static_folder, doc='''
-    The absolute path to the configured static folder.
-    ''')
+
+    static_folder = property(
+        _get_static_folder, _set_static_folder,
+        doc='The absolute path to the configured static folder.'
+    )
     del _get_static_folder, _set_static_folder
 
     def _get_static_url_path(self):
         if self._static_url_path is not None:
             return self._static_url_path
+
         if self.static_folder is not None:
             return '/' + os.path.basename(self.static_folder)
+
     def _set_static_url_path(self, value):
         self._static_url_path = value
-    static_url_path = property(_get_static_url_path, _set_static_url_path)
+
+    static_url_path = property(
+        _get_static_url_path, _set_static_url_path,
+        doc='The URL prefix that the static route will be registered for.'
+    )
     del _get_static_url_path, _set_static_url_path
 
     @property
@@ -965,3 +1050,33 @@ def total_seconds(td):
     :rtype: int
     """
     return td.days * 60 * 60 * 24 + td.seconds
+
+
+def is_ip(value):
+    """Determine if the given string is an IP address.
+
+    Python 2 on Windows doesn't provide ``inet_pton``, so this only
+    checks IPv4 addresses in that environment.
+
+    :param value: value to check
+    :type value: str
+
+    :return: True if string is an IP address
+    :rtype: bool
+    """
+    if PY2 and os.name == 'nt':
+        try:
+            socket.inet_aton(value)
+            return True
+        except socket.error:
+            return False
+
+    for family in (socket.AF_INET, socket.AF_INET6):
+        try:
+            socket.inet_pton(family, value)
+        except socket.error:
+            pass
+        else:
+            return True
+
+    return False

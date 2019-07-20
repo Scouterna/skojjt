@@ -4,5 +4,5 @@
 # in `lib/` subdirectory.
 #
 # Note: The `lib` directory is added to `sys.path` by `appengine_config.py`.
-Flask==0.12.3
+Flask==1.0.4
 openpyxl==2.5.12

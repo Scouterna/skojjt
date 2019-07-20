@@ -7,9 +7,10 @@
     version of six so we don't have to depend on a specific version
     of it.
 
-    :copyright: (c) 2015 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+    :copyright: 2010 Pallets
+    :license: BSD-3-Clause
 """
+
 import sys
 
 PY2 = sys.version_info[0] == 2
@@ -25,7 +26,9 @@ if not PY2:
     itervalues = lambda d: iter(d.values())
     iteritems = lambda d: iter(d.items())
 
+    from inspect import getfullargspec as getargspec
     from io import StringIO
+    import collections.abc as collections_abc
 
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
@@ -43,7 +46,9 @@ else:
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
 
+    from inspect import getargspec
     from cStringIO import StringIO
+    import collections as collections_abc
 
     exec('def reraise(tp, value, tb=None):\n raise tp, value, tb')
 

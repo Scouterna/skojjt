@@ -24,7 +24,7 @@ def Worksheet():
 def pytest_runtest_setup(item):
     if isinstance(item, pytest.Function):
         try:
-            import Image
+            from PIL import Image
         except ImportError:
             Image = False
         if item.get_marker("pil_required") and Image is False:
