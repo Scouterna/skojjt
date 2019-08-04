@@ -67,3 +67,14 @@ width: 24px; height: 24px;
 {
     width: 100px;
 }
+
+a.hike
+{
+    color: green;
+    font-style: italic;
+}
+
+.hike-tgl
+{
+    display: inline-block;
+}

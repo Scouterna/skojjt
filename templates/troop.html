@@ -9,7 +9,7 @@
 			<th class="patruller extrainfo col-hidden" style="display:none" width="100">Patrull</th>
 			<th class="birthday extrainfo col-hidden" style="display:none">Födelsedatum</th>
 			{% for meeting in meetings %}
-			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/><span title="{{meeting.getdate()}} {{meeting.gettime()}}">{{meeting.getdate()}}</span></span></div></th>
+			<th class="rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/" {% if meeting.getishike() %} class="hike" {% endif %}>{{meeting.name}}</a><br/><span title="{{meeting.getdate()}} {{meeting.gettime()}}">{{meeting.getdate()}}</span></span></div></th>
 			{% endfor %}
 		</tr>
 	  </thead>

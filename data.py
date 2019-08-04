@@ -277,6 +277,7 @@ class Meeting(ndb.Model):
 	duration = ndb.IntegerProperty(default=90, required=True) #minutes
 	semester = ndb.KeyProperty(kind=Semester, required=False) # TODO: remove
 	attendingPersons = ndb.KeyProperty(kind=Person, repeated=True) # list of attending persons' keys
+	ishike = ndb.BooleanProperty(required=False)
 
 	@staticmethod
 	def __getMemcacheKeyString(troop_key):
@@ -287,19 +288,21 @@ class Meeting(ndb.Model):
 		return meetingDatetime.strftime("%Y%m%d%H%M")+str(troop_key.id())
 		
 	@staticmethod
-	def getOrCreate(troop_key, name, datetime, duration):
+	def getOrCreate(troop_key, name, datetime, duration, ishike):
 		m = Meeting.get_by_id(Meeting.getId(datetime, troop_key), use_memcache=True)
 		if m != None:
-			if m.name != name or m.duration != duration:
+			if m.name != name or m.duration != duration or m.ishike != ishike:
 				m.name = name
 				m.duration = duration
+				m.ishike = ishike
 				m.put()
 		else:
 			m = Meeting(id=Meeting.getId(datetime, troop_key),
 				datetime=datetime,
 				name=name,
 				troop=troop_key,
-				duration=duration
+				duration=duration,
+				ishike=ishike
 				)
 		troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
 		if troopmeeting_keys is not None and m.key not in troopmeeting_keys:
@@ -343,6 +346,10 @@ class Meeting(ndb.Model):
 		if endtime > maxEndTime:
 			endtime = maxEndTime # limit to the current day (to keep Stop time after Start time)
 		return endtime.strftime('%H:%M')
+	def getishike(self):
+		result = self.ishike
+		logging.warning("ishike = %s" % result)
+		return result
 
 
 class TroopPerson(ndb.Model):
@@ -380,7 +387,7 @@ class TroopPerson(ndb.Model):
 
 	def put(self):
 		super(TroopPerson, self).put()
-	
+
 	@staticmethod
 	def getTroopPersonsForTroop(troop_key):
 		trooppersons = []
@@ -394,7 +401,7 @@ class TroopPerson(ndb.Model):
 				trooppersons.append(tp)
 		trooppersons.sort(key=lambda x: (-x.leader, x.sortname))
 		return trooppersons
-		
+
 	def commit(self):
 		self.put()
 
@@ -431,7 +438,7 @@ class UserPrefs(ndb.Model):
 
 	def canImport(self):
 		return self.isAdmin() or self.canimport == True
-		
+
 	def isGroupAdmin(self):
 		return self.hasadminaccess or (self.hasaccess and self.groupadmin and self.groupaccess != None)
 
@@ -449,7 +456,7 @@ class UserPrefs(ndb.Model):
 	def current():
 		cu = users.get_current_user()
 		return UserPrefs.getorcreate(cu)
-	
+
 	def attemptAutoGroupAccess(self):
 		if self.groupaccess is None:
 			persons = Person.query(self.email == Person.email).fetch()
@@ -509,7 +516,7 @@ class TaskProgress(ndb.Model):
 	messages = ndb.StringProperty(repeated=True)
 	failed = ndb.BooleanProperty(default=False)
 	lastPut = None
-	
+
 	def append(self, message):
 		self.messages.append(message)
 		self._putIfNeeded()

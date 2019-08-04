@@ -10,14 +10,21 @@
 	<input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% else %}Möte{% endif %}"/>
   </div>
   <div class="form-group">
+      <input title="Del av läger" class="hike-tgl checkbox big-checkbox" name="ishike" id="mishike" type="checkbox"
+      {% if hasMeeting and existingmeeting.getishike() %}checked{% endif %}/>
+      </input>
+      <label for="mhike">Del av läger</label>
+    </div>
+  <div class="form-group">
 	<label for="mdate">Datum (termin {{semester.getname()}})</label>
 	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
   </div>
-  <div class="form-group">
+ 
+  <div class="form-group" id="starttimediv">
 	<label for="starttime">Starttid</label>
 	<input type="time" class="form-control" name="starttime" id="starttime" value="{% if hasMeeting %}{{existingmeeting.gettime()}}{% endif %}"/>
   </div>
-  <div class="form-group">
+  <div class="form-group" id="durationdiv">
 	<label for="mduration">Längd (minuter)</label>
 	<input type="number" class="form-control" name="duration" id="mduration" value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"/>
   </div>
@@ -26,6 +33,13 @@
 	$("#mdate").val(getTodaysDateString());
 	$("#starttime").val("{{troop.defaultstarttime}}");
 	$("#mduration").val("{{troop.defaultduration}}");
+  </script>
+  {% else %}
+  <script>
+  if ($("#mishike").attr('checked')) {
+    $("#starttimediv").hide();
+    $("#durationdiv").hide();
+  }
   </script>
   {% endif %}
   <div class="btn-toolbar">  
@@ -41,3 +55,19 @@
   </div>
 </form>
 {% endif %}
+<script>
+$(document).ready(function() {
+  $('#mishike').click(function(event) {
+    var hikeChecked = this.checked;
+    if (hikeChecked) {
+      $("#starttimediv").hide(0.5);
+      $("#durationdiv").hide(0.5);
+      $("#mname").val("Läger");
+    } else {
+      $("#starttimediv").show(0.5);
+      $("#durationdiv").show(0.5);
+      $("#mname").val("Möte");
+    };
+  });
+});
+</script>

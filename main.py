@@ -107,7 +107,7 @@ def adminaccess(userprefs_url=None):
 	section_title = u'Hem'
 	baselink = '/'
 	breadcrumbs = [{'link':baselink, 'text':section_title}]
-	
+
 	section_title = u'Admin'
 	baselink += 'admin/'
 	breadcrumbs.append({'link':baselink, 'text':section_title})
@@ -231,19 +231,19 @@ def merge_sg(oldname, newname, commit):
 	semester = Semester.getOrCreateCurrent()
 
 	keys_to_delete.append(oldsg.key)
-	
+
 	logging.info("Update all users to the new scoutgroup")
 	for u in UserPrefs.query(UserPrefs.groupaccess == oldsg.key).fetch():
 		u.groupaccess = newsg.key
 		u.activeSemester = semester.key
 		entities_to_put.append(u)
-	
+
 	logging.info("Moving all persons to the new ScoutGroup:%s", newsg.getname())
 	for oldp in Person.query(Person.scoutgroup == oldsg.key).fetch():
 		logging.info(" * Moving %s %s", oldp.getname(), oldp.personnr)
 		oldp.scoutgroup = newsg.key
 		entities_to_put.append(oldp)
-	
+
 	logging.info("Move all troops to the new ScoutGroup:%s", newsg.getname())
 	for oldt in Troop.query(Troop.scoutgroup == oldsg.key).fetch():
 		logging.info(" * found old troop for %s, semester=%s", str(oldt.key.id()), oldt.semester_key.get().getname())
@@ -273,12 +273,12 @@ def merge_sg(oldname, newname, commit):
 			newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key), use_memcache=True)
 			if newm is None:
 				logging.info(" * * creating new Meeting for %s:%s", newt.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M"))
-				newm = Meeting.getOrCreate(newt.key, oldm.name, oldm.datetime, oldm.duration)
+				newm = Meeting.getOrCreate(newt.key, oldm.name, oldm.datetime, oldm.duration, oldm.ishike)
 				newm.attendingPersons = oldm.attendingPersons
 				entities_to_put.append(newm)
 			else:
 				logging.info(" * * already has Meeting for %s:%s", newt.getname(), newt.datetime.strftime("%Y-%m-%d %H:%M"))
-			
+	
 	logging.info("Putting %d entities first", len(entities_to_put_first))
 	if commit: ndb.put_multi(entities_to_put_first)
 	logging.info("Putting %d entities", len(entities_to_put))
@@ -288,7 +288,7 @@ def merge_sg(oldname, newname, commit):
 	logging.info("clear memcache")
 	if commit: ndb.get_context().clear_cache()
 	logging.info("Done!")
-	
+
 
 # cron job:
 @app.route('/tasks/cleanup')

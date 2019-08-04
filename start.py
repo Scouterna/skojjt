@@ -124,8 +124,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		elif request.method == "POST":
 			pnr = request.form['personnummer'].replace('-','')
 			person = Person.createlocal(
-				request.form['firstname'], 
-				request.form['lastname'], 
+				request.form['firstname'],
+				request.form['lastname'],
 				pnr,
 				request.form['mobile'],
 				request.form['phone'],
@@ -241,21 +241,24 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 		elif action == "addmeeting" or action == "updatemeeting":
 			mname = request.form['name']
 			mdate = request.form['date']
+			mishike = bool(request.form.get('ishike'))
 			mtime = request.form['starttime'].replace('.', ':')
 			dtstring = mdate + "T" + mtime
 			mduration = request.form['duration']
 			dt = datetime.datetime.strptime(dtstring, "%Y-%m-%dT%H:%M")
 			if action == "addmeeting":
-				meeting = Meeting.getOrCreate(troop_key, 
+				meeting = Meeting.getOrCreate(troop_key,
 					mname,
 					dt,
-					int(mduration))
+					int(mduration),
+					mishike)
 			else:
 				meeting = ndb.Key(urlsafe=key_url).get()
 
 			meeting.name = mname
 			meeting.datetime = dt
 			meeting.duration = int(mduration)
+			meeting.ishike = mishike
 			meeting.commit()
 			return redirect(breadcrumbs[-1]['link'])
 		elif action == "deletemeeting":
