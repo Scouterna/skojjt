@@ -26,6 +26,13 @@
 
 		<div class="clearfix"></div>
 	</div>
+	<button class="btn btn-md btn-info" data-toggle="collapse" data-target="#lagerbidrag_info_sthlm">Lägerbidrag Stockholm</button>
+	<div id="lagerbidrag_info_sthlm" class="collapse well">
+		<div>Kommer ta närvaron för alla avdelningar under de valda datumen, gå in på respektive avdelning om du bara vill få närvaro från en.</div>
+		{% include "lagerbidragform_sthlm.html" %}
+
+		<div class="clearfix"></div>
+	</div>
 </div>
 
 {% if user.canImport() %}
