@@ -295,6 +295,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			items=ScoutGroup.getgroupsforuser(user),
 			breadcrumbs=breadcrumbs)
 	elif troop_url == "lagerbidrag":
+		region = request.args.get('region')
+		logging.warning("troop_url = lagerbidrag for %s" % region)
 		fromDate = request.form['fromDate']
 		toDate = request.form['toDate']
 		site = request.form['site']
@@ -528,7 +530,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			response = make_response(result)
 			return response
 		elif key_url == "lagerbidrag":
-
+			region = request.args.get('region')
+			logging.warning("key_url = lagerbidrag  for %s" % region)
 			fromDate = request.form['fromDate']
 			toDate = request.form['toDate']
 			site = request.form['site']

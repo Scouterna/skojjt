@@ -122,13 +122,13 @@
 			<div><a class="btn btn-lg btn-info" id="daklink" href="./dak/">Rapportfil för Göteborgs Kommun</a></div>
 			<div><a class="btn btn-lg btn-info" id="sensus" href="./sensus/">Sensus lista</a></div>
 			<div><a class="btn btn-lg btn-info" id="excel" href="./excel/">Excelrapport</a></div>
-			<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info">Lägerbidrag Göteborg</a></div>
+			<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info_gbg">Lägerbidrag Göteborg</a></div>
 			<div><a class="btn btn-lg btn-info" data-toggle="collapse" data-target="#lagerbidrag_info_sthlm">Lägerbidrag Stockholm</a></div>
 			<div><a href="#" class="btn btn-lg btn-info" id="csv_export" download="{{heading}}.csv">Exportera CSV</a></div>
 		</div>
 
-		<div id="lagerbidrag_info" class="collapse well col-xs-12 col-md-6">
-			{% include "lagerbidragform.html" %}
+		<div id="lagerbidrag_info_gbg" class="collapse well col-xs-12 col-md-6">
+			{% include "lagerbidragform_gbg.html" %}
 		</div>
 		<div id="lagerbidrag_info_sthlm" class="collapse well col-xs-12 col-md-6">
 				{% include "lagerbidragform_sthlm.html" %}
