@@ -1,7 +1,41 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, date
 import math
-from dataimport import ndb, Meeting
+from dataimport import ndb, Meeting, Troop, logging
+
+from flask import render_template, make_response
+
+def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None, trooppersons=None, troop_key=None):
+    if context == "group":
+        assert sgroup_key is not None
+        assert user is not None
+        troops = Troop.getTroopsForUser(sgroup_key, user)
+    elif context == "troop":
+        assert trooppersons is not None
+        assert troop_key is not None
+    else:
+        raise ValueError("Context %s unknown" % context)
+
+    region = request.args.get('region')
+    logging.warning("troop_url = lagerbidrag for %s" % region)
+    fromDate = request.form['fromDate']
+    toDate = request.form['toDate']
+    site = request.form['site']
+    contactperson = request.form['contactperson']
+    try:
+        if context == "group":
+            bidrag = createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
+        else:
+			bidrag = createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
+        result = render_template(
+            'lagerbidrag.html',
+            bidrag=bidrag.bidrag,
+            persons=bidrag.persons,
+            numbers=bidrag.numbers)
+        response = make_response(result)
+        return response
+    except ValueError as e:
+        return render_template('error.html', error=str(e))
 
 def person_sort(a, b):
 

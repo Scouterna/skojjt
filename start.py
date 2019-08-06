@@ -295,25 +295,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			items=ScoutGroup.getgroupsforuser(user),
 			breadcrumbs=breadcrumbs)
 	elif troop_url == "lagerbidrag":
-		region = request.args.get('region')
-		logging.warning("troop_url = lagerbidrag for %s" % region)
-		fromDate = request.form['fromDate']
-		toDate = request.form['toDate']
-		site = request.form['site']
-		contactperson = request.form['contactperson']
-		troops = Troop.getTroopsForUser(sgroup_key, user)
-		try:
-			bidrag = lagerbidrag.createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
-			result = render_template(
-				'lagerbidrag.html',
-				bidrag=bidrag.bidrag,
-				persons=bidrag.persons,
-				numbers=bidrag.numbers)
-			response = make_response(result)
-			return response
-		except ValueError as e:
-			return render_template('error.html', error=str(e))
-
+		return lagerbidrag.render_lagerbidrag(request, scoutgroup, "group", user=user, sgroup_key=sgroup_key)
 	elif troop==None:
 		section_title = 'Avdelningar'
 		return render_template('troops.html',
@@ -530,24 +512,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			response = make_response(result)
 			return response
 		elif key_url == "lagerbidrag":
-			region = request.args.get('region')
-			logging.warning("key_url = lagerbidrag  for %s" % region)
-			fromDate = request.form['fromDate']
-			toDate = request.form['toDate']
-			site = request.form['site']
-			contactperson = request.form['contactperson']
-			try:
-				bidrag = lagerbidrag.createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
-				result = render_template(
-					'lagerbidrag.html',
-					bidrag=bidrag.bidrag,
-					persons=bidrag.persons,
-					numbers=bidrag.numbers)
-				response = make_response(result)
-				return response
-			except ValueError as e:
-				return render_template('error.html', error=str(e))
-
+			return lagerbidrag.render_lagerbidrag(request, scoutgroup, "troop", trooppersons=trooppersons, troop_key=troop_key)
 		else:
 			allowance = []
 			allowance.append({'name':'Antal möten:', 'value':meetingCount})
