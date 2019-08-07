@@ -1,9 +1,26 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, date
-import math
-from dataimport import ndb, Meeting, Troop, logging
+"""
+Calculate data needed to fill in fomrs for lägerbidrag (hike grants).
 
+The limits and data needed depends on region.
+Göteborg has 2-14 nights, age 7-25, and includes som older people.
+Stocholm has 2-7 days, age 7-20, and does not include older people.
+Stockholm also needs postal address for each scout.
+"""
+
+from datetime import datetime
+import math
+from collections import namedtuple
 from flask import render_template, make_response
+
+from dataimport import Meeting, Troop, logging
+
+RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])
+
+
+LIMITS = {'gbg' : RegionLimits(3, 15, 7, 25, True),  # min 2 nights, max 14 nights, 7-25 yers + some older
+          'sthlm' : RegionLimits(2, 7, 7, 20, False)} # min 2 days, max 7 days, 7-20 years
+
 
 def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None, trooppersons=None, troop_key=None):
     if context == "group":
@@ -17,6 +34,7 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
         raise ValueError("Context %s unknown" % context)
 
     region = request.args.get('region')
+    limits = LIMITS[region]
     logging.warning("troop_url = lagerbidrag for %s" % region)
     fromDate = request.form['fromDate']
     toDate = request.form['toDate']
@@ -24,9 +42,9 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
     contactperson = request.form['contactperson']
     try:
         if context == "group":
-            bidrag = createLagerbidragGroup(scoutgroup, troops, contactperson, site, fromDate, toDate)
+            bidrag = createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, fromDate, toDate)
         else:
-			bidrag = createLagerbidrag(scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
+            bidrag = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
         result = render_template(
             'lagerbidrag.html',
             bidrag=bidrag.bidrag,
@@ -37,8 +55,8 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
     except ValueError as e:
         return render_template('error.html', error=str(e))
 
-def person_sort(a, b):
 
+def person_sort(a, b):
     if a.year == b.year:
         if a.name > b.name:
             return 1
@@ -48,6 +66,7 @@ def person_sort(a, b):
         return 1
     else:
         return -1
+
 
 class LagerBidragContainer:
     bidrag = ""
@@ -60,17 +79,15 @@ class LagerBidragContainer:
 
 
 class LagerPerson():
-    name = ""
-    year = ""
-    person = ""
-    days = 0
-    age = 0
-    def __init__(self, person="", name="", year="", age=0):
+
+    def __init__(self, person="", name="", year="", age=0, postal_address=""):
         self.person = person
         self.name = name
-        self.age = age
         self.year = year
+        self.age = age
+        self.postal_address = postal_address
         self.days = 0
+
 
 class LagerBidrag():
     contact = ""
@@ -83,57 +100,65 @@ class LagerBidrag():
     zipCode = ""
     phone = ""
     email = ""
-    under26 = 0
-    over26 = 0
+    uptoMaxage = 0
+    overMaxAge = 0
     nights = 0
-    nights = 0
+    days = 0
     divider = 25
     def __init__(self, kar):
         self.kar = kar
-        self.under26 = 0
-        self.over26 = 0
+        self.uptoMaxAge = 0
+        self.overMaxAge = 0
 
-def createLagerbidragGroup(scoutgroup, troops, contactperson, site, from_date, to_date):
+
+def _add_person(person, persons, year, days=None):
+    "Create LagerPerson from person and add to persons lists."
+    person_ob = person.get()
+    postal_address = "%s %s" % (person_ob.zip_code, person_ob.zip_name)
+    lager_person = LagerPerson(person, person_ob.getname(), person_ob.birthdate.year, person_ob.getyearsoldthisyear(year), postal_address)
+    if days is not None:
+        lager_person.days = days
+    persons.append(lager_person)
+
+
+def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, from_date, to_date):
 
     from_date_time = datetime.strptime(from_date + " 00:00", "%Y-%m-%d %H:%M")
     to_date_time = datetime.strptime(to_date + " 23:59", "%Y-%m-%d %H:%M")
     year = to_date_time.year
     persons = []
-    person_ids = {}
+    person_days = {}
 
-    validateLagetbidragInput(from_date_time, to_date_time)
+    validateLagetbidragInput(from_date_time, to_date_time, limits)
 
     for troop in troops:
         # Count number of days participating
         for meeting in Meeting.query(Meeting.datetime >= from_date_time, Meeting.datetime <= to_date_time, Meeting.troop == troop.key).fetch():
             for person in meeting.attendingPersons:
-                if not person in person_ids:
-                    person_ids[person] = 1
+                if not person in person_days:
+                    person_days[person] = 1
                 else:
-                    person_ids[person] += 1
+                    person_days[person] += 1
 
     # Collect number of persons
-    for person_key, days in person_ids.iteritems():
-        person = person_key.get()
-        lager_person = LagerPerson(person_key, person.getname(), person.birthdate.year, person.getyearsoldthisyear(year))
-        lager_person.days = days
-        persons.append(lager_person)
+    for person, days in person_days.iteritems():
+        _add_person(person, persons, year, days)
 
-    return createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date, to_date)
+    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date)
 
-def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, site, from_date, to_date):
+
+def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key, contactperson, site, from_date, to_date):
 
     from_date_time = datetime.strptime(from_date + " 00:00", "%Y-%m-%d %H:%M")
     to_date_time = datetime.strptime(to_date + " 23:59", "%Y-%m-%d %H:%M")
     year = to_date_time.year
     persons = []
 
-    validateLagetbidragInput(from_date_time, to_date_time)
+    validateLagetbidragInput(from_date_time, to_date_time, limits)
 
     # Collect number of persons
     for troopperson in trooppersons:
-        person_ob = troopperson.person.get()
-        persons.append(LagerPerson(troopperson.person, troopperson.getname(), person_ob.birthdate.year, person_ob.getyearsoldthisyear(year)))
+        _add_person(troopperson.person, persons, year)
 
     # Count number of days participating
     for meeting in Meeting.query(Meeting.datetime >= from_date_time, Meeting.datetime <= to_date_time, Meeting.troop == troopkey_key).fetch():
@@ -142,18 +167,20 @@ def createLagerbidrag(scoutgroup, trooppersons, troopkey_key, contactperson, sit
             if is_attending:
                 person.days += 1
 
-    return createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date, to_date)
+    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date)
 
-def validateLagetbidragInput(from_date_time, to_date_time):
 
+def validateLagetbidragInput(from_date_time, to_date_time, limits):
+    "Check the number of days compared to limits."
     delta = to_date_time.date() - from_date_time.date()
-    if delta.days > 14:
-        raise ValueError('Lägret får max vara 14 nätter')
-    if delta.days < 2:
-        raise ValueError('Lägret måsta vara minst 2 nätter')
+    nr_days = delta.days + 1  # The 00:00 - 23:59 does not give any extra day
+    if nr_days > limits.max_days:
+        raise ValueError('Lägret får max vara %d dagar' % limits.max_days)
+    if nr_days < limits.min_days:
+        raise ValueError('Lägret måsta vara minst %d dagar' % limits.min_days)
 
 
-def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date, to_date):
+def createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date):
     container = LagerBidragContainer()
 
     bidrag=LagerBidrag(scoutgroup.getname())
@@ -164,34 +191,37 @@ def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date,
     bidrag.account = scoutgroup.bankkonto
     bidrag.contact = contactperson
     bidrag.site = site
-    bidrag.dateFrom=from_date
-    bidrag.dateTo=to_date
+    bidrag.dateFrom = from_date
+    bidrag.dateTo = to_date
 
     container.persons = persons
 
-    # Filter out persons participation at least 3 days
-    container.persons = [p for p in container.persons if p.days >= 3]
+    # Filter out persons participation at least limits.min_days days
+    container.persons = [p for p in container.persons if p.days >= limits.min_days]
 
-    # Sort by number of days to get the persons over 26 with most days first
+    # Sort by number of days to get the persons over limits.max_age with most days first
     container.persons.sort(key=lambda x: x.days, reverse=True)
 
-    # sum number of persons and days for person under 26
+    # sum number of persons and days for person under max_age
     for person in container.persons:
-        if person.age > 25:
-            bidrag.over26 = bidrag.over26 + 1
-        elif person.age > 6:
-            bidrag.under26 = bidrag.under26 + 1
+        if person.age > limits.max_age:
+            bidrag.overMaxAge = bidrag.overMaxAge + 1
+        elif person.age >= limits.min_age:
+            bidrag.uptoMaxAge = bidrag.uptoMaxAge + 1
             bidrag.nights += person.days - 1
+            bidrag.days += person.days
 
-    # Count number of days for person 26 or older
-    allowed_26_and_older = math.floor(bidrag.under26 / 3)
-    count_26_and_older = 0
-    for person in container.persons:
-        if count_26_and_older == allowed_26_and_older:
-            break
-        if person.age > 25:
-            count_26_and_older += 1
-            bidrag.nights += person.days - 1
+    if limits.count_over_max_age:
+        # Count number of days for person over max_age
+        allowed_over_max_age = math.floor(bidrag.uptoMaxAge / 3)
+        count_over_max_age = 0
+        for person in container.persons:
+            if count_over_max_age == allowed_over_max_age:
+                break
+            if person.age > limits.max_age:
+                count_over_max_age += 1
+                bidrag.nights += person.days - 1
+                bidrag.days += person.days
 
     container.persons.sort(person_sort)
 
@@ -207,4 +237,3 @@ def createLagerbidragReport(scoutgroup, persons, contactperson, site, from_date,
     container.numbers = range(0, container.bidrag.divider)
 
     return container
-
