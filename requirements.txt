@@ -6,3 +6,4 @@
 # Note: The `lib` directory is added to `sys.path` by `appengine_config.py`.
 Flask==1.0.4
 openpyxl==2.5.12
+docx-mailmerge==0.4.0

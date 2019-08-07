@@ -18,6 +18,8 @@ default_expiration: "2h"
 libraries:
 - name: ssl
   version: latest
+- name: lxml
+  version: latest
   
 builtins:
 - deferred: on
