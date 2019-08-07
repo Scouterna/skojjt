@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Calculate data needed to fill in fomrs for lägerbidrag (hike grants).
+Calculate data needed and fill in forms for lägerbidragsansökan (hike grants).
 
 The limits and data needed depends on region.
 Göteborg has 2-14 nights, age 7-25, and includes som older people.
 Stocholm has 2-7 days, age 7-20, and does not include older people.
 Stockholm also needs postal address for each scout.
 """
-
+import io
+import copy
 from datetime import datetime
 import math
+import urllib
 from collections import namedtuple
 from flask import render_template, make_response
 
@@ -35,7 +37,6 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
 
     region = request.args.get('region')
     limits = LIMITS[region]
-    logging.warning("troop_url = lagerbidrag for %s" % region)
     fromDate = request.form['fromDate']
     toDate = request.form['toDate']
     site = request.form['site']
@@ -45,15 +46,84 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
             bidrag = createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, fromDate, toDate)
         else:
             bidrag = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
-        result = render_template(
-            'lagerbidrag.html',
-            bidrag=bidrag.bidrag,
-            persons=bidrag.persons,
-            numbers=bidrag.numbers)
-        response = make_response(result)
-        return response
+        if region == 'gbg':
+            return response_gbg(bidrag)
+        elif region == 'sthlm':
+            return response_sthlm(bidrag)
     except ValueError as e:
         return render_template('error.html', error=str(e))
+
+
+def response_gbg(bidrag):
+    result = render_template(
+        'lagerbidrag.html',
+        bidrag=bidrag.bidrag,
+        persons=bidrag.persons,
+        numbers=bidrag.numbers)
+    response = make_response(result)
+    return response
+
+
+def response_sthlm(container):
+    from mailmerge import MailMerge
+
+    bidrag = container.bidrag
+    persons = container.persons
+
+    nr_persons = container.nr_persons_total
+    persons = persons[:nr_persons]
+
+    start = datetime.strptime(bidrag.dateFrom, '%Y-%m-%d')
+    end = datetime.strptime(bidrag.dateTo, '%Y-%m-%d')
+    nr_days = (end - start).days + 1
+
+    data = {
+        'kundnummer': u'4140027',
+        'foreningsnamn': u'Sjöscoutkåren S:t Göran',
+        'ledare': u'Torbjörn Einarsson',
+        'ledartelefon': u'072-20 325 88',
+        'ledaremail': u'torbjorn.einarsson@stgscout.se',
+        'lov': u'X',
+        'helg': u'\u2610',
+        'lagerplats': bidrag.site,
+        'startdatum': bidrag.dateFrom,
+        'slutdatum': bidrag.dateTo,
+        'datum': '2019-07-29',
+        'firmatecknare': u'Torbjörn Einarsson',
+        'firmatecknartelefon': '072-20 325 88',
+        'antalmedlemmar': str(nr_persons),
+        'antaldagar': str(nr_days)  # Should be total number of days
+    }
+
+    persons_per_page = 16
+    nr_pages, rest = divmod(nr_persons, persons_per_page)
+    if rest > 0:
+        nr_pages += 1
+    pages = []
+    for page_nr in range(nr_pages):
+        page_data = copy.deepcopy(data)
+        persons_in_page = persons[page_nr * persons_per_page:(page_nr + 1) * persons_per_page]
+        for i, person in enumerate(persons_in_page):
+            nr = i + 1
+            page_data['namn%d' % nr] = person.name
+            page_data['pa%d' % nr] = person.postal_address
+            page_data['ar%d' % nr] = str(person.year)
+        pages.append(page_data)
+
+    document = MailMerge('templates/lagerbidragsmall.docx')
+    document.merge_pages(pages)
+
+    bytesIO = io.BytesIO()
+    document.write(bytesIO)
+    resultbytes = bytesIO.getvalue()
+
+    doc_name = "Lagerbidrag_%s_%s_%s.docx" % (bidrag.site, bidrag.dateFrom, bidrag.dateTo)
+    ascii_doc_name = doc_name.encode('ascii', 'ignore')
+
+    response = make_response(resultbytes)
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(ascii_doc_name)
+    return response
 
 
 def person_sort(a, b):
@@ -70,8 +140,10 @@ def person_sort(a, b):
 
 class LagerBidragContainer:
     bidrag = ""
-    persons = []
-    numbers = []
+    nr_young_persons = 0
+    nr_older_persons = 0
+    nr_under_min_age = 0
+    nr_persons_total = 0
 
     def __init__(self):
         self.persons = []
@@ -100,15 +172,14 @@ class LagerBidrag():
     zipCode = ""
     phone = ""
     email = ""
-    uptoMaxage = 0
+    uptoMaxAge = 0
     overMaxAge = 0
     nights = 0
     days = 0
     divider = 25
+
     def __init__(self, kar):
         self.kar = kar
-        self.uptoMaxAge = 0
-        self.overMaxAge = 0
 
 
 def _add_person(person, persons, year, days=None):
@@ -206,10 +277,14 @@ def createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, fr
     for person in container.persons:
         if person.age > limits.max_age:
             bidrag.overMaxAge = bidrag.overMaxAge + 1
+            container.nr_older_persons += 1
         elif person.age >= limits.min_age:
             bidrag.uptoMaxAge = bidrag.uptoMaxAge + 1
             bidrag.nights += person.days - 1
             bidrag.days += person.days
+            container.nr_young_persons += 1
+        else:
+            container.nr_under_min_age += 1
 
     if limits.count_over_max_age:
         # Count number of days for person over max_age
@@ -225,15 +300,16 @@ def createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, fr
 
     container.persons.sort(person_sort)
 
-    number_of_persons = len(container.persons)
+    number_of_persons = container.nr_young_persons + container.nr_older_persons + container.nr_under_min_age
+    assert number_of_persons == len(container.persons)
+    container.nr_persons_total = number_of_persons
+
+    # Set up divider to get two columns of data (used by Gbg template)
     tmp_divider = int(math.ceil(number_of_persons / 2.0))
-
     bidrag.divider = 25 if tmp_divider < 25 else tmp_divider
-
     # Add empty persons
     container.persons.extend([LagerPerson() for i in range(0, bidrag.divider * 2 - len(container.persons))])
+    container.numbers = range(0, bidrag.divider)
 
     container.bidrag = bidrag
-    container.numbers = range(0, container.bidrag.divider)
-
     return container
