@@ -9,7 +9,7 @@ Stockholm also needs postal address for each scout.
 """
 import io
 import copy
-from datetime import datetime
+from datetime import datetime, date
 import math
 import urllib
 from collections import namedtuple
@@ -22,6 +22,9 @@ RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'm
 
 LIMITS = {'gbg' : RegionLimits(3, 15, 7, 25, True),  # min 2 nights, max 14 nights, 7-25 yers + some older
           'sthlm' : RegionLimits(2, 7, 7, 20, False)} # min 2 days, max 7 days, 7-20 years
+
+DATE_FORMAT = '%Y-%m-%d'
+DATE_TIME_FORMAT = '%Y-%m-%d %H:%M'
 
 
 def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None, trooppersons=None, troop_key=None):
@@ -41,11 +44,18 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
     toDate = request.form['toDate']
     site = request.form['site']
     contactperson = request.form['contactperson']
+    contactemail = request.form.get('contactemail', '')
+    contactphone = request.form.get('contactphone', '')
+    hikeduringbreak = request.form.get('hikeduringbreak')
     try:
         if context == "group":
-            bidrag = createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, fromDate, toDate)
+            bidrag = createLagerbidragGroup(limits, scoutgroup, troops,
+                                            contactperson, contactemail, contactphone,
+                                            site, fromDate, toDate, hikeduringbreak)
         else:
-            bidrag = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key, contactperson, site, fromDate, toDate)
+            bidrag = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key,
+                                       contactperson, contactemail, contactphone,
+                                       site, fromDate, toDate, hikeduringbreak)
         if region == 'gbg':
             return response_gbg(bidrag)
         elif region == 'sthlm':
@@ -73,26 +83,26 @@ def response_sthlm(container):
     nr_persons = container.nr_persons_total
     persons = persons[:nr_persons]
 
-    start = datetime.strptime(bidrag.dateFrom, '%Y-%m-%d')
-    end = datetime.strptime(bidrag.dateTo, '%Y-%m-%d')
+    start = datetime.strptime(bidrag.dateFrom,  DATE_FORMAT)
+    end = datetime.strptime(bidrag.dateTo, DATE_FORMAT)
     nr_days = (end - start).days + 1
 
     data = {
-        'kundnummer': u'4140027',
-        'foreningsnamn': u'Sjöscoutkåren S:t Göran',
-        'ledare': u'Torbjörn Einarsson',
-        'ledartelefon': u'072-20 325 88',
-        'ledaremail': u'torbjorn.einarsson@stgscout.se',
-        'lov': u'X',
-        'helg': u'\u2610',
+        'kundnummer': bidrag.foreningsID,
+        'foreningsnamn': bidrag.kar,
+        'ledare': bidrag.contact,
+        'ledartelefon': bidrag.contactphone,
+        'ledaremail': bidrag.contactemail,
+        'lov': u'X' if bidrag.hikeduringbreak else u'\u2610',
+        'helg': u'\u2610' if bidrag.hikeduringbreak else u'X',
         'lagerplats': bidrag.site,
         'startdatum': bidrag.dateFrom,
         'slutdatum': bidrag.dateTo,
-        'datum': '2019-07-29',
-        'firmatecknare': u'Torbjörn Einarsson',
-        'firmatecknartelefon': '072-20 325 88',
-        'antalmedlemmar': str(nr_persons),
-        'antaldagar': str(nr_days)  # Should be total number of days
+        'datum': date.today().strftime(DATE_FORMAT),
+        'firmatecknare': bidrag.firmatecknare,
+        'firmatecknartelefon': bidrag.firmatecknartelefon,
+        'antalmedlemmar': str(container.nr_young_persons),
+        'antaldagar': str(bidrag.days)  # Should be total number of days
     }
 
     persons_per_page = 16
@@ -163,10 +173,16 @@ class LagerPerson():
 
 class LagerBidrag():
     contact = ""
+    contactemail = ""
+    contactphone = ""
     kar = ""
+    foreningsID = ""
     account = ""
+    firmatecknare = ""
+    firmatecknartelefon = ""
     dateFrom = ""
     dateTo = ""
+    hikeduringbreak = None
     site = ""
     address = ""
     zipCode = ""
@@ -192,10 +208,11 @@ def _add_person(person, persons, year, days=None):
     persons.append(lager_person)
 
 
-def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, from_date, to_date):
+def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, contactemail, contactphone,
+                           site, from_date, to_date, hikeduringbreak):
 
-    from_date_time = datetime.strptime(from_date + " 00:00", "%Y-%m-%d %H:%M")
-    to_date_time = datetime.strptime(to_date + " 23:59", "%Y-%m-%d %H:%M")
+    from_date_time = datetime.strptime(from_date + " 00:00", DATE_TIME_FORMAT)
+    to_date_time = datetime.strptime(to_date + " 23:59", DATE_TIME_FORMAT)
     year = to_date_time.year
     persons = []
     person_days = {}
@@ -215,13 +232,16 @@ def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, site, from
     for person, days in person_days.iteritems():
         _add_person(person, persons, year, days)
 
-    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date)
+    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail,
+                                   contactphone, site, from_date, to_date, hikeduringbreak)
 
 
-def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key, contactperson, site, from_date, to_date):
+def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key,
+                      contactperson, contactemail, contactphone,
+                      site, from_date, to_date, hikeduringbreak):
 
-    from_date_time = datetime.strptime(from_date + " 00:00", "%Y-%m-%d %H:%M")
-    to_date_time = datetime.strptime(to_date + " 23:59", "%Y-%m-%d %H:%M")
+    from_date_time = datetime.strptime(from_date + " 00:00", DATE_TIME_FORMAT)
+    to_date_time = datetime.strptime(to_date + " 23:59", DATE_TIME_FORMAT)
     year = to_date_time.year
     persons = []
 
@@ -238,7 +258,8 @@ def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key, contactper
             if is_attending:
                 person.days += 1
 
-    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date)
+    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail,
+                                   contactphone, site, from_date, to_date, hikeduringbreak)
 
 
 def validateLagetbidragInput(from_date_time, to_date_time, limits):
@@ -251,19 +272,26 @@ def validateLagetbidragInput(from_date_time, to_date_time, limits):
         raise ValueError('Lägret måsta vara minst %d dagar' % limits.min_days)
 
 
-def createLagerbidragReport(limits, scoutgroup, persons, contactperson, site, from_date, to_date):
+def createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail, contactphone,
+                            site, from_date, to_date, hikeduringbreak):
     container = LagerBidragContainer()
 
     bidrag=LagerBidrag(scoutgroup.getname())
+    bidrag.foreningsID = scoutgroup.foreningsID
+    bidrag.firmatecknare = scoutgroup.firmatecknare
+    bidrag.firmatecknartelefon = scoutgroup.firmatecknartelefon
     bidrag.email = scoutgroup.epost
     bidrag.phone = scoutgroup.telefon
     bidrag.address = scoutgroup.adress
     bidrag.zipCode = scoutgroup.postadress
     bidrag.account = scoutgroup.bankkonto
     bidrag.contact = contactperson
+    bidrag.contactemail = contactemail
+    bidrag.contactphone = contactphone
     bidrag.site = site
     bidrag.dateFrom = from_date
     bidrag.dateTo = to_date
+    bidrag.hikeduringbreak = hikeduringbreak
 
     container.persons = persons
 

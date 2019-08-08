@@ -99,6 +99,8 @@ class ScoutGroup(ndb.Model):
 	epost = ndb.StringProperty(required=False, default="")
 	telefon = ndb.StringProperty(required=False, default="")
 	default_lagerplats = ndb.StringProperty(required=False, default="")
+	firmatecknare = ndb.StringProperty(required=False, default="")
+	firmatecknartelefon = ndb.StringProperty(required=False, default="")
 
 	@staticmethod
 	def getid(name):
