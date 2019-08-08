@@ -14,8 +14,10 @@ import math
 import urllib
 from collections import namedtuple
 from flask import render_template, make_response
+from mailmerge import MailMerge
 
 from dataimport import Meeting, Troop, logging
+
 
 RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])
 
@@ -40,50 +42,58 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
 
     region = request.args.get('region')
     limits = LIMITS[region]
-    fromDate = request.form['fromDate']
-    toDate = request.form['toDate']
-    site = request.form['site']
-    contactperson = request.form['contactperson']
-    contactemail = request.form.get('contactemail', '')
-    contactphone = request.form.get('contactphone', '')
-    hikeduringbreak = request.form.get('hikeduringbreak')
+    bidrag=LagerBidrag(scoutgroup.getname())
+    bidrag.foreningsID = scoutgroup.foreningsID
+    bidrag.firmatecknare = scoutgroup.firmatecknare
+    bidrag.firmatecknartelefon = scoutgroup.firmatecknartelefon
+    bidrag.email = scoutgroup.epost
+    bidrag.phone = scoutgroup.telefon
+    bidrag.address = scoutgroup.adress
+    bidrag.zipCode = scoutgroup.postadress
+    bidrag.account = scoutgroup.bankkonto
+    bidrag.contact = request.form['contactperson']
+    bidrag.contactemail = request.form.get('contactemail', '')
+    bidrag.contactphone = request.form.get('contactphone', '')
+    bidrag.site = request.form['site']
+    bidrag.dateFrom = request.form['fromDate']
+    bidrag.dateTo = request.form['toDate']
+    bidrag.hikeduringbreak = request.form.get('hikeduringbreak')
     try:
         if context == "group":
-            bidrag = createLagerbidragGroup(limits, scoutgroup, troops,
-                                            contactperson, contactemail, contactphone,
-                                            site, fromDate, toDate, hikeduringbreak)
+            bidragcontainer = createLagerbidragGroup(limits, scoutgroup, troops, bidrag)
         else:
-            bidrag = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key,
-                                       contactperson, contactemail, contactphone,
-                                       site, fromDate, toDate, hikeduringbreak)
+            bidragcontainer = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key, bidrag)
+        
         if region == 'gbg':
-            return response_gbg(bidrag)
+            return response_gbg(bidragcontainer)
         elif region == 'sthlm':
-            return response_sthlm(bidrag)
+            return response_sthlm(bidragcontainer)
+        else:
+            raise ValueError("Unknown region %s" % region)
+
     except ValueError as e:
         return render_template('error.html', error=str(e))
 
 
-def response_gbg(bidrag):
+def response_gbg(bidragcontainer):
     result = render_template(
-        'lagerbidrag.html',
-        bidrag=bidrag.bidrag,
-        persons=bidrag.persons,
-        numbers=bidrag.numbers)
+        'lagerbidrag_gbg.html',
+        bidrag=bidragcontainer.bidrag,
+        persons=bidragcontainer.persons,
+        numbers=bidragcontainer.numbers)
     response = make_response(result)
     return response
 
 
-def response_sthlm(container):
-    from mailmerge import MailMerge
+def response_sthlm(bidragcontainer):
 
-    bidrag = container.bidrag
-    persons = container.persons
+    bidrag = bidragcontainer.bidrag
+    persons = bidragcontainer.persons
 
-    nr_persons = container.nr_persons_total
+    nr_persons = bidragcontainer.nr_persons_total
     persons = persons[:nr_persons]
 
-    start = datetime.strptime(bidrag.dateFrom,  DATE_FORMAT)
+    start = datetime.strptime(bidrag.dateFrom, DATE_FORMAT)
     end = datetime.strptime(bidrag.dateTo, DATE_FORMAT)
     nr_days = (end - start).days + 1
 
@@ -101,7 +111,7 @@ def response_sthlm(container):
         'datum': date.today().strftime(DATE_FORMAT),
         'firmatecknare': bidrag.firmatecknare,
         'firmatecknartelefon': bidrag.firmatecknartelefon,
-        'antalmedlemmar': str(container.nr_young_persons),
+        'antalmedlemmar': str(bidragcontainer.nr_young_persons),
         'antaldagar': str(bidrag.days)  # Should be total number of days
     }
 
@@ -120,7 +130,7 @@ def response_sthlm(container):
             page_data['ar%d' % nr] = str(person.year)
         pages.append(page_data)
 
-    document = MailMerge('templates/lagerbidragsmall.docx')
+    document = MailMerge('templates/lagerbidragsmall_sthlm.docx')
     document.merge_pages(pages)
 
     bytesIO = io.BytesIO()
@@ -208,11 +218,10 @@ def _add_person(person, persons, year, days=None):
     persons.append(lager_person)
 
 
-def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, contactemail, contactphone,
-                           site, from_date, to_date, hikeduringbreak):
+def createLagerbidragGroup(limits, scoutgroup, troops, bidrag):
 
-    from_date_time = datetime.strptime(from_date + " 00:00", DATE_TIME_FORMAT)
-    to_date_time = datetime.strptime(to_date + " 23:59", DATE_TIME_FORMAT)
+    from_date_time = datetime.strptime(bidrag.dateFrom + " 00:00", DATE_TIME_FORMAT)
+    to_date_time = datetime.strptime(bidrag.dateTo + " 23:59", DATE_TIME_FORMAT)
     year = to_date_time.year
     persons = []
     person_days = {}
@@ -232,16 +241,13 @@ def createLagerbidragGroup(limits, scoutgroup, troops, contactperson, contactema
     for person, days in person_days.iteritems():
         _add_person(person, persons, year, days)
 
-    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail,
-                                   contactphone, site, from_date, to_date, hikeduringbreak)
+    return createLagerbidragReport(limits, scoutgroup, persons, bidrag)
 
 
-def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key,
-                      contactperson, contactemail, contactphone,
-                      site, from_date, to_date, hikeduringbreak):
+def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key, bidrag):
 
-    from_date_time = datetime.strptime(from_date + " 00:00", DATE_TIME_FORMAT)
-    to_date_time = datetime.strptime(to_date + " 23:59", DATE_TIME_FORMAT)
+    from_date_time = datetime.strptime(bidrag.dateFrom + " 00:00", DATE_TIME_FORMAT)
+    to_date_time = datetime.strptime(bidrag.dateTo + " 23:59", DATE_TIME_FORMAT)
     year = to_date_time.year
     persons = []
 
@@ -258,8 +264,7 @@ def createLagerbidrag(limits, scoutgroup, trooppersons, troopkey_key,
             if is_attending:
                 person.days += 1
 
-    return createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail,
-                                   contactphone, site, from_date, to_date, hikeduringbreak)
+    return createLagerbidragReport(limits, scoutgroup, persons, bidrag)
 
 
 def validateLagetbidragInput(from_date_time, to_date_time, limits):
@@ -272,26 +277,9 @@ def validateLagetbidragInput(from_date_time, to_date_time, limits):
         raise ValueError('Lägret måsta vara minst %d dagar' % limits.min_days)
 
 
-def createLagerbidragReport(limits, scoutgroup, persons, contactperson, contactemail, contactphone,
-                            site, from_date, to_date, hikeduringbreak):
+def createLagerbidragReport(limits, scoutgroup, persons, bidrag):
+    "Create a container with lagerbidrag data. The input bidrag instance will be enhanced."
     container = LagerBidragContainer()
-
-    bidrag=LagerBidrag(scoutgroup.getname())
-    bidrag.foreningsID = scoutgroup.foreningsID
-    bidrag.firmatecknare = scoutgroup.firmatecknare
-    bidrag.firmatecknartelefon = scoutgroup.firmatecknartelefon
-    bidrag.email = scoutgroup.epost
-    bidrag.phone = scoutgroup.telefon
-    bidrag.address = scoutgroup.adress
-    bidrag.zipCode = scoutgroup.postadress
-    bidrag.account = scoutgroup.bankkonto
-    bidrag.contact = contactperson
-    bidrag.contactemail = contactemail
-    bidrag.contactphone = contactphone
-    bidrag.site = site
-    bidrag.dateFrom = from_date
-    bidrag.dateTo = to_date
-    bidrag.hikeduringbreak = hikeduringbreak
 
     container.persons = persons
 
