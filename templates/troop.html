@@ -239,15 +239,53 @@ $(document).ready(function() {
 		$(".saveinfo").html("<br/>Klicka för att spara:");
 	});
 
+	function shiftCheckBoxTitleOneDay(cbTitle)
+	{
+		var parts = cbTitle.split(":");
+		var cbDay = Date.parse(parts[0]);
+		var prevDay = cbDay - 1000 * 3600 * 24;
+		var p = new Date(prevDay);
+		var prevStr = p.toISOString().split('T')[0];
+		return prevStr + ":" + parts[1];
+	}
+
+	//Three-state toogle if there is a meeting one day before. Useful for lager/hikes
 	function toggleParticipants(meeting_url, checked)
 	{
 		var name = 'cb' + meeting_url;
 		var checkboxes = $('input:checkbox[name="' + name + '"]');
+
+		var nr_checked = 0;
 		for (var cb=0; cb < checkboxes.length; cb++)
 		{
-			checkboxes[cb].checked = checked
+			if (checkboxes[cb].checked) {
+				nr_checked++;
+			}
+		}
+
+		if (checked && nr_checked === 0) {
+			// Copy from previous day if available (for hikes/lager)
+			for (var cb=0; cb < checkboxes.length; cb++)
+		    {
+				var cb_today = checkboxes[cb];
+				var cb_title = cb_today.title;
+				var cb_prev_title = shiftCheckBoxTitleOneDay(cb_title);
+				var cb_prev = $("input:checkbox[title='" + cb_prev_title + "']");
+				if (cb_prev.length > 0)
+				{
+					checkboxes[cb].checked = cb_prev[0].checked
+				} else {
+					checkboxes[cb].checked = checked
+				}
+			}
+		} else {
+			for (var cb=0; cb < checkboxes.length; cb++)
+			{
+				checkboxes[cb].checked = checked
+			}
 		}
 	}
+
 	function updateCheckAllCheckbox(meeting_url)
 	{
 		var checkboxes = $('input:checkbox[name="cb' + meeting_url + '"]');
