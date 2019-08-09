@@ -350,7 +350,6 @@ class Meeting(ndb.Model):
 		return endtime.strftime('%H:%M')
 	def getishike(self):
 		result = self.ishike
-		logging.warning("ishike = %s" % result)
 		return result
 
 
