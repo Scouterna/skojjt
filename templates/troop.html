@@ -73,6 +73,10 @@
 		<div id="newmeeting" class="collapse">
 			{% include "meetingform.html" %}
 		</div>
+		<button data-toggle="collapse" data-target="#newhike" set-focus="#mhikename" class="btn btn-info btn-lg togglebutton">Nytt läger</button>
+		<div id="newhike" class="collapse">
+			{% include "lagerform.html" %}
+		</div>
 		<button data-toggle="collapse" data-target="#newmember" set-focus="#namesearch" class="btn btn-lg btn-info togglebutton">Lägg till person</button>
 		<div id="newmember" class="collapse">
 			<h2>Lägg till avdelningsmedlem</h2>
@@ -164,6 +168,9 @@ $(document).ready(function() {
 	});
 	$("#newmeeting").on('shown.bs.collapse', function(){
 		$("#mname")[0].focus();
+	});
+	$("#newhike").on('shown.bs.collapse', function(){
+		$("#mhikename")[0].focus();
 	});
 	$("#newmember").on('shown.bs.collapse', function (){
 		$("#namesearch")[0].focus();

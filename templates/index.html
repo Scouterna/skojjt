@@ -61,6 +61,10 @@
 		<div id="newmeeting" class="collapse">
 		{% include "meetingform.html" %}
 		</div>
+		<button data-toggle="collapse" data-target="#newhike" class="btn btn-info btn-lg">Nytt läger</button>
+		<div id="newhike" class="collapse">
+		{% include "lagerform.html" %}
+		</div>
 		{% endif %}
 	</div>
 <script>
@@ -68,6 +72,10 @@ $(document).ready(function() {
 	$("#newmeeting").on('shown.bs.collapse', function (e) {
 		$("#mname")[0].focus();
 	});
+	$("#newhike").on('shown.bs.collapse', function (e) {
+		$("#mhikename")[0].focus();
+	});
+
 	$("#newmember").on('shown.bs.collapse', function (e) {
 		$("#namesearch")[0].focus();
 	});

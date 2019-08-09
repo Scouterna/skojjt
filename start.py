@@ -266,6 +266,21 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			logging.debug("deleting meeting=%s", meeting.getname())
 			meeting.delete()
 			return redirect(breadcrumbs[-1]['link'])
+		elif action == "addhike":
+			mname = request.form['name']
+			mdate = request.form['date']
+			mdays = int(request.form['days'])
+			dt = datetime.datetime.strptime(mdate, "%Y-%m-%d")
+			for i in range(mdays):
+				day_time = dt + datetime.timedelta(days=i)
+				meeting = Meeting.getOrCreate(troop_key,
+					mname,
+					day_time,
+					duration=1440,  # 24h (needs some value)
+					ishike=True)
+				meeting.commit()
+			return redirect(breadcrumbs[-1]['link'])
+
 		elif action == "savepatrol":
 			patrolperson = ndb.Key(urlsafe=request.form['person']).get()
 			patrolperson.setpatrol(request.form['patrolName'])
