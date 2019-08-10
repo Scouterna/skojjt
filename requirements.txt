@@ -7,3 +7,4 @@
 Flask==1.0.4
 openpyxl==2.5.12
 docx-mailmerge==0.4.0
+lxml==4.4.0
