@@ -15,13 +15,13 @@
 	  </thead>
 	  <tbody>
 		<tr>
-			<td class="name-field"><strong>Välj alla / ingen:</strong></td>
+			<td class="name-field"><strong>Välj alla / ingen / som igår:</strong></td>
 			<td class="removebutton extrainfo" style="display:none"></td>
 			<td class="patruller extrainfo" style="display:none" width="100"></td>
 			<td class="birthday extrainfo" style="display:none"></td>
 			{% for meeting in meetings %}
 			<td>
-			<input title="Välj alla / ingen" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
+			<input title="Välj alla / ingen / som igår" class="attendance-tgl checkbox big-checkbox" name="tgl{{meeting.key.urlsafe()}}"  type="checkbox" ></input>
 			</td>
 			{% endfor %}
 		</tr>
@@ -272,6 +272,7 @@ $(document).ready(function() {
 
 		if (checked && nr_checked === 0) {
 			// Copy from previous day if available (for hikes/lager)
+			var prev_day_empty = true;
 			for (var cb=0; cb < checkboxes.length; cb++)
 		    {
 				var cb_today = checkboxes[cb];
@@ -280,15 +281,25 @@ $(document).ready(function() {
 				var cb_prev = $("input:checkbox[title='" + cb_prev_title + "']");
 				if (cb_prev.length > 0)
 				{
-					checkboxes[cb].checked = cb_prev[0].checked
+					checkboxes[cb].checked = cb_prev[0].checked;
+					if (cb_prev[0].checked) { 
+						prev_day_empty = false;
+						nr_checked++;
+					}
 				} else {
-					checkboxes[cb].checked = checked
+					checkboxes[cb].checked = checked;
+				}
+			}
+			if (prev_day_empty && nr_checked === 0) {
+				for (cb=0; cb < checkboxes.length; cb++)
+				{
+					checkboxes[cb].checked = true;
 				}
 			}
 		} else {
 			for (var cb=0; cb < checkboxes.length; cb++)
 			{
-				checkboxes[cb].checked = checked
+				checkboxes[cb].checked = checked;
 			}
 		}
 	}
