@@ -5,14 +5,22 @@
 	    <input type="text" class="form-control" name="name" id="mname" value="Lägernamn"/>
     </div>
   <div class="form-group">
-	<label for="mdate">Startdatum (termin {{semester.getname()}})</label>
-	<input type="date" class="form-control" name="date" id="mdate" value="" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+	  <label for="mdate">Startdatum (termin {{semester.getname()}})</label>
+	  <input type="date" class="form-control" name="date" id="mdate" value="" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
   </div>
   <div class="form-group">
-	<label for="mdays">Antal dagar</label>
-	<input type="number" class="form-control" name="days" id="mdays" value="" min="2" max="15"/>
+	  <label for="mdays">Antal dagar</label>
+	  <input type="number" class="form-control" name="days" id="mdays" value="3" min="2" max="15"/>
+  </div>
+  <div class="form-group" id="starttimediv">
+    <label for="starttime">Starttid</label>
+    <input type="time" class="form-control" name="starttime" id="starttime" value="00:00"/>
+  </div>
+  <div class="form-group" id="durationdiv">
+    <label for="mduration">Längd (minuter)</label>
+    <input type="number" class="form-control" name="duration" id="mduration" value="1440"/>
   </div>
   <div class="btn-toolbar">  
-  <button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+    <button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
   </div>
 </form>

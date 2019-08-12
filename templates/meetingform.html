@@ -34,13 +34,6 @@
 	$("#starttime").val("{{troop.defaultstarttime}}");
 	$("#mduration").val("{{troop.defaultduration}}");
   </script>
-  {% else %}
-  <script>
-  if ($("#mishike").attr('checked')) {
-    $("#starttimediv").hide();
-    $("#durationdiv").hide();
-  }
-  </script>
   {% endif %}
   <div class="btn-toolbar">  
   <button type="submit" name="submit" class="btn btn-lg btn-primary">{% if hasMeeting %}Spara{% else %}Lägg till{% endif %}</button>
@@ -60,13 +53,13 @@ $(document).ready(function() {
   $('#mishike').click(function(event) {
     var hikeChecked = this.checked;
     if (hikeChecked) {
-      $("#starttimediv").hide(0.5);
-      $("#durationdiv").hide(0.5);
       $("#mname").val("Läger");
+      $("#starttime").val("00:00");
+      $("#mduration").val("1440");
     } else {
-      $("#starttimediv").show(0.5);
-      $("#durationdiv").show(0.5);
       $("#mname").val("Möte");
+      $("#starttime").val("{{troop.defaultstarttime}}");
+      $("#mduration").val("{{troop.defaultduration}}");
     };
   });
 });
