@@ -78,7 +78,7 @@ class Semester(ndb.Model):
 		if self.ht:
 			return "%04d-12-31" % (self.year)
 		else:
-			return "%04d-08-30" % (self.year)
+			return "%04d-08-18" % (self.year)
 
 # kår
 class ScoutGroup(ndb.Model):
