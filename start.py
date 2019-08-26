@@ -335,7 +335,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			baselink=baselink,
 			existingmeeting=meeting,
 			breadcrumbs=breadcrumbs,
-			semester=troop.semester_key.get())
+			semester=troop.semester_key.get(),
+			troop=troop)
 	else:
 		meetingCount = 0
 		sumMaleAttendenceCount = 0
