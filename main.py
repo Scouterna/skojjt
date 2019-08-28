@@ -50,7 +50,8 @@ def home():
 						   breadcrumbs=breadcrumbs,
 						   user=user,
 						   starturl=starturl,
-						   personsurl=personsurl
+						   personsurl=personsurl,
+						   logouturl=users.create_logout_url('/')
 						   )
 
 app.register_blueprint(start, url_prefix='/start')
