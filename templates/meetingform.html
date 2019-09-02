@@ -5,38 +5,50 @@
 {% else %}
   <input type="hidden" name="action" value="addmeeting"/>
 {% endif %}
-  <div class="form-group">
-	<label for="mname">Namn</label>
-	<input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% else %}Möte{% endif %}"/>
-  </div>
-  <div class="form-group">
-      <input title="Del av läger" class="hike-tgl checkbox big-checkbox" name="ishike" id="mishike" type="checkbox"
-      {% if hasMeeting and existingmeeting.getishike() %}checked{% endif %}/>
-      </input>
-      <label for="mhike">Del av läger</label>
+  <div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group checkbox hike-tgl">
+        <label>
+          <input title="Del av läger" class="checkbox" name="ishike" id="mhike" type="checkbox" {% if hasMeeting and existingmeeting.getishike() %}checked{% endif %} />
+          Del av läger
+        </label>
+      </div>
     </div>
-  <div class="form-group">
-	<label for="mdate">Datum (termin {{semester.getname()}})</label>
-	<input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group">
+        <label for="mname">Namn</label>
+        <input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% endif %}"/>
+      </div>
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group">
+        <label for="mdate">Datum (termin {{semester.getname()}})</label>
+        <input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
+      </div>
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group">
+        <label for="starttime">Starttid</label>
+        <input type="time" class="form-control" name="starttime" id="starttime" value="{% if hasMeeting %}{{existingmeeting.gettime()}}{% endif %}"/>
+      </div>
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group">
+        <label for="mduration">Längd (minuter)</label>
+        <input type="number" class="form-control" name="duration" id="mduration" value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"/>
+      </div>
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+      <div class="form-group">
+        <label for="mstoptime">Sluttid (för att räkna ut längd)</label>
+        <input type="time" class="form-control" id="mstoptime" />
+      </div>
+    </div>
   </div>
- 
-  <div class="form-group" id="starttimediv">
-	<label for="starttime">Starttid</label>
-	<input type="time" class="form-control" name="starttime" id="starttime" value="{% if hasMeeting %}{{existingmeeting.gettime()}}{% endif %}"/>
-  </div>
-  <div class="form-group" id="durationdiv">
-	<label for="mduration">Längd (minuter)</label>
-	<input type="number" class="form-control" name="duration" id="mduration" value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"/>
-  </div>
-  {% if not hasMeeting %}
-  <script>
-	$("#mdate").val(getTodaysDateString());
-	$("#starttime").val("{{troop.defaultstarttime}}");
-	$("#mduration").val("{{troop.defaultduration}}");
-  </script>
-  {% endif %}
-  <div class="btn-toolbar">  
-  <button type="submit" name="submit" class="btn btn-lg btn-primary">{% if hasMeeting %}Spara{% else %}Lägg till{% endif %}</button>
+  <div class="row">
+    <div class="col-xs-12">
+      <button {% if semester.locked %}disabled="disabled"{% endif %} type="submit" name="submit" class="btn btn-lg btn-primary">{% if hasMeeting %}Spara{% else %}Lägg till{% endif %}</button>
+    </div>
   </div>
 </form>
 {% if hasMeeting %}
@@ -49,18 +61,71 @@
 </form>
 {% endif %}
 <script>
-$(document).ready(function() {
-  $('#mishike').click(function(event) {
-    var hikeChecked = this.checked;
-    if (hikeChecked) {
-      $("#mname").val("Läger");
-      $("#starttime").val("00:00");
-      $("#mduration").val("1440");
-    } else {
-      $("#mname").val("Möte");
-      $("#starttime").val("{{troop.defaultstarttime}}");
-      $("#mduration").val("{{troop.defaultduration}}");
-    };
+  $(document).ready(function() {
+    var durationField = $("#mduration");
+    var dateField = $("#mdate");
+    var startTimeField = $("#starttime");
+    var stopTimeField = $("#mstoptime");
+    var nameField = $("#mname");
+    var hikeField = $("#mhike");
+
+    {% if not hasMeeting %}
+      dateField.val(getTodaysDateString());
+      setDefaultTime(false);
+    {% endif %}
+
+    stopTimeField.change(function() {
+      var from = startTimeField.val();
+      var to = stopTimeField.val();
+
+      var startTime = new Date('2012/10/09 ' + from);
+      var endTime = new Date('2012/10/09 ' + to);
+      var difference = endTime.getTime() - startTime.getTime(); // This will give difference in milliseconds
+      var resultInMinutes = Math.round(difference / 60000);
+
+      durationField.val(resultInMinutes);
+    });
+
+    durationField.change(function() {
+      var from = startTimeField.val();
+      var value = durationField.val();
+
+      var startTime = new Date('2012/10/09 ' + from);
+
+      var newDateObj = new Date(startTime.getTime() + value*60000);
+
+      var hours = addZero(newDateObj.getHours());
+      var minutes = addZero(newDateObj.getMinutes());
+
+      stopTimeField.val(hours + ':' + minutes);
+    });
+
+    function addZero(i) {
+      if (i < 10) {
+        i = "0" + i;
+      }
+      return i;
+    }
+
+    durationField.change();
+
+    hikeField.click(function() {
+      var hikeChecked = this.checked;
+      setDefaultTime(hikeChecked);
+    });
+
+    function setDefaultTime(hikeChecked) {
+      if (hikeChecked) {
+        nameField.val("Läger");
+        startTimeField.val("00:00");
+        durationField.val("1440");
+        durationField.change();
+      } else {
+        nameField.val("Möte");
+        startTimeField.val("{{troop.defaultstarttime}}");
+        durationField.val("{{troop.defaultduration}}");
+        durationField.change();
+      }
+    }
   });
-});
 </script>
