@@ -115,16 +115,37 @@
     });
 
     function setDefaultTime(hikeChecked) {
+      // Set default name and time, but only if not already set to non-default value
+      var oldName = nameField.val();
+      var oldStart = startTimeField.val();
+      var oldDur = durationField.val();
+      var defaultStartMeeting = "{{troop.defaultstarttime}}";
+      var defaultDurMeeting = "{{troop.defaultduration}}";
+      var defaultStartHike = "00:00"
+      var defaultDurHike = "1440"
+
+      var setTime = function(start, dur) {
+          startTimeField.val(start);
+          durationField.val(dur);
+          durationField.change();
+      };
+
       if (hikeChecked) {
-        nameField.val("Läger");
-        startTimeField.val("00:00");
-        durationField.val("1440");
-        durationField.change();
+        if (!oldName || oldName === "Möte") {
+          nameField.val("Läger");
+          nameField.change();
+        }
+        if (!oldStart || (oldStart === defaultStartMeeting && oldDur === defaultDurMeeting)) {
+          setTime(defaultStartHike, defaultDurHike);
+        }
       } else {
-        nameField.val("Möte");
-        startTimeField.val("{{troop.defaultstarttime}}");
-        durationField.val("{{troop.defaultduration}}");
-        durationField.change();
+        if (!oldName || oldName === "Läger") {
+          nameField.val("Möte");
+          nameField.change();
+        }
+        if (!oldStart || (oldStart === defaultStartHike && oldDur === defaultDurHike)) {
+          setTime(defaultStartMeeting, defaultDurMeeting)
+        }
       }
     }
   });
