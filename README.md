@@ -25,7 +25,7 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
 http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 http://ukf.umea.se/aktivitetskort
 
-### [Dokumentation](https://github.com/martin-green/skojjt/wiki)
+### [Dokumentation](https://github.com/Scouterna/skojjt/wiki)
 
 ### Hur man testar/utvecklar i Windows:
 * Klona git-repon till lokal dator.
