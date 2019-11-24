@@ -1,0 +1,30 @@
+{
+    "strict": true,
+    "debug": true,
+    "sp": {
+        "entityId": "skojjt.appspot.com",
+        "assertionConsumerService": {
+            "url": "https://skojjt.appspot.com/scoutid/asc",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "https://skojjt.appspot.com/scoutid/sls",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+        "x509cert": "",
+        "privateKey": ""
+    },
+    "idp": {
+        "entityId": "https://scoutid.se/simplesaml/saml2/idp/metadata.php",
+        "singleSignOnService": {
+            "url": "https://scoutid.se/simplesaml/saml2/idp/SSOService.php",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "singleLogoutService": {
+            "url": "https://scoutid.se/simplesaml/saml2/idp/initSLO.php",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "-----BEGIN CERTIFICATE-----\nMIID3TCCAsWgAwIBAgIJAM/6k2TxFIh2MA0GCSqGSIb3DQEBCwUAMIGEMQswCQYD\nVQQGEwJTRTETMBEGA1UECAwKU29tZS1TdGF0ZTESMBAGA1UEBwwJU3RvY2tob2xt\nMRIwEAYDVQQKDAlTY291dGVybmExEzARBgNVBAMMCnNjb3V0aWQuc2UxIzAhBgkq\nhkiG9w0BCQEWFHNjb3V0aWRAc2NvdXRlcm5hLnNlMB4XDTE4MTExOTE1MDQxOFoX\nDTI4MTExODE1MDQxOFowgYQxCzAJBgNVBAYTAlNFMRMwEQYDVQQIDApTb21lLVN0\nYXRlMRIwEAYDVQQHDAlTdG9ja2hvbG0xEjAQBgNVBAoMCVNjb3V0ZXJuYTETMBEG\nA1UEAwwKc2NvdXRpZC5zZTEjMCEGCSqGSIb3DQEJARYUc2NvdXRpZEBzY291dGVy\nbmEuc2UwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD6frjaSrr8aU9h\nbfWXyhedKojcsf7nF3hEJDND0J93E9Xe1oXR3QqmLsq09yUACP3WqZ4TP83V7LSq\nJThJ4JzW1M9XRegppr/pqdePuWr4PEf/aD3sEKj12S82ysv0J1R47sjQC8c+RxAf\nmgpbe/4YYYm87UxZWvui46MYLazLAbgQ9wt+I5qIkmGEejdbHwbUXN866+3oVhrA\n+e2yImc0UmyAJTYNJY8aS2N6NwYsptUIc4g13XbLO/c29OrnNUJN5jml7h+nVP18\n7bhtaqqdU7n+AGZgsxyH0+hypGLDSUVn2JLx2QCQqB31HWzaSxaw9KrAJiLCmdgq\nERvCIRA1AgMBAAGjUDBOMB0GA1UdDgQWBBT1NNEQB1YzwygQCFs1bwNR5wccODAf\nBgNVHSMEGDAWgBT1NNEQB1YzwygQCFs1bwNR5wccODAMBgNVHRMEBTADAQH/MA0G\nCSqGSIb3DQEBCwUAA4IBAQDcyff3HUHNEIhOr3eqV2A2+aCvxMPdo77ySYYi3F71\nMJg1t6qXdRd5dn3AF3xvFEwj3WO0HH03onZvUOyomeAVvLPVlLEW2jNNw2nBH7xj\nHXAxvEWkx8KQHprXKaToqm4H7ArtlMS5Ocb8aeRus/ghDLzoiOhZpCuAzXW9en23\nbFJX/TZ9mS2y6agHSsNikpw+44ZcMojjC/Ym6lfFFo2aU8go+vsGiR5FYckoyw2d\nc9n6RnkUk+cm/g4LXd7ombHpvPa+ptPHIMzY8PanCoVE8lnKFWZ+2ZaK8dUStam2\nY1yxuQpHLy7MUQEo+KRGtSHFEMQHdOH0+hAch3h0+PA9\n-----END CERTIFICATE-----"
+    }
+}
