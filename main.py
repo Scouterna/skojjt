@@ -5,6 +5,7 @@ import datetime
 import urllib
 import json
 import scoutnet
+import scoutid
 import time
 import htmlform
 from dakdata import *
@@ -58,6 +59,7 @@ app.register_blueprint(persons, url_prefix='/persons')
 app.register_blueprint(progress, url_prefix='/progress')
 app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
 app.register_blueprint(start, url_prefix='/start')
+app.register_blueprint(scoutid, url_prefix='/scoutid')
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
