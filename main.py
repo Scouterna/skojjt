@@ -29,10 +29,8 @@ app.debug = True
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
 
-
 reload(sys)
 sys.setdefaultencoding('utf8')
-
 
 @app.route('/')
 def home():
@@ -54,12 +52,12 @@ def home():
 						   logouturl=users.create_logout_url('/')
 						   )
 
-app.register_blueprint(start, url_prefix='/start')
-app.register_blueprint(persons, url_prefix='/persons')
-app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
 app.register_blueprint(groupsummary, url_prefix='/groupsummary')
 app.register_blueprint(import_page, url_prefix='/import')
+app.register_blueprint(persons, url_prefix='/persons')
 app.register_blueprint(progress, url_prefix='/progress')
+app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
+app.register_blueprint(start, url_prefix='/start')
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
@@ -82,10 +80,43 @@ def getaccess():
 			baselink=baselink,
 			breadcrumbs=breadcrumbs)
 
+@app.route('/groupaccess')
+@app.route('/groupaccess/')
+@app.route('/groupaccess/<userprefs_url>')
+def groupaccess(userprefs_url=None):
+	user = UserPrefs.current()
+	if not user.isGroupAdmin():
+		return "denied", 403
 
+	section_title = u'Hem'
+	baselink = '/'
+	breadcrumbs = [{'link': baselink, 'text': section_title}]
 
+	section_title = u'Kåraccess'
+	baselink += 'groupaccess/'
+	breadcrumbs.append({'link': baselink, 'text': section_title})
 
+	if userprefs_url != None:
+		userprefs = ndb.Key(urlsafe=userprefs_url).get()
+		groupaccessurl = request.args["setgroupaccess"]
+		if groupaccessurl == 'None':
+			userprefs.groupaccess = None
+		else:
+			userprefs.groupaccess = ndb.Key(urlsafe=groupaccessurl)
+			userprefs.hasaccess = True
+		userprefs.put()
 
+	users = UserPrefs().query(UserPrefs.groupaccess == None).fetch()
+	users.extend(UserPrefs().query(UserPrefs.groupaccess == user.groupaccess).fetch())
+	return render_template('groupaccess.html',
+						   heading=section_title,
+						   baselink=baselink,
+						   users=users,
+						   breadcrumbs=breadcrumbs,
+						   mygroupurl=user.groupaccess.urlsafe(),
+						   mygroupname=user.groupaccess.get().getname())
+
+# <editor-fold desc="Admin Url:s">
 @app.route('/admin')
 @app.route('/admin/')
 def admin():
@@ -147,43 +178,6 @@ def adminaccess(userprefs_url=None):
 		users=users,
 		breadcrumbs=breadcrumbs)
 
-@app.route('/groupaccess')
-@app.route('/groupaccess/')
-@app.route('/groupaccess/<userprefs_url>')
-def groupaccess(userprefs_url=None):
-	user = UserPrefs.current()
-	if not user.isGroupAdmin():
-		return "denied", 403
-
-	section_title = u'Hem'
-	baselink = '/'
-	breadcrumbs = [{'link':baselink, 'text':section_title}]
-	
-	section_title = u'Kåraccess'
-	baselink += 'groupaccess/'
-	breadcrumbs.append({'link':baselink, 'text':section_title})
-
-	if userprefs_url != None:
-		userprefs = ndb.Key(urlsafe=userprefs_url).get()
-		groupaccessurl = request.args["setgroupaccess"]
-		if groupaccessurl == 'None':
-			userprefs.groupaccess = None
-		else:
-			userprefs.groupaccess = ndb.Key(urlsafe=groupaccessurl)
-			userprefs.hasaccess = True
-		userprefs.put()
-	
-	users = UserPrefs().query(UserPrefs.groupaccess == None).fetch()
-	users.extend(UserPrefs().query(UserPrefs.groupaccess == user.groupaccess).fetch())
-	return render_template('groupaccess.html',
-		heading=section_title,
-		baselink=baselink,
-		users=users,
-		breadcrumbs=breadcrumbs,
-		mygroupurl=user.groupaccess.urlsafe(),
-		mygroupname=user.groupaccess.get().getname())
-
-
 # merge scoutgroups with different names (renamed in scoutnet):
 @app.route('/admin/merge_sg/', methods = ['POST', 'GET'])
 def adminMergeScoutGroups():
@@ -213,7 +207,6 @@ def adminMergeScoutGroups():
 		heading=section_title,
 		baselink=baselink,
 		breadcrumbs=breadcrumbs)
-
 
 def merge_sg(oldname, newname, commit):
 	oldsg = ScoutGroup.getbyname(oldname)
@@ -290,15 +283,6 @@ def merge_sg(oldname, newname, commit):
 	if commit: ndb.get_context().clear_cache()
 	logging.info("Done!")
 
-
-# cron job:
-@app.route('/tasks/cleanup')
-@app.route('/tasks/cleanup/')
-def tasksCleanup():
-	TaskProgress.cleanup()
-	return "", 200
-
-
 @app.route('/admin/deleteall/')
 def dodelete():
 	user = UserPrefs.current()
@@ -308,7 +292,6 @@ def dodelete():
 	# DeleteAllData() # uncomment to enable this
 	return redirect('/admin/')
 
-	
 @app.route('/admin/settroopsemester/')
 def settroopsemester():
 	user = UserPrefs.current()
@@ -326,7 +309,6 @@ def fixsgroupids():
 
 	dofixsgroupids()
 	return redirect('/admin/')
-	
 
 @app.route('/admin/updateschemas')
 def doupdateschemas():
@@ -361,7 +343,6 @@ def autoGroupAccess():
 
 	return "done"
 
-
 @app.route('/admin/backup')
 @app.route('/admin/backup/')
 def dobackup():
@@ -381,7 +362,18 @@ def adminTestEmail():
 	user = UserPrefs.current()
 	scoutnet.sendRegistrationQueueInformationEmail(user.groupaccess.get())
 	return "ok"
-	
+# </editor-fold>
+
+# cron job:
+# <editor-fold desc="Cron Jobs">
+@app.route('/tasks/cleanup')
+@app.route('/tasks/cleanup/')
+def tasksCleanup():
+	TaskProgress.cleanup()
+	return "", 200
+# </editor-fold>
+
+# <editor-fold desc="Error Handeling">
 @app.errorhandler(404)
 def page_not_found(e):
 	return render_template('notfound.html'), 404
@@ -394,6 +386,7 @@ def access_denied(e):
 def serverError(e):
 	logging.error("Error 500:%s", str(e))
 	return render_template('error.html', error=str(e)), 500
+# </editor-fold>
 
 #@app.errorhandler(Exception)
 #def defaultHandler(e):
