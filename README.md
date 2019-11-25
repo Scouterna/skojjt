@@ -3,8 +3,8 @@
 
 *av Martin Green/Tynnereds scoutkår.*
 
-https://skojjt.appspot.com
-Prova skojjt.appspot.com, säg till martin@famgreen.se för att få access.
+https://skojjt.appspot.com  
+Prova [skojjt.appspot.com](https://skojjt.appspot.com), säg till [martin@famgreen.se](mailto:martin@famgreen.se) för att få access.
 
 Målet med skojjt är en enkel närvaroregistrering som kan används av alla på avdelning.
 Alternativen verkar så undermåliga för vår verksamhet, så ett eget system var den bästa möjligheten.
@@ -22,23 +22,23 @@ Det finns rapportering av närvaro per grupp (avdelning) som Göteborgs kommun k
 Vi har även möjlighet att koppla denna närvaro till andra partners, t ex Sensus studieförbund.
 
 Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
-http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
-http://ukf.umea.se/aktivitetskort
+ * http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
+ * http://ukf.umea.se/aktivitetskort
 
 ### [Dokumentation](https://github.com/Scouterna/skojjt/wiki)
 
 ### Hur man testar/utvecklar i Windows:
 * Klona git-repon till lokal dator.
-* Installera Python 2.7 och Google App Engine SDK (GAE). 
-	https://storage.googleapis.com/appengine-sdks/featured/GoogleAppEngine-1.9.73.msi
+* Installera Python 2.7 och [Google App Engine SDK (GAE)](https://storage.googleapis.com/appengine-sdks/featured/GoogleAppEngine-1.9.73.msi).
 * Starta GAE. Lägg till skojjt med File|Add existing application...
 * Markera skojjt i listan kicka start, sen browse.
 * Man kan också köra Visual Studio Code för att få brytpunkter i koden.
 
 ### Hur man testar/utvecklar i Linux:
 * Klona git-repon till lokal dator.
-* Installera Python 2.7 och Google App Engine SDK (GAE). 
-* Konfigurera GAE `gcloud init
+* Installera Python 2.7 och [Google App Engine SDK (GAE)](https://cloud.google.com/sdk/docs/#deb).
+* Installera biblioteken. `pip install -r requirements.txt -t lib`
+* Konfigurera GAE `gcloud init` och följ instruktionerna.
 * Deploy kod `gcloud app deploy` från git mappen
 * Testa appen `gcloud app browse`
 
