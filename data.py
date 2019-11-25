@@ -118,10 +118,10 @@ class ScoutGroup(ndb.Model):
 	
 	@staticmethod
 	def getgroupsforuser(user):
-		if user.groupaccess != None:
-			return [user.groupaccess.get()]
-		elif user.hasadminaccess:
+		if user.hasadminaccess:
 			return ScoutGroup.query().fetch(100)
+		elif user.groupaccess is not None:
+			return [user.groupaccess.get()]
 		else:
 			return []
 
