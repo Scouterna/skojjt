@@ -3,13 +3,19 @@ from data import *
 from datetime import *
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
-import time
 import scoutnet
-import StringIO
 import ucsv as ucsv
 import urllib2
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
+	"""
+	:type groupid: str
+	:type api_key: str
+	:type user: data.UserPrefs
+	:type semester: data.Semester
+	:type result: data.TaskProgress
+	:rtype: bool
+	"""
 	commit = True
 	data = None
 	result.info('Importerar för termin %s' % semester.getname())
@@ -78,6 +84,9 @@ class ScoutnetImporter:
 	result = None
 	
 	def __init__(self, result):
+		"""
+		:type result: data.TaskProgress
+		"""
 		self.result = result
 		self.commit = True
 		self.rapportID = 1
@@ -128,6 +137,12 @@ class ScoutnetImporter:
 		return group
 
 	def DoImport(self, data, semester):
+		"""
+		:param data: from scoutnet
+		:type data: str
+		:type semester: data.Semester
+		:rtype bool
+		"""
 		if not self.commit:
 			self.result.append("*** sparar inte, test mode ***")
 
