@@ -41,7 +41,7 @@ def GetScoutnetDataListJson(json_data):
 	for pid in j['data']:
 		p = j['data'][pid]
 		m = {}
-		m["member_no"] = GetValueFromJsonObject(p, 'member_no')
+		m["member_no"] = int(GetValueFromJsonObject(p, 'member_no'))
 		m["group"] = GetValueFromJsonObject(p, 'group')
 		m["group_id"] = GetValueFromJsonObject(p, 'group', 'raw_value')
 		m["troop"] = GetValueFromJsonObject(p, 'unit')
