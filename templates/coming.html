@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% block main %}
+<style>
+ul.chec-radio {
+    margin: 15px;
+}
+ul.chec-radio li.pz {
+    display: inline;
+}
+.chec-radio label.radio-inline input[type="checkbox"] {
+    display: none;
+}
+.chec-radio label.radio-inline input[type="checkbox"]:checked+div {
+    color: #fff;
+    background-color: #000;
+}
+.chec-radio .radio-inline .clab {
+    cursor: pointer;
+    background: #e7e7e7;
+    padding: 7px 20px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #333;
+    position: relative;
+    height: 34px;
+    float: left;
+    margin: 0;
+    margin-bottom: 5px;
+}
+.chec-radio label.radio-inline input[type="checkbox"]:checked+div:before {
+    content: "\e013";
+    margin-right: 5px;
+    font-family: 'Glyphicons Halflings';
+}
+.chec-radio label.radio-inline input[type="radio"] {
+    display: none;
+}
+.chec-radio label.radio-inline input[type="radio"]:checked+div {
+    color: #fff;
+    background-color: #000;
+}
+.chec-radio label.radio-inline input[type="radio"]:checked+div:before {
+    content: "\e013";
+    margin-right: 5px;
+    font-family: 'Glyphicons Halflings';
+}
+</style>
+<h1 class="page-header">Kommer på mötet</h1>
+<div class="well">
+	<form role="form" name="coming" method="POST" action="./">
+		<div class="form-group">
+			<div class="btn-group mr-2" role="group" aria-label="Ja">
+				<input type="radio" name="coming" class="btn btn-primary btn-success btn-lg chec-radio"
+					id="btn-yes" data-toggle="button" aria-pressed="false" autocomplete="off" 
+					{% if yes %}checked=""{% endif %}
+					value="Ja">Ja</input>
+			</div>
+			<div class="btn-group mr-2" role="group" aria-label="Nej">
+				<input type="radio" name="coming" class="btn btn-danger btn-lg chec-radio" 
+					id="btn-no" data-toggle="button" aria-pressed="false" autocomplete="off"
+					{% if no %}checked=""{% endif %}
+					value="Nej">Nej</input>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="comment">Kommentar:</label>
+			<input type="text" class="form-control" size="50" name="comment" id="comment"
+				value="{{comment}}"/>
+		</div>
+		<div class="form-group">
+			<input type="submit" class="btn btn-primary btn-lg" name="import" value="Skicka"/>
+		</div>
+
+		<hr/>
+		<ul class="chec-radio">
+			<li class="pz">
+				<label class="radio-inline">
+					<input type="radio" checked="" id="pro-chx-residential" name="property_type" class="pro-chx" value="constructed">
+					<div class="clab">Ja</div>
+				</label>
+			</li>
+			<li class="pz">
+				<label class="radio-inline">
+					<input type="radio" id="pro-chx-commercial" name="property_type" class="pro-chx" value="unconstructed" checked>
+					<div class="clab">Nej</div>
+				</label>
+			</li>
+			<li class="pz">
+				<label class="radio-inline">
+					<input type="radio" id="pro-chx-open" name="property_type" class="pro-chx" value="open_land">
+					<div class="clab">Open Land</div>
+				</label>
+			</li>
+		</ul>
+	</form>
+</div>
+{% endblock %}
