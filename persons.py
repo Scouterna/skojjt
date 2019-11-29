@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import scoutnet
-from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, ScoutGroup
+import data
+from dataimport import UserPrefs, Person, logging, TroopPerson, ScoutGroup
 
 from flask import Blueprint, render_template, abort, redirect, request
+from google.appengine.ext import ndb
 
 persons = Blueprint('persons_page', __name__, template_folder='templates')
 
@@ -18,27 +20,57 @@ def show(sgroup_url=None, person_url=None, action=None):
 		return "denied", 403
 
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
-	
-	section_title = u'Personer'
-	breadcrumbs.append({'link':'/persons', 'text':section_title})
-	baselink='/persons/'
 
-	scoutgroup = None
-	if sgroup_url!=None:
+	section_title = u'Personer'
+	breadcrumbs.append({'link': '/persons', 'text': section_title})
+	baselink = '/persons/'
+
+	sgroup_key = None  # type: ndb.Key
+	scoutgroup = None  # type: data.ScoutGroup
+	if sgroup_url is not None:
 		sgroup_key = ndb.Key(urlsafe=sgroup_url)
 		scoutgroup = sgroup_key.get()
-		baselink+=sgroup_url+"/"
-		breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
+		baselink += sgroup_url+"/"
+		breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
 
-	person = None
-	if person_url!=None:
+	if scoutgroup is None:
+		return render_template(
+			'index.html',
+			heading=section_title,
+			baselink=baselink,
+			items=ScoutGroup.getgroupsforuser(user),
+			breadcrumbs=breadcrumbs,
+			username=user.getname())
+
+	person_key = None  # type: ndb.Key
+	person = None  # type: data.Person
+	if person_url is not None:
 		person_key = ndb.Key(urlsafe=person_url)
 		person = person_key.get()
-		baselink+=person_url+"/"
+		baselink += person_url+"/"
 		section_title = person.getname()
-		breadcrumbs.append({'link':baselink, 'text':section_title})
-	
-	if action != None:
+		breadcrumbs.append({'link': baselink, 'text': section_title})
+
+	if person is None:
+		if user.hasGroupKeyAccess(sgroup_key):
+			return "denied", 403
+		section_title = 'Personer'
+		return render_template(
+			'persons.html',
+			heading=section_title,
+			baselink=baselink,
+			# TODO: memcache
+			persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(),
+			breadcrumbs=breadcrumbs,
+			username=user.getname())
+
+	if person.scoutgroup != sgroup_key:
+		return "denied", 403
+
+	if not user.hasPersonAccess(person):
+		return "denied", 403
+
+	if action is not None:
 		if action == "deleteperson" or action == "addbackperson":
 			person.removed = action == "deleteperson"
 			person.put() # we only mark the person as removed
@@ -97,26 +129,12 @@ def show(sgroup_url=None, person_url=None, action=None):
 			return ""
 		
 	# render main pages
-	if scoutgroup==None:
-		return render_template('index.html', 
-			heading=section_title, 
-			baselink=baselink,
-			items=ScoutGroup.getgroupsforuser(user),
-			breadcrumbs=breadcrumbs,
-			username=user.getname())
-	elif person==None:
-		section_title = 'Personer'
-		return render_template('persons.html',
-			heading=section_title,
-			baselink=baselink,
-			persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(), # TODO: memcache
-			breadcrumbs=breadcrumbs,
-			username=user.getname())
-	else:
-		return render_template('person.html',
-			heading=section_title,
-			baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
-			trooppersons=TroopPerson.query(TroopPerson.person == person.key).fetch(), # TODO: memcache
-			ep=person,
-			scoutgroup=scoutgroup,
-			breadcrumbs=breadcrumbs)
+	return render_template(
+		'person.html',
+		heading=section_title,
+		baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
+		# TODO: memcache
+		trooppersons=TroopPerson.query(TroopPerson.person == person.key).fetch(),
+		ep=person,
+		scoutgroup=scoutgroup,
+		breadcrumbs=breadcrumbs)

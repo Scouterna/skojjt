@@ -120,10 +120,10 @@ class ScoutGroup(ndb.Model):
 	def getgroupsforuser(user):
 		if user.hasadminaccess:
 			return ScoutGroup.query().fetch(100)
-		elif user.groupaccess is not None:
+		# TODO Multi-group access
+		if user.groupaccess is not None:
 			return [user.groupaccess.get()]
-		else:
-			return []
+		return []
 
 	def getname(self):
 		return self.name
@@ -170,6 +170,7 @@ class Person(PropertyWriteTracker):
 	lastname = ndb.StringProperty(required=True)
 	birthdate = ndb.DateProperty(required=True) # could be a computed property from personnr
 	personnr = ndb.StringProperty()
+	member_no = ndb.IntegerProperty()
 	troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops
 	patrool = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
@@ -259,6 +260,9 @@ class Person(PropertyWriteTracker):
 		
 	def getpatrol(self):
 		return self.patrool # TODO: fix spelling error
+
+	def getmembernumber(self):
+		return self.member_no
 
 	def setpatrol(self, patrolname):
 		self.patrool = patrolname # TODO: fix spelling error
@@ -420,6 +424,7 @@ class TroopPerson(ndb.Model):
 		semester = troop.semester_key.get()
 		return self.troop.get().getname() + ' - ' + semester.getname()
 
+
 class UserPrefs(ndb.Model):
 	userid = ndb.StringProperty(required=True)
 	hasaccess = ndb.BooleanProperty(required=True)
@@ -433,6 +438,37 @@ class UserPrefs(ndb.Model):
 
 	def hasAccess(self):
 		return self.hasaccess
+
+	def hasGroupAccess(self, group):
+		"""
+		:type group: ScoutGroup
+		:rtype bool
+		"""
+		return self.hasGroupKeyAccess(group.key())
+
+	def hasGroupKeyAccess(self, group_key):
+		"""
+		:param group_key: key for ScoutGroup
+		:type group_key: google.appengine.ext.ndb.Key
+		:rtype bool
+		"""
+		if not self.hasaccess:
+			return False
+		if self.hasadminaccess:
+			return True
+		if self.groupaccess is not None and self.groupaccess == group_key:
+			return True
+		# TODO Multi-group access
+		return False
+
+	def hasPersonAccess(self, person):
+		"""
+		:type person: Person
+		:rtype bool
+		"""
+		if person is None or person.scoutgroup is None:
+			return False
+		return self.hasGroupKeyAccess(person.scoutgroup)
 
 	def isAdmin(self):
 		return self.hasaccess and self.hasadminaccess
