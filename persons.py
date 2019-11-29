@@ -52,7 +52,7 @@ def show(sgroup_url=None, person_url=None, action=None):
 		breadcrumbs.append({'link': baselink, 'text': section_title})
 
 	if person is None:
-		if user.hasGroupKeyAccess(sgroup_key):
+		if not user.hasGroupKeyAccess(sgroup_key):
 			return "denied", 403
 		section_title = 'Personer'
 		return render_template(
