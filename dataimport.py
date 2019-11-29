@@ -30,14 +30,15 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 			result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
 		return False
 
-	if data is None:
-		# TODO: Why is no data -> True?
-		return True
-
 	importer = ScoutnetImporter(result)
 	success = importer.DoImport(data, semester)
 	if not success:
 		return False
+
+	if user.semester == semester.key:
+		user.semester = semester.key
+		result.append('Sätter %s till vald termin.' % semester.getname())
+		user.put()
 
 	# Don't Connect the group if the user is an admin
 	if user.hasadminaccess:
@@ -48,7 +49,6 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 		return True
 
 	user.groupaccess = importer.importedScoutGroup_key
-	user.semester = semester.key
 	user.hasaccess = True
 	user.put()
 	if user.groupadmin:
