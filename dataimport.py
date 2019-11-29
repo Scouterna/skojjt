@@ -35,7 +35,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 	if not success:
 		return False
 
-	if user.semester == semester.key:
+	if user.semester != semester.key:
 		user.semester = semester.key
 		result.append('Sätter %s till vald termin.' % semester.getname())
 		user.put()
