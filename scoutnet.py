@@ -17,7 +17,7 @@ from data import *
 
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
-	request = urllib2.Request('https://www.scoutnet.se/api/group/memberlist?id=' + groupid + '&key=' + api_key)
+	request = urllib2.Request('https://demo2.custard.no/api/group/memberlist?id=' + groupid + '&key=' + api_key)
 	response = urllib2.urlopen(request, timeout=25) # "let it throw, let it throw, let it throw..."
 	return response.read()
 	
