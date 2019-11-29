@@ -3,42 +3,58 @@ from data import *
 from datetime import *
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
-import time
 import scoutnet
-import StringIO
 import ucsv as ucsv
 import urllib2
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
-	commit = True
-	data = None
+	"""
+	:type groupid: str
+	:type api_key: str
+	:type user: data.UserPrefs
+	:type semester: data.Semester
+	:type result: data.TaskProgress
+	:rtype: bool
+	"""
 	result.info('Importerar för termin %s' % semester.getname())
-	if groupid == None or groupid == "" or api_key == None or api_key == "":
+	if groupid is None or groupid == "" or api_key is None or api_key == "":
 		result.error(u"Du måste ange både kårid och api nyckel")
 		return False
 
-	success = True
 	try:
 		data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
 	except urllib2.HTTPError as e:
-		success = False
 		logging.error('Scoutnet http error=%s' % str(e))
 		result.error(u"Kunde inte läsa medlemmar från scoutnet, fel:%s" % (str(e)))
 		if e.code == 401:
 			result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
-		
-	if success and data != None:
-		importer = ScoutnetImporter(result)
-		success = importer.DoImport(data, semester)
-		if success:
-			user.groupaccess = importer.importedScoutGroup_key
-			user.semester = semester.key
-			user.hasaccess = True
-			user.put()
-			if user.groupadmin:
-				result.append(u"Du är kåradmin och kan dela ut tillgång till din kår för andra användare")
-	return success
-	
+		return False
+
+	importer = ScoutnetImporter(result)
+	success = importer.DoImport(data, semester)
+	if not success:
+		return False
+
+	if user.semester != semester.key:
+		user.semester = semester.key
+		result.append('Sätter %s till vald termin.' % semester.getname())
+		user.put()
+
+	# Don't Connect the group if the user is an admin
+	if user.hasadminaccess:
+		return True
+
+	# Don't Connect the group if the user already has an connection
+	if user.groupaccess is not None:
+		return True
+
+	user.groupaccess = importer.importedScoutGroup_key
+	user.hasaccess = True
+	user.put()
+	if user.groupadmin:
+		result.append(u"Du är kåradmin och kan dela ut tillgång till din kår för andra användare")
+	return True
+
 
 def GetBackupXML():
 	thisdate = datetime.now()
@@ -78,6 +94,9 @@ class ScoutnetImporter:
 	result = None
 	
 	def __init__(self, result):
+		"""
+		:type result: data.TaskProgress
+		"""
 		self.result = result
 		self.commit = True
 		self.rapportID = 1
@@ -128,6 +147,12 @@ class ScoutnetImporter:
 		return group
 
 	def DoImport(self, data, semester):
+		"""
+		:param data: from scoutnet
+		:type data: str
+		:type semester: data.Semester
+		:rtype bool
+		"""
 		if not self.commit:
 			self.result.append("*** sparar inte, test mode ***")
 
