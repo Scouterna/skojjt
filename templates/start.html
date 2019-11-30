@@ -1,7 +1,7 @@
-{% include "header.html" %}
-<body>
-{% include "navigation.html" %}
-<div class="main"><div class="container"><div class="jumbotron">
+{% extends "layout.html" %}
+{% block main %}
+<div class="container">
+	<div class="jumbotron">
 	<img src="/img/logo.png" alt="logo" />
   <div class="btn-toolbar">
 	<h2 class=>Välkommen {{user.getname()}}</h2>
@@ -32,6 +32,4 @@
 	<a href="{{logouturl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-remove"></span> Logout</a>
 </div>
 </div>
-</div>
-</body>
-</html>
+{% endblock %}

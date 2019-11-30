@@ -1,56 +1,52 @@
-{% include "header.html" %}
-<body>
-{% include "navigation.html" %}
-	<div class="main">
-		<div class="container">
-		<form id="newperson" class="form-horizontal" role="form" name="person" method="POST">
-		  <h1>{{userprefs.getname()}}</h1>
-			<div class="form-group row">
-			<label class="control-label col-sm-3">Har access</label>
-			<input type="checkbox" class="form-control" name="hasAccess" id="hasAccess"
-			{% if userprefs.hasaccess %}checked=""{% endif %}/>
-			</div>
-			<div class="form-group row">
-			<label class="control-label col-sm-3">Kan importera</label>
-			<input type="checkbox" class="form-control" name="canImport" id="canImport"
-			{% if userprefs.canimport %}checked=""{% endif %}/>
-			</div>
-			<div class="form-group row">
-			<label class="control-label col-sm-3">Har admin access</label>
-			<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
-			{% if userprefs.hasadminaccess %}checked=""{% endif %}/>
-			</div>
-			<div class="form-group row">
-			<label class="control-label col-sm-3">Kår admin</label>
-			<input type="checkbox" class="form-control" name="groupadmin" id="groupadmin"
-			{% if userprefs.groupadmin %}checked=""{% endif %}/>
-			</div>
-			<div class="form-group row">
-			<label for="groupaccess" class="control-label col-sm-3">Kår:</label>
-			{% set sgroupname = '' %}
-			{% set sgroupurlkey = '' %}
-			{% set u = userprefs %}
-			{% if u.groupaccess != None %}
-				{% set group = u.groupaccess.get() %}
-				{% set sgroupurlkey = u.groupaccess.urlsafe() %}
-				{% if group == None %}
-					{% set sgroupname = sgroupurlkey %}
-				{% else %}
-					{% set sgroupname = group.getname() %}
-				{% endif %}
-			{% endif %}
-			<select class="form-control form-control-lg" name="groupaccess" id="groupaccess">
-				<option value=""></option>
-				{% for scoutgroup in scoutgroups %}
-				<option value="{{scoutgroup.key.urlsafe()}}" {% if sgroupurlkey==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
-				{% endfor %}
-			</select><br/>
-			</div>
-		  <div class="btn-toolbar">
-		  <button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
-		  </div>
-		</form>
+﻿{% extends "layout.html" %}
+{% block main %}
+<div class="container">
+	<form id="newperson" class="form-horizontal" role="form" name="person" method="POST">
+	  <h1>{{userprefs.getname()}}</h1>
+		<div class="form-group row">
+		<label class="control-label col-sm-3">Har access</label>
+		<input type="checkbox" class="form-control" name="hasAccess" id="hasAccess"
+		{% if userprefs.hasaccess %}checked=""{% endif %}/>
 		</div>
+		<div class="form-group row">
+		<label class="control-label col-sm-3">Kan importera</label>
+		<input type="checkbox" class="form-control" name="canImport" id="canImport"
+		{% if userprefs.canimport %}checked=""{% endif %}/>
+		</div>
+		<div class="form-group row">
+		<label class="control-label col-sm-3">Har admin access</label>
+		<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
+		{% if userprefs.hasadminaccess %}checked=""{% endif %}/>
+		</div>
+		<div class="form-group row">
+		<label class="control-label col-sm-3">Kår admin</label>
+		<input type="checkbox" class="form-control" name="groupadmin" id="groupadmin"
+		{% if userprefs.groupadmin %}checked=""{% endif %}/>
+		</div>
+		<div class="form-group row">
+		<label for="groupaccess" class="control-label col-sm-3">Kår:</label>
+		{% set sgroupname = '' %}
+		{% set sgroupurlkey = '' %}
+		{% set u = userprefs %}
+		{% if u.groupaccess != None %}
+			{% set group = u.groupaccess.get() %}
+			{% set sgroupurlkey = u.groupaccess.urlsafe() %}
+			{% if group == None %}
+				{% set sgroupname = sgroupurlkey %}
+			{% else %}
+				{% set sgroupname = group.getname() %}
+			{% endif %}
+		{% endif %}
+		<select class="form-control form-control-lg" name="groupaccess" id="groupaccess">
+			<option value=""></option>
+			{% for scoutgroup in scoutgroups %}
+			<option value="{{scoutgroup.key.urlsafe()}}" {% if sgroupurlkey==scoutgroup.key.urlsafe() %}selected=""{% endif %}>{{scoutgroup.getname()}}</option>
+			{% endfor %}
+		</select><br/>
+		</div>
+	  <div class="btn-toolbar">
+	  <button type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+	  </div>
+	</form>
 	</div>
-</body>
-</html>
+{% endblock %}

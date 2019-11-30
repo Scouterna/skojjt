@@ -1,10 +1,6 @@
-{% include "header.html" %}
-<body>
-{% include "navigation.html" %}
-	<div class="main">
-		<div class="jumbotron">
-			<a href="/import/runimport/" class="btn btn-lg btn-default">Importera från scoutnet</a>
-		</div>
-	</div>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block main %}
+<div class="jumbotron">
+	<a href="/import/runimport/" class="btn btn-lg btn-default">Importera från scoutnet</a>
+</div>
+{% endblock %}

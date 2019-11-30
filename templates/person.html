@@ -1,239 +1,235 @@
-{% include "header.html" %}
-<body>
-{% include "navigation.html" %}
 {% set hasPerson = True if ep is defined else False %}
-	<div class="main">
-		<form id="newperson" role="form" name="person" method="POST">
-		  <input type="hidden" name="action" value="newperson"/>
-		  <h1>{% if ep %}{{ep.getnameWithStatus()}}{% else %}Registrera ny person{% endif %}</h1>
-			{% if ep %}
-			{% if ep.removed == True %}<div class="well btn-toolbar"><em>Personen är borttagen i scoutnet</em><br/></div>{% endif %}
-			<div class="form-group">
-				Kontakt:
-				{% if ep.mobile != "" %}
-					<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
-				{% endif %}
-				{% if ep.phone != "" %}
-					<label for="tele">Telefon:</label><a href="tel:{{ep.phone}}">{{ep.phone}}</a>
-				{% endif %}
-				{% if ep.email != "" %}
-					<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
-				{% endif %}
-				{% if ep.alt_email %}
-				<label for="email">Alternativ Email:</label><a href="mailto:{{ep.alt_email}}">{{ep.alt_email}}</a>
-			  {% endif %}
-			</div>
-			<div class="form-group">
-				Anhörig 1:
-				{% if ep.mum_name %}
-					<label for="name">Namn:</label>{{ep.mum_name}}
-				{% endif %}
-				{% if ep.mum_mobile %}
-				<label for="mobile">Mobil:</label><a href="tel:{{ep.mum_mobile}}">{{ep.mum_mobile}}</a>
-			  {% endif %}
-				{% if ep.mum_email %}
-					<label for="email">Email:</label><a href="mailto:{{ep.mum_email}}">{{ep.mum_email}}</a>
-				{% endif %}
-			</div>
-			<div class="form-group">
-				Anhörig 2:
-				{% if ep.dad_name%}
-					<label for="name">Namn:</label>{{ep.dad_name}}
-				{% endif %}
-				{% if ep.dad_mobile %}
-				<label for="mobile">Mobil:</label><a href="tel:{{ep.dad_mobile}}">{{ep.dad_mobile}}</a>
-			  {% endif %}
-				{% if ep.dad_email %}
-					<label for="email">Email:</label><a href="mailto:{{ep.dad_email}}">{{ep.dad_email}}</a>
-				{% endif %}
-			</div>
-			{% endif %}
-		  {% if (not hasPerson and not scoutgroup.canAddToWaitinglist()) or (hasPerson and ep.notInScoutnet) %}
-		  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/">scoutnet</a> automatiskt!</em>
-		  {% endif %}
-
-			<div class="row">
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for="firstname">Förnamn</label>
-						<input type="text" class="form-control" size='50' required="1" placeholder="Förnamn" name="firstname" id="firstname" value="{% if ep %}{{ep.firstname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for="lastname">Efternamn</label>
-						<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						{% if ep %}
-						<label for="birthdate">Födelsedatum</label>
-						<input type="text" class="form-control" size='10' required="1" placeholder="Födelsedatum" name="birthdate" id="birthdate" value="{{ep.getbirthdatestring()}}" readonly/>
-						{% else %}
-						<label for="personnummer">Personnummer</label>
-						<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDDXXXX" name="personnummer" id="personnummer"/>
-						{% endif %}
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='street'>Gatuadress</label>
-						<input type='text' class="form-control" size='50' name='street' id='street' value='{% if ep %}{{ep.street}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='zip_code'>Postnummer</label>
-						<input type='text' class="form-control" pattern='[0-9]{5}' size='5' name='zip_code' id='zip_code' placeholder="#####" value='{% if ep %}{{ep.zip_code}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='zip_name'>Postadress</label>
-						<input type='text' class="form-control" size='50' name='zip_name' id='zip_name' value='{% if ep %}{{ep.zip_name}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='mobile'>Mobiltelefon</label>
-						<input type='text' class="form-control" size='10' name='mobile' id='mobile' value='{% if ep %}{{ep.mobile}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='phone'>Telefon</label>
-						<input type='text' class="form-control" size='10' name='phone' id='phone' value='{% if ep %}{{ep.phone}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='email'>E-post</label>
-						<input type='email' class="form-control" size='50' name='email' id='email' value='{% if ep %}{{ep.email}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='patrol'>Patrull</label>
-						<input type="text" class="form-control" size='50' placeholder="" name="patrol" id="patrol" value="{% if ep %}{{ep.getpatrol()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				{% if ep.getmembernumber() > 0 %}
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='medlemsnummer'>Medlemsnummer</label>
-						<input type="text" class="form-control" size='50' placeholder="" name="medlemsnummer" id="medlemsnummer" value="{% if ep %}{{ep.getmembernumber()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
-					</div>
-				</div>
-				{% endif %}
-			</div>
-
-		{% if not ep %}
-			<h3>Anhörig 1</h3>
-			<div class="row">
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig1_name'>Namn</label>
-						<input type='text' class="form-control" size='50' name='anhorig1_name' id='anhorig1_name' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig1_mobile'>Mobiltelefon</label>
-						<input type='text' class="form-control" size='10' name='anhorig1_mobile' id='anhorig1_mobile' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig1_phone'>Telefon</label>
-						<input type='text' class="form-control" size='10' name='anhorig1_phone' id='anhorig1_phone' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig1_email'>E-post</label>
-						<input type='email' class="form-control" size='50' name='anhorig1_email' id='anhorig1_email' />
-					</div>
-				</div>
-			</div>
-
-			<h3>Anhörig 2</h3>
-			<div class="row">
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig2_name'>Namn</label>
-						<input type='text' class="form-control" size='50' name='anhorig2_name' id='anhorig2_name' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig2_mobile'>Mobiltelefon</label>
-						<input type='text' class="form-control" size='10' name='anhorig2_mobile' id='anhorig2_mobile' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig2_phone'>Telefon</label>
-						<input type='text' class="form-control" size='10' name='anhorig2_phone' id='anhorig2_phone' />
-					</div>
-				</div>
-
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div class="form-group">
-						<label for='anhorig2_email'>E-post</label>
-						<input type='email' class="form-control" size='50' name='anhorig2_email' id='anhorig2_email' />
-					</div>
-				</div>
-			</div>
-
-		  <div class="btn-toolbar">  
-		  <button id="personsubmit" type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
-		  </div>
+{% extends "layout.html" %}
+{% block main %}
+<form id="newperson" role="form" name="person" method="POST">
+  <input type="hidden" name="action" value="newperson"/>
+  <h1>{% if ep %}{{ep.getnameWithStatus()}}{% else %}Registrera ny person{% endif %}</h1>
+	{% if ep %}
+	{% if ep.removed == True %}<div class="well btn-toolbar"><em>Personen är borttagen i scoutnet</em><br/></div>{% endif %}
+	<div class="form-group">
+		Kontakt:
+		{% if ep.mobile != "" %}
+			<label for="mobile">Mobil:</label><a href="tel:{{ep.mobile}}">{{ep.mobile}}</a>
 		{% endif %}
-		</form>
-		<hr/>
- 		{% if hasPerson and ep.notInScoutnet %}
-		<em>OBS! Personen finns inte i scoutnet</em><br/>
-		{% if (ep.notInScoutnet and scoutgroup.canAddToWaitinglist()) %}
-		<a href="addtowaitinglist" class="btn btn-lg btn-default">Lägg till i scoutnets kölista</a><br/>		
-		<strong>Personen hamnar i scoutnet under "medlemmar som inte godkänts". Du måste godkänna i scoutnet, sätta avgift och avdelning.</strong>
+		{% if ep.phone != "" %}
+			<label for="tele">Telefon:</label><a href="tel:{{ep.phone}}">{{ep.phone}}</a>
 		{% endif %}
+		{% if ep.email != "" %}
+			<label for="email">Email:</label><a href="mailto:{{ep.email}}">{{ep.email}}</a>
 		{% endif %}
-		{% if hasPerson %}
-        <div class="table-responsive">
-			<table class="table table-striped">
-              <thead>
-                <tr>
-                  <th class="col-xs-4 col-sm-4 col-lg-4">Avdelningar</th>
-                  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
-                  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
-                </tr>
-              </thead>
-              <tbody>
-			    {% for tp in trooppersons %}
-                <tr>
-				<td>
-					{% set troop = tp.troop.get() %}
-					{% set group_key = troop.scoutgroup %}
-					<a href="/start/{{group_key.urlsafe()}}/{{troop.key.urlsafe()}}/">{{tp.getFullTroopname()}}</a>{% if tp.leader %} - Ledare{% endif %}
-				</td>
-				<td>
-					<a href="removefromtroop?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort från avdelning</a>
-				</td>
-				<td>
-					{% if tp.leader %}<a href="removeasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort som ledare</a>{% else %}<a href="setasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Gör till ledare</a>{% endif %}
-				</td>
-				</tr>
-			    {% endfor %}
-              </tbody>
-			</table>
+		{% if ep.alt_email %}
+		<label for="email">Alternativ Email:</label><a href="mailto:{{ep.alt_email}}">{{ep.alt_email}}</a>
+	  {% endif %}
+	</div>
+	<div class="form-group">
+		Anhörig 1:
+		{% if ep.mum_name %}
+			<label for="name">Namn:</label>{{ep.mum_name}}
+		{% endif %}
+		{% if ep.mum_mobile %}
+		<label for="mobile">Mobil:</label><a href="tel:{{ep.mum_mobile}}">{{ep.mum_mobile}}</a>
+	  {% endif %}
+		{% if ep.mum_email %}
+			<label for="email">Email:</label><a href="mailto:{{ep.mum_email}}">{{ep.mum_email}}</a>
+		{% endif %}
+	</div>
+	<div class="form-group">
+		Anhörig 2:
+		{% if ep.dad_name%}
+			<label for="name">Namn:</label>{{ep.dad_name}}
+		{% endif %}
+		{% if ep.dad_mobile %}
+		<label for="mobile">Mobil:</label><a href="tel:{{ep.dad_mobile}}">{{ep.dad_mobile}}</a>
+	  {% endif %}
+		{% if ep.dad_email %}
+			<label for="email">Email:</label><a href="mailto:{{ep.dad_email}}">{{ep.dad_email}}</a>
+		{% endif %}
+	</div>
+	{% endif %}
+  {% if (not hasPerson and not scoutgroup.canAddToWaitinglist()) or (hasPerson and ep.notInScoutnet) %}
+  <em>OBS! Personen kommer inte registreras i <a href="https://www.scoutnet.se/">scoutnet</a> automatiskt!</em>
+  {% endif %}
+
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for="firstname">Förnamn</label>
+				<input type="text" class="form-control" size='50' required="1" placeholder="Förnamn" name="firstname" id="firstname" value="{% if ep %}{{ep.firstname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for="lastname">Efternamn</label>
+				<input type="text" class="form-control" size='50' required="1" placeholder="Efternamn" name="lastname" id="lastname" value="{% if ep %}{{ep.lastname}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				{% if ep %}
+				<label for="birthdate">Födelsedatum</label>
+				<input type="text" class="form-control" size='10' required="1" placeholder="Födelsedatum" name="birthdate" id="birthdate" value="{{ep.getbirthdatestring()}}" readonly/>
+				{% else %}
+				<label for="personnummer">Personnummer</label>
+				<input type="text" class="form-control" pattern="[0-9]{12}" size="12" required="1" placeholder="YYYYMMDDXXXX" name="personnummer" id="personnummer"/>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='street'>Gatuadress</label>
+				<input type='text' class="form-control" size='50' name='street' id='street' value='{% if ep %}{{ep.street}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='zip_code'>Postnummer</label>
+				<input type='text' class="form-control" pattern='[0-9]{5}' size='5' name='zip_code' id='zip_code' placeholder="#####" value='{% if ep %}{{ep.zip_code}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='zip_name'>Postadress</label>
+				<input type='text' class="form-control" size='50' name='zip_name' id='zip_name' value='{% if ep %}{{ep.zip_name}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='mobile'>Mobiltelefon</label>
+				<input type='text' class="form-control" size='10' name='mobile' id='mobile' value='{% if ep %}{{ep.mobile}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='phone'>Telefon</label>
+				<input type='text' class="form-control" size='10' name='phone' id='phone' value='{% if ep %}{{ep.phone}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='email'>E-post</label>
+				<input type='email' class="form-control" size='50' name='email' id='email' value='{% if ep %}{{ep.email}}{% endif %}' {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='patrol'>Patrull</label>
+				<input type="text" class="form-control" size='50' placeholder="" name="patrol" id="patrol" value="{% if ep %}{{ep.getpatrol()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+			</div>
+		</div>
+		{% if ep.getmembernumber() > 0 %}
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='medlemsnummer'>Medlemsnummer</label>
+				<input type="text" class="form-control" size='50' placeholder="" name="medlemsnummer" id="medlemsnummer" value="{% if ep %}{{ep.getmembernumber()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+			</div>
 		</div>
 		{% endif %}
 	</div>
-</body>
-</html>
+
+{% if not ep %}
+	<h3>Anhörig 1</h3>
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig1_name'>Namn</label>
+				<input type='text' class="form-control" size='50' name='anhorig1_name' id='anhorig1_name' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig1_mobile'>Mobiltelefon</label>
+				<input type='text' class="form-control" size='10' name='anhorig1_mobile' id='anhorig1_mobile' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig1_phone'>Telefon</label>
+				<input type='text' class="form-control" size='10' name='anhorig1_phone' id='anhorig1_phone' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig1_email'>E-post</label>
+				<input type='email' class="form-control" size='50' name='anhorig1_email' id='anhorig1_email' />
+			</div>
+		</div>
+	</div>
+
+	<h3>Anhörig 2</h3>
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig2_name'>Namn</label>
+				<input type='text' class="form-control" size='50' name='anhorig2_name' id='anhorig2_name' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig2_mobile'>Mobiltelefon</label>
+				<input type='text' class="form-control" size='10' name='anhorig2_mobile' id='anhorig2_mobile' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig2_phone'>Telefon</label>
+				<input type='text' class="form-control" size='10' name='anhorig2_phone' id='anhorig2_phone' />
+			</div>
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4">
+			<div class="form-group">
+				<label for='anhorig2_email'>E-post</label>
+				<input type='email' class="form-control" size='50' name='anhorig2_email' id='anhorig2_email' />
+			</div>
+		</div>
+	</div>
+
+  <div class="btn-toolbar">
+  <button id="personsubmit" type="submit" name="submit" class="btn btn-lg btn-primary">Spara</button>
+  </div>
+{% endif %}
+</form>
+<hr/>
+{% if hasPerson and ep.notInScoutnet %}
+<em>OBS! Personen finns inte i scoutnet</em><br/>
+{% if (ep.notInScoutnet and scoutgroup.canAddToWaitinglist()) %}
+<a href="addtowaitinglist" class="btn btn-lg btn-default">Lägg till i scoutnets kölista</a><br/>
+<strong>Personen hamnar i scoutnet under "medlemmar som inte godkänts". Du måste godkänna i scoutnet, sätta avgift och avdelning.</strong>
+{% endif %}
+{% endif %}
+{% if hasPerson %}
+<div class="table-responsive">
+	<table class="table table-striped">
+	  <thead>
+		<tr>
+		  <th class="col-xs-4 col-sm-4 col-lg-4">Avdelningar</th>
+		  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
+		  <th class="col-xs-4 col-sm-4 col-lg-4">&nbsp;</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for tp in trooppersons %}
+		<tr>
+		<td>
+			{% set troop = tp.troop.get() %}
+			{% set group_key = troop.scoutgroup %}
+			<a href="/start/{{group_key.urlsafe()}}/{{troop.key.urlsafe()}}/">{{tp.getFullTroopname()}}</a>{% if tp.leader %} - Ledare{% endif %}
+		</td>
+		<td>
+			<a href="removefromtroop?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort från avdelning</a>
+		</td>
+		<td>
+			{% if tp.leader %}<a href="removeasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Ta bort som ledare</a>{% else %}<a href="setasleader?troop={{troop.key.urlsafe()}}" class="btn btn-sm btn-danger">Gör till ledare</a>{% endif %}
+		</td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+{% endif %}
+{% endblock %}
