@@ -3,8 +3,10 @@
 !lib/README.md
 .DS_Store
 *.ini
-members.csv
+*.csv
+!/data/kommunid.csv
 *.iml
 .idea
 /venv/
 /lib/
+/src/node_modules/

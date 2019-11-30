@@ -1,0 +1,40 @@
+{
+  "name": "skojjt",
+  "version": "1.0.0",
+  "description": "Scouternas närvarosystem",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Scouterna/skojjt.git"
+  },
+  "author": "Martin Green <martin.green@scouterna.se>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Scouterna/skojjt/issues"
+  },
+  "homepage": "https://github.com/Scouterna/skojjt#readme",
+  "dependencies": {
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-chmod": "^3.0.0",
+    "gulp-clean-css": "^4.2.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-debug": "^4.0.0",
+    "gulp-flatmap": "^1.0.2",
+    "gulp-ignore": "^3.0.0",
+    "gulp-imagemin": "^6.2.0",
+    "gulp-less": "^4.0.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-pngquant": "^1.0.12",
+    "gulp-rename": "^1.4.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "gulp-uglify": "^3.0.2",
+    "typescript": "^3.7.2"
+  }
+}

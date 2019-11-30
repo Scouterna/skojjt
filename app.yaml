@@ -10,7 +10,6 @@ skip_files:
 - ^(.*/)?\.ini$
 - ^(.*/)?\.vscode$
 - ^(.*/)?\.pdf$
-- ^src/.*$
 
 default_expiration: "2h"
 
@@ -45,6 +44,10 @@ handlers:
 
 - url: /js
   static_dir: build/js
+
+# For easier debugin on frontend, let source-maps point to the src folder
+- url: /src
+  static_dir: build/src
 
 - url: /fonts
   static_dir: fonts
