@@ -25,12 +25,16 @@ builtins:
 
 handlers:
 - url: /favicon.ico
-  static_files: img/favicon.ico
-  upload: img/favicon.ico
+  static_files: build/img/favicon.ico
+  upload: build/img/favicon.ico
 
 - url: /manifest.json
-  static_files: img/manifest.json
-  upload: img/manifest.json
+  static_files: build/img/manifest.json
+  upload: build/img/manifest.json
+
+- url: /browserconfig.xml
+  static_files: browserconfig.xml
+  upload: browserconfig.xml
 
 - url: /css
   static_dir: build/css
