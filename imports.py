@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import time
-from dataimport import UserPrefs, ndb, Semester, TaskProgress, RunScoutnetImport
-
+from data import Semester, TaskProgress, UserPrefs
+from dataimport import RunScoutnetImport
+from google.appengine.ext import deferred, ndb
 from flask import Blueprint, render_template, request, make_response, redirect
 
-from google.appengine.ext import deferred
 
 import_page = Blueprint('import_page', __name__, template_folder='templates')
 
@@ -57,17 +56,32 @@ def importProgress(progress_url, update=None):
 	return render_template('importresult.html', tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
 
 def startAsyncImport(api_key, groupid, semester_key, user, request):
+	"""
+	:type api_key: str
+	:type groupid: str
+	:type semester_key: google.appengine.ext.ndb.Key
+	:type user: data.UserPrefs
+	:type request: werkzeug.local.LocalProxy
+	:rtype werkzeug.wrappers.response.Response
+	"""
 	taskProgress = TaskProgress(name='Import', return_url=request.url)
 	taskProgress.put()
 	deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key)
 	return redirect('/progress/' + taskProgress.key.urlsafe())
 
 def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
-	semester=semester_key.get()
-	user = user_key.get()
+	"""
+	:type api_key: str
+	:type groupid: str
+	:type semester_key: google.appengine.ext.ndb.Key
+	:type taskProgress_key: google.appengine.ext.ndb.Key
+	:type user_key: google.appengine.ext.ndb.Key
+	"""
+	semester = semester_key.get()  # type: data.Semester
+	user = user_key.get()  # type: data.UserPrefs
 	progress = None
 	for i in range(1, 3):
-		progress = taskProgress_key.get()
+		progress = taskProgress_key.get()  # type: data.TaskProgress
 		if progress is not None:
 			break
 		time.sleep(1) # wait for the eventual consistency

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import scoutnet
-import data
-from dataimport import UserPrefs, Person, logging, TroopPerson, ScoutGroup
-
-from flask import Blueprint, render_template, abort, redirect, request
+from data import Person, ScoutGroup, TroopPerson, UserPrefs
+from flask import abort, Blueprint, redirect, render_template, request
 from google.appengine.ext import ndb
+import logging
+import scoutnet
 
 persons = Blueprint('persons_page', __name__, template_folder='templates')
 
@@ -26,7 +25,7 @@ def show(sgroup_url=None, person_url=None, action=None):
 	baselink = '/persons/'
 
 	sgroup_key = None  # type: ndb.Key
-	scoutgroup = None  # type: data.ScoutGroup
+	scoutgroup = None  # type: ScoutGroup
 	if sgroup_url is not None:
 		sgroup_key = ndb.Key(urlsafe=sgroup_url)
 		scoutgroup = sgroup_key.get()
@@ -43,7 +42,7 @@ def show(sgroup_url=None, person_url=None, action=None):
 			username=user.getname())
 
 	person_key = None  # type: ndb.Key
-	person = None  # type: data.Person
+	person = None  # type: Person
 	if person_url is not None:
 		person_key = ndb.Key(urlsafe=person_url)
 		person = person_key.get()

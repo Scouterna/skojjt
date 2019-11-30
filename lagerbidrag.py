@@ -7,16 +7,15 @@ Göteborg has 2-14 nights, age 7-25, and includes som older people.
 Stocholm has 2-7 days, age 7-20, and does not include older people.
 Stockholm also needs postal address for each scout.
 """
-import io
-import copy
-from datetime import datetime, date
-import math
-import urllib
 from collections import namedtuple
+from data import Meeting, Troop
+from datetime import datetime, date
 from flask import render_template, make_response
 from mailmerge import MailMerge
-
-from dataimport import Meeting, Troop, logging
+import io
+import copy
+import math
+import urllib
 
 
 RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])

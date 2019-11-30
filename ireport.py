@@ -1,5 +1,3 @@
-from dakdata import DakData
-from data import Semester
 
 class IReport():
 	def __init__(self, dak, semester):

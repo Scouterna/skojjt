@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import datetime
 import json
 import unittest
 from dakdata import DakData, Deltagare, Sammankomst
+from data import Semester
 from ireport import IReport
 
 
@@ -46,7 +48,7 @@ class TestJsonReport(unittest.TestCase):
 
     def test(self):
         dak = self.createDakData()
-        semester = Semester(2019, false) # 2019, vt
+        semester = Semester(2019, False) # 2019, vt
         jsonReport = JsonReport(dak, semester)
         data = json.loads(jsonReport)
         
