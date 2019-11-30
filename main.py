@@ -1,27 +1,17 @@
 ﻿# -*- coding: utf-8 -*-
-from data import *
-from dataimport import *
-import datetime
-import urllib
-import json
-import scoutnet
-import time
-import htmlform
-from dakdata import *
-import sensus
-from google.appengine.api import users
-from google.appengine.api import app_identity
-from google.appengine.api import mail
-from google.appengine.api import taskqueue
-import random
-
+from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
+from flask import Flask, make_response, redirect, render_template, request
+from dataimport import dofixsgroupids, dosettroopsemester, GetBackupXML, UpdateSchemas
 from imports import import_page, progress
+from google.appengine.api import mail, users
+from google.appengine.ext import ndb
 from groupsummary import groupsummary
-from scoutgroupinfo import scoutgroupinfo
 from persons import persons
+from scoutgroupinfo import scoutgroupinfo
 from start import start
-
-from flask import Flask, render_template, abort, redirect, url_for, request, make_response
+import datetime
+import logging
+import scoutnet
 import sys
 
 app = Flask(__name__)

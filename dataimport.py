@@ -1,12 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
-from data import *
-from datetime import *
+from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
+from datetime import datetime
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
-import time
+import logging
 import scoutnet
-import StringIO
-import ucsv as ucsv
+import ucsv
 import urllib2
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):

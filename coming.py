@@ -1,7 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-from data import *
-from flask import Flask, Blueprint, render_template, abort, redirect, url_for, request, make_response
-import sys
+from flask import Blueprint, render_template, request
 
 coming_blueprint = Blueprint('coming', __name__, template_folder='templates')
 

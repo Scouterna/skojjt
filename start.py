@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
-import datetime
-import urllib
-import random
-import htmlform
-
-from operator import attrgetter
-import scoutnet
-from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, Meeting, Troop, ScoutGroup, Semester
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
 from dakdata import DakData, Deltagare, Sammankomst
-import sensus
-import lagerbidrag
 from excelreport import ExcelReport
+from flask import Blueprint, make_response, redirect, render_template, request
+from google.appengine.ext import ndb
+from operator import attrgetter
+import datetime
+import htmlform
+import lagerbidrag
+import logging
+import random
+import scoutnet
+import sensus
+import urllib
 
-from google.appengine.api import users
-from google.appengine.api import app_identity
-from google.appengine.api import mail
-from google.appengine.api import taskqueue
 
-from flask import Blueprint, render_template, redirect, request, make_response
 
 def semester_sort(a, b):
 	a_name = a.getname()

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import datetime
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 import io
-from dakdata import DakData, Deltagare, Sammankomst
 
 
 class ExcelReport:
