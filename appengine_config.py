@@ -5,8 +5,8 @@ WSGI applications specified in app.yaml are loaded.
 """
 
 from google.appengine.ext import vendor
-import os
 import logging
+import os
 
 # Third-party libraries are stored in "lib", vendoring will make
 # sure that they are importable by the application.

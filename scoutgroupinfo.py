@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from dataimport import UserPrefs, ndb, logging, Semester
-from imports import startAsyncImport
-
+from data import Semester, UserPrefs
 from flask import Blueprint, render_template, redirect, request
+from google.appengine.ext import ndb
+from imports import startAsyncImport
+import logging
 
 scoutgroupinfo = Blueprint('scoutgroupinfo_page', __name__, template_folder='templates')
 

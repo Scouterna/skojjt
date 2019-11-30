@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from data import Person, ScoutGroup, TroopPerson, UserPrefs
+from flask import abort, Blueprint, redirect, render_template, request
+from google.appengine.ext import ndb
+import logging
 import scoutnet
-from dataimport import UserPrefs, ndb, Person, logging, TroopPerson, ScoutGroup
-
-from flask import Blueprint, render_template, abort, redirect, request
 
 persons = Blueprint('persons_page', __name__, template_folder='templates')
 

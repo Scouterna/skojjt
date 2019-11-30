@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import datetime
-
-from dataimport import UserPrefs, ndb, Semester, Person, Meeting
-
+from data import Meeting, Person, Semester, UserPrefs
+from google.appengine.ext import ndb
 from flask import Blueprint, render_template
+import datetime
 
 groupsummary = Blueprint('groupsummary_page', __name__, template_folder='templates')
 
