@@ -10,6 +10,7 @@ skip_files:
 - ^(.*/)?\.ini$
 - ^(.*/)?\.vscode$
 - ^(.*/)?\.pdf$
+- ^src/.*$
 
 default_expiration: "2h"
 
@@ -33,17 +34,17 @@ handlers:
   upload: img/manifest.json
 
 - url: /css
-  static_dir: css
+  static_dir: build/css
 
 - url: /img
-  static_dir: img
+  static_dir: build/img
 
 - url: /data
   static_dir: data
   application_readable: true
 
 - url: /js
-  static_dir: js
+  static_dir: build/js
 
 - url: /fonts
   static_dir: fonts
