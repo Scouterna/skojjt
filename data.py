@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-import codecs
-import datetime
-import logging
-import re
-import json
-
 from google.appengine.api import memcache, users
-
 from google.appengine.ext import ndb
+import datetime
+import json
+import logging
+
 
 class PropertyWriteTracker(ndb.Model):
 	_dirty = False

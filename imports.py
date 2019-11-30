@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import time
-from dataimport import UserPrefs, ndb, Semester, TaskProgress, RunScoutnetImport
-
+from data import Semester, TaskProgress, UserPrefs
+from dataimport import RunScoutnetImport
+from google.appengine.ext import deferred, ndb
 from flask import Blueprint, render_template, request, make_response, redirect
 
-from google.appengine.ext import deferred
 
 import_page = Blueprint('import_page', __name__, template_folder='templates')
 
