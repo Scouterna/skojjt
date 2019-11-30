@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{{title}}</title>
+        <style>
+            body {
+                #f1f1f1
+            }
+
+            header, main {
+                margin: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>
+                <img src="/img/logo.svg" alt="{{title}}"/>
+            </h1>
+            <p>Skojjt - Scouternas närvarosystem</p>
+        </header>
+        <main>
+            <h2>Login</h2>
+            <p>
+                Om din kår redan använder skojjt, så kan du som ledare i kåren logga in med scoutid eller ett
+                google-konto.
+            </p>
+            <ul>
+                <li><a href="{{scoutid_url}}">Logga in med ScoutID</a></li>
+                <li><a href="{{google_url}}">Logga in med Google-konto*</a></li>
+            </ul>
+            <p>
+                Om er kår vill börja använda Skojjt som närvaro-system, kontakta Martin.
+                Läs mer på <a href="https://github.com/Scouterna/skojjt/wiki">vår github-sida</a>
+            </p>
+            <p>
+                * Google-konto:
+                    Första gången du loggar in behöver ditt konto kopplas till din kår.
+                    Detta sker automatiskt omditt google-kontos e-post-adress matchar den e-post-adressen som stod i scoutnet vid senaste importen ( i början av terminen)
+                    Alla som inte kan matchas automatisk hamnar i en lista, där er kåradminstratör kan koppla dit konto till er kår.
+            </p>
+        </main>
+    </body>
+</html>
