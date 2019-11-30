@@ -1,3 +1,4 @@
+
 class IReport():
 	def __init__(self, dak, semester):
 		pass
