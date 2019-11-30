@@ -40,6 +40,7 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
 * Installera biblioteken. `pip install -r requirements.txt -t lib`
 * Konfigurera GAE `gcloud init` och följ instruktionerna.
 * Deploy kod `gcloud app deploy` från git mappen
+* Update indexes`gcloud datastore indexes create index.yaml`
 * Testa appen `gcloud app browse`
 
 ### Hur man testar/utvecklar på Mac:

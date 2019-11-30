@@ -115,10 +115,10 @@ class ScoutGroup(ndb.Model):
 	
 	@staticmethod
 	def getgroupsforuser(user):
-		if user.groupaccess != None:
-			return [user.groupaccess.get()]
-		elif user.hasadminaccess:
+		if user.hasadminaccess:
 			return ScoutGroup.query().fetch(100)
+		elif user.groupaccess is not None:
+			return [user.groupaccess.get()]
 		else:
 			return []
 
@@ -167,6 +167,7 @@ class Person(PropertyWriteTracker):
 	lastname = ndb.StringProperty(required=True)
 	birthdate = ndb.DateProperty(required=True) # could be a computed property from personnr
 	personnr = ndb.StringProperty()
+	member_no = ndb.IntegerProperty()
 	troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops
 	patrool = ndb.StringProperty()
 	scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
@@ -256,6 +257,9 @@ class Person(PropertyWriteTracker):
 		
 	def getpatrol(self):
 		return self.patrool # TODO: fix spelling error
+
+	def getmembernumber(self):
+		return self.member_no
 
 	def setpatrol(self, patrolname):
 		self.patrool = patrolname # TODO: fix spelling error

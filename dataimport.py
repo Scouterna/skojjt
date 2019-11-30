@@ -174,6 +174,7 @@ class ScoutnetImporter:
 			person.removed = False
 			person.patrool = p["patrool"]
 			person.email = p["email"]
+			person.member_no = p["member_no"]
 			person.phone = p["phone"]
 			person.mobile = p["mobile"]
 			person.alt_email = p["contact_alt_email"]
