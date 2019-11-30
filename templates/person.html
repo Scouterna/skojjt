@@ -118,6 +118,14 @@
 						<input type="text" class="form-control" size='50' placeholder="" name="patrol" id="patrol" value="{% if ep %}{{ep.getpatrol()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
 					</div>
 				</div>
+				{% if ep.getmembernumber() > 0 %}
+				<div class="col-xs-12 col-sm-6 col-md-4">
+					<div class="form-group">
+						<label for='medlemsnummer'>Medlemsnummer</label>
+						<input type="text" class="form-control" size='50' placeholder="" name="medlemsnummer" id="medlemsnummer" value="{% if ep %}{{ep.getmembernumber()}}{% endif %}" {% if ep %}readonly="1"{% endif %}/>
+					</div>
+				</div>
+				{% endif %}
 			</div>
 
 		{% if not ep %}

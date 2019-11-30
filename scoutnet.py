@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
 # cannot use requests library, doesn't work in gae!
-#import requests
-import urllib
-import urllib2
-import cookielib
-import codecs
-import logging
-import sys
-import json
+from data import UserPrefs
 from flask import render_template
 from google.appengine.api import mail
 from google.appengine.runtime import apiproxy_errors
-from google.appengine.ext.webapp.mail_handlers import BounceNotificationHandler
-from data import *
+import json
+import logging
+import urllib
+import urllib2
 
 
 
@@ -41,6 +36,7 @@ def GetScoutnetDataListJson(json_data):
 	for pid in j['data']:
 		p = j['data'][pid]
 		m = {}
+		m["member_no"] = int(GetValueFromJsonObject(p, 'member_no'))
 		m["group"] = GetValueFromJsonObject(p, 'group')
 		m["group_id"] = GetValueFromJsonObject(p, 'group', 'raw_value')
 		m["troop"] = GetValueFromJsonObject(p, 'unit')

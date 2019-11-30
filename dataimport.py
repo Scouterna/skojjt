@@ -1,10 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
-from data import *
-from datetime import *
+from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
+from datetime import datetime
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
+import logging
 import scoutnet
-import ucsv as ucsv
+import ucsv
 import urllib2
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
@@ -200,6 +201,7 @@ class ScoutnetImporter:
 			person.removed = False
 			person.patrool = p["patrool"]
 			person.email = p["email"]
+			person.member_no = p["member_no"]
 			person.phone = p["phone"]
 			person.mobile = p["mobile"]
 			person.alt_email = p["contact_alt_email"]
