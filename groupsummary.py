@@ -10,6 +10,8 @@ groupsummary = Blueprint('groupsummary_page', __name__, template_folder='templat
 @groupsummary.route('/<sgroup_url>/')
 def scoutgroupsummary(sgroup_url):
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.canImport():
 		return "denied", 403
 	if sgroup_url is None:

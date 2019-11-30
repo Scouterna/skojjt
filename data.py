@@ -453,6 +453,8 @@ class UserPrefs(ndb.Model):
 	@staticmethod
 	def current():
 		cu = users.get_current_user()
+		if cu is None:
+			return None
 		return UserPrefs.getorcreate(cu)
 
 	def attemptAutoGroupAccess(self):

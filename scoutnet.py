@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # cannot use requests library, doesn't work in gae!
 from data import UserPrefs
-from flask import render_template
+from flask import redirect, render_template
 from google.appengine.api import mail
 from google.appengine.runtime import apiproxy_errors
 import json
 import logging
 import urllib
 import urllib2
-
 
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
@@ -149,13 +148,15 @@ def AddPersonToWaitinglist(scoutgroup, firstname, lastname, personnummer, emaila
 
 
 def sendRegistrationQueueInformationEmail(scoutgroup):
+	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	try:
 		message = mail.EmailMessage(
 			sender="noreply@skojjt.appspotmail.com",
 			subject=u"Ny person i scoutnets kölista",
 			body=render_template("email_queueinfo.txt",	scoutgroup=scoutgroup)
 			)
-		user=UserPrefs.current()
 		message.to=user.getemail()
 		message.send()
 

@@ -11,6 +11,8 @@ scoutgroupinfo = Blueprint('scoutgroupinfo_page', __name__, template_folder='tem
 @scoutgroupinfo.route('/<sgroup_url>/', methods = ['POST', 'GET'])
 def show(sgroup_url):
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.canImport():
 		return "denied", 403
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]

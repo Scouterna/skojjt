@@ -44,6 +44,8 @@ start = Blueprint('start_page', __name__, template_folder='templates')
 @start.route('/<sgroup_url>/<troop_url>/<key_url>/', methods = ['POST', 'GET'])
 def show(sgroup_url=None, troop_url=None, key_url=None):
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.hasAccess():
 		return "denied", 403
 

@@ -6,12 +6,13 @@ from imports import import_page, progress
 from google.appengine.api import mail, users
 from google.appengine.ext import ndb
 from groupsummary import groupsummary
+from login_page import login_page
 from persons import persons
 from scoutgroupinfo import scoutgroupinfo
+from scoutid import scoutid
 from start import start
 import datetime
 import logging
-import scoutid
 import scoutnet
 import sys
 
@@ -29,6 +30,8 @@ sys.setdefaultencoding('utf8')
 def home():
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	user=UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	user.attemptAutoGroupAccess()
 	starturl = '/start/'
 	personsurl = '/persons/'
@@ -46,6 +49,7 @@ def home():
 						   )
 
 app.register_blueprint(groupsummary, url_prefix='/groupsummary')
+app.register_blueprint(login_page, url_prefix='/login')
 app.register_blueprint(import_page, url_prefix='/import')
 app.register_blueprint(persons, url_prefix='/persons')
 app.register_blueprint(progress, url_prefix='/progress')
@@ -56,6 +60,8 @@ app.register_blueprint(scoutid, url_prefix='/scoutid')
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	breadcrumbs = [{'link':'/', 'text':'Hem'}]
 	baselink = "/getaccess/"
 	section_title = "Access"
@@ -79,6 +85,8 @@ def getaccess():
 @app.route('/groupaccess/<userprefs_url>')
 def groupaccess(userprefs_url=None):
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isGroupAdmin():
 		return "denied", 403
 
@@ -115,6 +123,8 @@ def groupaccess(userprefs_url=None):
 @app.route('/admin/')
 def admin():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -127,6 +137,8 @@ def admin():
 @app.route('/admin/access/<userprefs_url>/', methods = ['POST', 'GET'])
 def adminaccess(userprefs_url=None):
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -176,6 +188,8 @@ def adminaccess(userprefs_url=None):
 @app.route('/admin/merge_sg/', methods = ['POST', 'GET'])
 def adminMergeScoutGroups():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -280,6 +294,8 @@ def merge_sg(oldname, newname, commit):
 @app.route('/admin/deleteall/')
 def dodelete():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -289,6 +305,8 @@ def dodelete():
 @app.route('/admin/settroopsemester/')
 def settroopsemester():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -298,6 +316,8 @@ def settroopsemester():
 @app.route('/admin/fixsgroupids/')
 def fixsgroupids():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -307,6 +327,8 @@ def fixsgroupids():
 @app.route('/admin/updateschemas')
 def doupdateschemas():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -316,6 +338,8 @@ def doupdateschemas():
 @app.route('/admin/setcurrentsemester')
 def setcurrentsemester():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -329,6 +353,8 @@ def setcurrentsemester():
 @app.route('/admin/autoGroupAccess')
 def autoGroupAccess():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 	users = UserPrefs().query().fetch()
@@ -342,6 +368,8 @@ def autoGroupAccess():
 @app.route('/admin/backup/')
 def dobackup():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	if not user.isAdmin():
 		return "denied", 403
 
@@ -355,6 +383,8 @@ def dobackup():
 @app.route('/admin/test_email/')
 def adminTestEmail():
 	user = UserPrefs.current()
+	if user is None:
+		return redirect('/login')
 	scoutnet.sendRegistrationQueueInformationEmail(user.groupaccess.get())
 	return "ok"
 # </editor-fold>

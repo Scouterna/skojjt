@@ -50,7 +50,6 @@ handlers:
 
 - url: /progress/.*
   script: main.app
-  login: required
   secure: always
 
 - url: /tasks/.*
@@ -65,5 +64,4 @@ handlers:
   
 - url: .*  # This regex directs all routes to main.app
   script: main.app
-  login: required
   secure: always
