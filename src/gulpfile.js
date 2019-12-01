@@ -19,31 +19,53 @@ const plug = {
 };
 
 // Compile less to css and minify it.
-const lessTask = () => gulp
-    .src(["less/**/*.less"])
+const mainLessTask = () => gulp
+    .src(["less/main/**/*.less"])
+    .pipe(plug.plumber())
+    .pipe(plug.sourcemaps.init({loadMaps: true}))
+    .pipe(plug.less())
+    .pipe(plug.concat("main.less.css"))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/less/main/'}))
+    .pipe(plug.chmod(0o644))
+    .pipe(gulp.dest("../build/css/"));
+
+// Compile less to css and minify it.
+const pageLessTask = () => gulp
+    .src(["less/pages/**/*.less"])
     .pipe(plug.plumber())
     .pipe(plug.sourcemaps.init({loadMaps: true}))
     .pipe(plug.less())
     .pipe(plug.uglifyCss())
     .pipe(plug.rename({suffix: ".min"}))
-    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/less/'}))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/less/pages/'}))
     .pipe(plug.chmod(0o644))
     .pipe(gulp.dest("../build/css/"));
 
-// Plain css, but still minify it.
-const cssTask = () => gulp
-    .src(["css/**/*.css"])
+// Plain main css, concat and minify it.
+const mainCssTask = () => gulp
+    .src(["css/main/**/*.css", "../build/css/main.less.css"])
+    .pipe(plug.plumber())
+    .pipe(plug.sourcemaps.init({loadMaps: true}))
+    .pipe(plug.uglifyCss())
+    .pipe(plug.concat("main.min.css"))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/css/main/'}))
+    .pipe(plug.chmod(0o644))
+    .pipe(gulp.dest("../build/css/"));
+
+// Plain page css, minify it.
+const pageCssTask = () => gulp
+    .src(["css/pages/**/*.css"])
     .pipe(plug.plumber())
     .pipe(plug.sourcemaps.init({loadMaps: true}))
     .pipe(plug.uglifyCss())
     .pipe(plug.rename({suffix: ".min"}))
-    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/css/'}))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/css/pages/'}))
     .pipe(plug.chmod(0o644))
     .pipe(gulp.dest("../build/css/"));
 
-// Compile typescript to js and minify it.
-const typescriptTask = () => gulp
-    .src(["ts/**/*.ts"])
+// Compile page typescript to js and minify it.
+const pageTypescriptTask = () => gulp
+    .src(["ts/pages/**/*.ts"])
     .pipe(plug.plumber())
     .pipe(plug.sourcemaps.init())
     .pipe(plug.flatmap(
@@ -64,13 +86,61 @@ const typescriptTask = () => gulp
     ))
     .pipe(plug.uglifyJs())
     .pipe(plug.rename({ suffix: ".min" }))
-    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/ts/'}))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/ts/pages/'}))
     .pipe(plug.chmod(0o644))
     .pipe(gulp.dest("../build/js/"));;
 
-// Babel the javascript and minify it.
-const javascriptTask = () =>  gulp
-    .src(["js/**/*.js"])
+// Compile main typescript to js, concat and use it in main-js.
+const mainTypescriptTask = () => gulp
+    .src(["ts/main/**/*.ts"])
+    .pipe(plug.plumber())
+    .pipe(plug.sourcemaps.init())
+    .pipe(
+        plug.typescript.createProject(
+            {
+                "target": "ES5",
+                "lib": [
+                    "DOM",
+                    "ES5",
+                    "ScriptHost",
+                    "ES2015.Promise",
+                    "ES2015.Iterable",
+                ]
+            }
+        )()
+    )
+    .pipe(plug.concat("main.ts.js"))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/ts/main/'}))
+    .pipe(plug.chmod(0o644))
+    .pipe(gulp.dest("../build/js/"));;
+
+// Babel the javascript and minify main scripts.
+const mainJavascriptTask = () =>  gulp
+    .src(["js/main/**/*.js", "../build/js/main.ts.js"])
+    .pipe(plug.plumber())
+    .pipe(plug.sourcemaps.init({loadMaps: true}))
+    .pipe(
+        plug.babel({
+            compact: false,
+            presets: [[
+                "@babel/env", {
+                    "targets": {
+                        "browsers": [
+                            ">0.25%"
+                        ],
+                    },
+                }
+            ]],
+        }))
+    .pipe(plug.concat('main.min.js'))
+    .pipe(plug.uglifyJs())
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/js/main/'}))
+    .pipe(plug.chmod(0o644))
+    .pipe(gulp.dest("../build/js"));
+
+// Babel the javascript and minify pages.
+const pageJavascriptTask = () =>  gulp
+    .src(["js/pages/**/*.js"])
     .pipe(plug.plumber())
     .pipe(plug.sourcemaps.init({loadMaps: true}))
     .pipe(
@@ -88,10 +158,11 @@ const javascriptTask = () =>  gulp
         }))
     .pipe(plug.uglifyJs())
     .pipe(plug.rename({suffix: ".min"}))
-    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/js/'}))
+    .pipe(plug.sourcemaps.write("./", {includeContent: false, sourceRoot: '../src/js/pages/'}))
     .pipe(plug.chmod(0o644))
     .pipe(gulp.dest("../build/js"));
 
+// omptimize images
 const img_task = () => gulp
 	.src('img/**/*')
 	.pipe(plug.imagemin({
@@ -100,11 +171,23 @@ const img_task = () => gulp
 	}))
 	.pipe(gulp.dest('../build/img/'));
 
-gulp.task("css", cssTask);
-gulp.task("less", lessTask);
-gulp.task("js", javascriptTask);
-gulp.task("ts", typescriptTask);
+gulp.task("main-less", mainLessTask);
+gulp.task("page-less", pageLessTask);
+gulp.task("less", gulp.parallel("main-less", "page-less"));
+gulp.task("main-css", mainCssTask);
+gulp.task("page-css", pageCssTask);
+gulp.task("plain-css", gulp.parallel("main-css", "page-css"));
+gulp.task("css", gulp.series("less", "plain-css"));
+
+gulp.task("main-ts", mainTypescriptTask);
+gulp.task("page-ts", pageTypescriptTask);
+gulp.task("ts", gulp.parallel("main-ts", "page-ts"));
+gulp.task("main-js", mainJavascriptTask);
+gulp.task("page-js", pageJavascriptTask);
+gulp.task("plain-js", gulp.parallel("main-js", "page-js"));
+gulp.task("js", gulp.series("ts", "plain-js"));
+
 gulp.task("img", img_task);
 
-gulp.task("default", gulp.parallel("css", "less", "js", "ts"));
+gulp.task("default", gulp.parallel("css", "js"));
 gulp.task("all", gulp.parallel("default", "img"));
