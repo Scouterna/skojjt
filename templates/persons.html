@@ -2,38 +2,50 @@
 {% block main %}
 <h1 class="page-header">Personer</h1>
 <div class="table-responsive">
-	<table id="maintable" class="table table-striped display nowrap">
-	  <thead>
-		<tr>
-			<th>Namn</th>
-			<th>Födelsedatum</th>
-			<th>Email</th>
-			<th>Telefon</th>
-			<th>Mobil</th>
-			<th>Adress</th>
-			<th>Postadress</th>
-			<th title="Lista med de år som personen varit medlem som skojjt känner till">Medlemsår</th>
-			<th title="Borttagen i scoutnet">Borttagen</th>
-		</tr>
-	  </thead>
-	  <tbody>
+    <table id="maintable" class="table table-striped display nowrap">
+        <thead>
+            <tr>
+                <th>Namn</th>
+                <th>Födelsedatum</th>
+                <th>Email</th>
+                <th>Telefon</th>
+                <th>Mobil</th>
+                <th>Adress</th>
+                <th>Postadress</th>
+                <th title="Lista med de år som personen varit medlem som skojjt känner till">Medlemsår</th>
+                <th title="Borttagen i scoutnet">Borttagen</th>
+            </tr>
+        </thead>
+        <tbody>
 		{% for person in persons %}
-  <tr>
-				<td><a href="{{baselink+person.key.urlsafe()}}/">{{person.getname()}}</a></td>
-				<td>{{person.getbirthdatestring()}}</td>
-				<td><a href="mailto:{{person.email}}">{{person.email}}</a></td>
-				<td><a href="tel:{{person.phone}}">{{person.phone}}</a></td>
-				<td><a href="tel:{{person.mobile}}">{{person.mobile}}</a></td>
-				<td>{{person.street}}</td>
-				<td>{{person.getPostadress()}}</td>
-				<td>{{person.getMemberYearsString()}}</td>
-				<td{%if person.removed%} class="removedPerson"{%endif%}>{{'Ja' if person.removed else ''}}</td>
-		  </tr>
+            <tr>
+                <td><a href="{{baselink+person.key.urlsafe()}}/">{{person.getname()}}</a></td>
+                <td>{{person.getbirthdatestring()}}</td>
+                <td><a href="mailto:{{person.email}}">{{person.email}}</a></td>
+                <td><a href="tel:{{person.phone}}">{{person.phone}}</a></td>
+                <td><a href="tel:{{person.mobile}}">{{person.mobile}}</a></td>
+                <td>{{person.street}}</td>
+                <td>{{person.getPostadress()}}</td>
+                <td>{{person.getMemberYearsString()}}</td>
+			{% if person.removed %}
+				<td class="removedPerson">Ja</td>
+			{% else %}
+				<td></td>
+			{% endif %}
+            </tr>
 		{% endfor %}
-</tbody>
-	</table>
+        </tbody>
+    </table>
 </div>
-<button id="showRemovedPersons" type="button" class="btn btn-info" data-toggle="button" name="chkExtrainfo" autocomplete="off">Visa borttagna personer</button>
+<button
+    id="showRemovedPersons"
+    type="button"
+    class="btn btn-info"
+    data-toggle="button"
+    name="chkExtrainfo"
+>
+	Visa borttagna personer
+</button>
 {% endblock %}
 {% block script %}
 <script defer>

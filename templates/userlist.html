@@ -2,42 +2,47 @@
 {% block main %}
 <h1 class="page-header">{{heading}}</h1>
 <div class="table-responsive">
-	<table id="maintable" class="table table-striped">
-	  <thead>
-		<tr>
-		  <th class="col-xs-2 col-sm-2 col-lg-2">Namn</th>
-		  <th class="col-xs-2 col-sm-2 col-lg-2">Email</th>
-		  <th class="col-xs-2 col-sm-2 col-lg-2">Kår</th>
-		  <th class="col-xs-1 col-sm-1 col-lg-1">Access</th>
-		  <th class="col-xs-1 col-sm-1 col-lg-1">Import</th>
-		  <th class="col-xs-1 col-sm-1 col-lg-1">Kåradmin</th>
-		  <th class="col-xs-1 col-sm-1 col-lg-1">Admin</th>
-		</tr>
-	  </thead>
-	  <tbody>
-		{% for u in users %}
-		<tr><td><a href="{{baselink+u.key.urlsafe()}}/">{{u.getname()}}</a></td>
-		<td><a href="mailto:{{u.getemail()}}">{{u.getemail()}}</a></td>
-		{% set sgroupname = '' %}
-		{% set sgroupurlkey = '' %}
-		{% if u.groupaccess != None %}
-			{% set group = u.groupaccess.get() %}
-			{% set sgroupurlkey = u.groupaccess.urlsafe() %}
-			{% if group == None %}
-				{% set sgroupname = sgroupurlkey %}
-			{% else %}
-				{% set sgroupname = group.getname() %}
-			{% endif %}
-		{% endif %}
-		<td>{{sgroupname}}</td>
-		<td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</a></td>
-		<td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</a></td>
-		<td>{% if u.isGroupAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
-		<td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
-		</tr>
-		{% endfor %}
-	  </tbody>
-	</table>
+    <table id="maintable" class="table table-striped">
+        <thead>
+            <tr>
+                <th class="col-xs-2 col-sm-2 col-lg-2">Namn</th>
+                <th class="col-xs-2 col-sm-2 col-lg-2">Email</th>
+                <th class="col-xs-2 col-sm-2 col-lg-2">Kår</th>
+                <th class="col-xs-1 col-sm-1 col-lg-1">Access</th>
+                <th class="col-xs-1 col-sm-1 col-lg-1">Import</th>
+                <th class="col-xs-1 col-sm-1 col-lg-1">Kåradmin</th>
+                <th class="col-xs-1 col-sm-1 col-lg-1">Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <a href="{{baselink+u.key.urlsafe()}}/">{{u.getname()}}</a>
+                </td>
+                <td>
+                    <a href="mailto:{{u.getemail()}}">{{u.getemail()}}</a>
+                </td>
+                {% set sgroupname = '' %}
+                {% set sgroupurlkey = '' %}
+                {% if u.groupaccess != None %}
+                {% set group = u.groupaccess.get() %}
+                {% set sgroupurlkey = u.groupaccess.urlsafe() %}
+                {% if group == None %}
+                {% set sgroupname = sgroupurlkey %}
+                {% else %}
+                {% set sgroupname = group.getname() %}
+                {% endif %}
+                {% endif %}
+                <td>{{sgroupname}}</td>
+                <td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</td>
+                <td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</td>
+                <td>{% if u.isGroupAdmin() %}Ja{% else %}Nej{% endif %}</td>
+                <td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
 {% block script %}
@@ -70,5 +75,6 @@ $(document).ready(function() {
 		}
     } )
 } );
+
 </script>
 {% endblock %}

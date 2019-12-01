@@ -1,42 +1,50 @@
 <form role="form" name="lager" method="POST">
-  <input type="hidden" name="action" value="addhike"/>
-  <div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="lname">Namn</label>
-        <input type="text" class="form-control" name="name" id="lname" value="Lägernamn"/>
-      </div>
+    <input type="hidden" name="action" value="addhike"/>
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="lname">Namn</label>
+                <input type="text" class="form-control" name="name" id="lname" value="Lägernamn"/>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="ldate">Startdatum (termin {{semester.getname()}})</label>
+                <input
+                    type="date"
+                    class="form-control"
+                    name="date"
+                    id="ldate"
+                    value=""
+                    min="{{semester.getMinDateStr()}}"
+                    max="{{semester.getMaxDateStr()}}"
+                />
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="ldays">Antal dagar</label>
+                <input type="number" class="form-control" name="days" id="ldays" value="3" min="2" max="15"/>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group" id="starttimediv">
+                <label for="lstarttime">Starttid</label>
+                <input type="time" class="form-control" name="starttime" id="lstarttime" value="00:00"/>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group" id="durationdiv">
+                <label for="lduration">Längd (minuter)</label>
+                <input type="number" class="form-control" name="duration" id="lduration" value="1440"/>
+            </div>
+        </div>
     </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="ldate">Startdatum (termin {{semester.getname()}})</label>
-        <input type="date" class="form-control" name="date" id="ldate" value="" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
-      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <button type="submit" name="submit" class="btn btn-lg btn-primary">Lägg till</button>
+        </div>
     </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="ldays">Antal dagar</label>
-        <input type="number" class="form-control" name="days" id="ldays" value="3" min="2" max="15"/>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group" id="starttimediv">
-        <label for="lstarttime">Starttid</label>
-        <input type="time" class="form-control" name="starttime" id="lstarttime" value="00:00"/>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group" id="durationdiv">
-        <label for="lduration">Längd (minuter)</label>
-        <input type="number" class="form-control" name="duration" id="lduration" value="1440"/>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-xs-12">
-      <button type="submit" name="submit" class="btn btn-lg btn-primary">Lägg till</button>
-    </div>
-  </div>
 </form>
 
 <script defer>

@@ -3,66 +3,86 @@
 {% endblock %}
 <h1 class="page-header">{{heading}}</h1>
 <div class="table-responsive">
-	<table id="maintable" class="table table-striped">
-	  <thead>
-		<tr>
-		  <th class="col-xs-4 col-sm-2 col-lg-1">Namn</th>
-		  {% for meeting in meetings %}
-			<th class="col-xs-1 col-sm-1 col-lg-1 rotate"><div><span><a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>{{meeting.getdate()}}</span></div></th>
-		  {% endfor %}
-		</tr>
-	  </thead>
-	  <tbody>
+    <table id="maintable" class="table table-striped">
+        <thead>
+            <tr>
+                <th class="col-xs-4 col-sm-2 col-lg-1">Namn</th>
+			{% for meeting in meetings %}
+                <th class="col-xs-1 col-sm-1 col-lg-1 rotate">
+                    <div>
+						<span>
+							<a href="./{{meeting.key.urlsafe()}}/">{{meeting.name}}</a><br/>
+							{{meeting.getdate()}}
+						</span>
+                    </div>
+                </th>
+			{% endfor %}
+            </tr>
+        </thead>
+        <tbody>
 		{% for item in items %}
-		<tr><td>
-			<a href="{{baselink+item.key.urlsafe()}}/">{{item.getname()}}</a>
-		</td>
-		  {% set iperson = loop.index0 %}
-		  {% for meeting in meetings %} {# name is meeting, id is the person #}
-			{% set imeeting = loop.index0 %}
-			<td><input class="attendance-cb" name="cb{{meeting.key.urlsafe()}}" id="{{item.key.urlsafe()}}" type="checkbox" {% if attendances[imeeting][iperson] %} checked="1"{% endif %}/></td>
-		  {% endfor %}
-		</tr>
+            <tr>
+                <td>
+                    <a href="{{baselink+item.key.urlsafe()}}/">{{item.getname()}}</a>
+                </td>
+			{% set iperson = loop.index0 %}
+			{% for meeting in meetings %} {# name is meeting, id is the person #}
+                {% set imeeting = loop.index0 %}
+                <td>
+					<input
+						class="attendance-cb"
+						name="cb{{meeting.key.urlsafe()}}"
+						id="{{item.key.urlsafe()}}"
+					   	type="checkbox"
+					{% if attendances[imeeting][iperson] %}
+						checked
+					{% endif %}
+					/>
+				</td>
+			{% endfor %}
+            </tr>
 		{% endfor %}
-		{% if meetings or showaddmember %}
-			<tr>
-			<td>
-			<button data-toggle="collapse" data-target="#newmember" class="btn btn-lg btn-info">+/-</button>
-			<div id="newmember" class="collapse">
-			<h2>Lägg till avdelningsmedlem</h2>
-			<div class="well"><div>Sök namn från registret:</div>
-				<div id="scrollable-dropdown-menu">
-					<input id="namesearch" type="text" placeholder="Namn" autocomplete="off"/>
-				</div>
-				<div id="nameResults"></div>
-			</div>
-			<hr/>
-			<div class="class="divider-vertical">
-			<a href="newperson" class="btn btn-sm btn-warning">Registrera ny person</a>
-			</div>
-		  </td>
-		{% endif %}
-		{% for meeting in meetings %}
-			<td>
-			<button type="button" class="postattendance btn btn-lg" aria-label="Left Align" id="btn{{meeting.key.urlsafe()}}" >
-				<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-			</button>
-			</td>
-		{% endfor %}
-		{% if meetings %}
-			</tr>
-		{% endif %}
-	  </tbody>
-	</table>
+            <tr>
+			{% if meetings or showaddmember %}
+                <td>
+                    <button data-toggle="collapse" data-target="#newmember" class="btn btn-lg btn-info">+/-</button>
+                    <div id="newmember" class="collapse">
+                        <h2>Lägg till avdelningsmedlem</h2>
+                        <div class="well">
+                            <div>Sök namn från registret:</div>
+                            <div id="scrollable-dropdown-menu">
+                                <input id="namesearch" type="text" placeholder="Namn" autocomplete="off" />
+                            </div>
+                            <div id="nameResults">
+							</div>
+                        </div>
+						<hr/>
+						<div class="divider-vertical">
+						</div>
+						<a href="newperson" class="btn btn-sm btn-warning">Registrera ny person</a>
+					</div>
+                </td>
+			{% endif %}
+			{% for meeting in meetings %}
+                <td>
+                    <button type="button" class="postattendance btn btn-lg" aria-label="Left Align"
+                            id="btn{{meeting.key.urlsafe()}}">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    </button>
+                </td>
+			{% endfor %}
+            </tr>
+        </tbody>
+    </table>
 </div>
 {% if showaddmeetings %}
 <button data-toggle="collapse" data-target="#newmeeting" class="btn btn-info btn-lg">Nytt möte</button>
 <div id="newmeeting" class="collapse">
-{% include "meetingform.html" %}
+    {% include "meetingform.html" %}
 </div>
 <button data-toggle="collapse" data-target="#newhike" class="btn btn-info btn-lg">Nytt läger</button>
 <div id="newhike" class="collapse">
-{% include "lagerform.html" %}
+    {% include "lagerform.html" %}
 </div>
 {% endif %}
 {% endblock %}
@@ -139,5 +159,6 @@ $(document).ready(function() {
 		}
 	})		
 });
+
 </script>
 {% endblock %}

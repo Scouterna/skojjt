@@ -1,63 +1,112 @@
 {% set hasMeeting = True if existingmeeting is defined else False %}
 <form role="form" name="meeting" method="POST">
-{% if hasMeeting %}
-  <input type="hidden" name="action" value="updatemeeting"/>
-{% else %}
-  <input type="hidden" name="action" value="addmeeting"/>
-{% endif %}
-  <div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group checkbox hike-tgl">
-        <label>
-          <input title="Del av läger" class="checkbox" name="ishike" id="mhike" type="checkbox" {% if hasMeeting and existingmeeting.getishike() %}checked{% endif %} />
-          Del av läger
-        </label>
-      </div>
+    {% if hasMeeting %}
+    <input type="hidden" name="action" value="updatemeeting"/>
+    {% else %}
+    <input type="hidden" name="action" value="addmeeting"/>
+    {% endif %}
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group checkbox hike-tgl">
+                <label>
+                    <input
+                        title="Del av läger"
+                        class="checkbox"
+                        name="ishike"
+                        id="mhike"
+                        type="checkbox"
+                        {% if hasMeeting and existingmeeting.getishike() %}
+                        checked
+                        {% endif %}
+                    />
+                    Del av läger
+                </label>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="mname">Namn</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Mötesnamn"
+                    name="name"
+                    id="mname"
+                    value="{% if hasMeeting %}{{existingmeeting.getname()}}{% endif %}"
+                />
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="mdate">Datum (termin {{semester.getname()}})</label>
+                <input
+                    type="date"
+                    class="form-control"
+                    name="date"
+                    id="mdate"
+                    value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}"
+                    min="{{semester.getMinDateStr()}}"
+                    max="{{semester.getMaxDateStr()}}"
+                />
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="starttime">Starttid</label>
+                <input
+                    type="time"
+                    class="form-control"
+                    name="starttime"
+                    id="starttime"
+                    value="{% if hasMeeting %}{{existingmeeting.gettime()}}{% endif %}"
+                />
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="mduration">Längd (minuter)</label>
+                <input
+                    type="number"
+                    class="form-control"
+                    name="duration"
+                    id="mduration"
+                    value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"
+                />
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+            <div class="form-group">
+                <label for="mstoptime">Sluttid (för att räkna ut längd)</label>
+                <input type="time" class="form-control" id="mstoptime"/>
+            </div>
+        </div>
     </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="mname">Namn</label>
-        <input type="text" class="form-control" placeholder="Mötesnamn" name="name" id="mname" value="{% if hasMeeting %}{{existingmeeting.getname()}}{% endif %}"/>
-      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <button
+                {% if semester.locked %}
+                disabled
+                {% endif %}
+                type="submit"
+                name="submit"
+                class="btn btn-lg btn-primary"
+            >
+            {% if hasMeeting %}
+                Spara
+            {% else %}
+                Lägg till
+            {% endif %}
+            </button>
+        </div>
     </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="mdate">Datum (termin {{semester.getname()}})</label>
-        <input type="date" class="form-control" name="date" id="mdate" value="{% if hasMeeting %}{{existingmeeting.getdate()}}{% endif %}" min="{{semester.getMinDateStr()}}" max="{{semester.getMaxDateStr()}}"/>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="starttime">Starttid</label>
-        <input type="time" class="form-control" name="starttime" id="starttime" value="{% if hasMeeting %}{{existingmeeting.gettime()}}{% endif %}"/>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="mduration">Längd (minuter)</label>
-        <input type="number" class="form-control" name="duration" id="mduration" value="{% if hasMeeting %}{{existingmeeting.duration}}{% endif %}"/>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-4">
-      <div class="form-group">
-        <label for="mstoptime">Sluttid (för att räkna ut längd)</label>
-        <input type="time" class="form-control" id="mstoptime" />
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-xs-12">
-      <button {% if semester.locked %}disabled="disabled"{% endif %} type="submit" name="submit" class="btn btn-lg btn-primary">{% if hasMeeting %}Spara{% else %}Lägg till{% endif %}</button>
-    </div>
-  </div>
 </form>
 {% if hasMeeting %}
 <hr/>
 <form role="form" name="deletemeeting" method="POST">
-  <input type="hidden" name="action" value="deletemeeting"/>
-  <div class="btn-toolbar">
-  <button type="submit" class="btn btn-lg btn-danger">Ta bort</button>
-  </div>
+    <input type="hidden" name="action" value="deletemeeting"/>
+    <div class="btn-toolbar">
+        <button type="submit" class="btn btn-lg btn-danger">Ta bort</button>
+    </div>
 </form>
 {% endif %}
 <script defer>

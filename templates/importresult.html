@@ -1,12 +1,13 @@
 ﻿{% extends "layout.html" %}
 {% block main %}
 <h1>Importresultat</h1>
-<img id="animation" alt="" width="137" height="122"></img>
-<div id="topinfo"></div>
+<img id="animation" alt="" width="137" height="122" />
+<div id="topinfo">
+</div>
 <div class="table-responsive">
-	<table class="table table-striped" id="resulttable">
-    <tbody>
-    </tbody>
+    <table class="table table-striped" id="resulttable">
+        <tbody>
+        </tbody>
     </table>
 </div>
 {% endblock %}
@@ -71,5 +72,6 @@ function updateProgress(){
 $(function() {
     setTimeout(updateProgress, 1000);
 });
+
 </script>
 {% endblock %}
