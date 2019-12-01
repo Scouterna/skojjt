@@ -61,3 +61,15 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
   + `gcloud app deploy index.yaml --project skojjt-X`
   + `gcloud app deploy app.yaml --project skojjt-X`
 * Testa appen `gcloud app browse`
+
+### Hur man testar/utvecklare/kompilerar frontend
+I mappen `/build/` finns den compilerade och minifierade koden.  
+Vill du göra ändringar i css eller js, så gör ändringarna i `/src/`-mappen.  
+
+Efter du gjort dina ändringar så kompilerar du om dem med gulp:
+* `cd src` (Öppna mappen för frontend koden)
+* `npm install` (insatllera verkgtyget gulp mm, behövs bara första gågnen)
+* `node_modules/.bin/gulp` eller `gulp` (om du har gulp installerat globalt)
+
+Även bilder passerar gulp för att bli optimerade, denna uppgift ligger dock inte som default, då den tar mäst tid.
+För att optimera om bilderna använd `gulp img` eller `gulp all`.
