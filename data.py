@@ -258,6 +258,12 @@ class Person(PropertyWriteTracker):
 	def getpatrol(self):
 		return self.patrool # TODO: fix spelling error
 
+	def getReportID(self):
+		"""Returns a person ID that can be used in reports. 
+		It will prefer the scoutnet id if imported, else the old key id. 
+		Eventually all persons will have scoutnet id set."""
+		return str(self.member_no) if self.member_no is not None else str(self.key.id())
+
 	def getmembernumber(self):
 		return self.member_no
 

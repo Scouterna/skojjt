@@ -1,16 +1,20 @@
+class IReport:
+    """Interface for attendence reports"""
+    def __init__(self, dak, semester):
+        pass
 
-class IReport():
-	def __init__(self, dak, semester):
-		pass
+    def getUrlName(self):
+        """Short name that can be used as a url parameter"""
+        pass
 
-	""" Short name that can be used as a url parameter """
-	def GetUrlName(self):
-		pass
+    def getMimeType(self):
+        """Mime type for this data format."""
+        pass
 
-	""" Mime type for this data format """
-	def GetMimeType(self):
-		pass
+    def getFilename(self):
+        """Returns a filename for this report."""
+        pass
 
-	""" File content data from export """
-	def GetBinaryStream(self):
-		pass
+    def getReportString(self):
+        """File content data from export."""
+        pass

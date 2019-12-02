@@ -13,6 +13,7 @@ import random
 import scoutnet
 import sensus
 import urllib
+from jsonreport import JsonReport
 
 
 
@@ -321,7 +322,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
 		    lagerplats=scoutgroup.default_lagerplats,
 			breadcrumbs=breadcrumbs)
-	elif key_url!=None and key_url!="dak" and key_url!="sensus" and key_url!="lagerbidrag" and key_url!="excel": #todo: change this to something sensible!
+	elif key_url!=None and key_url!="dak" and key_url!="sensus" and key_url!="lagerbidrag" and key_url!="excel" and key_url!="json": #todo: change this to something sensible!
 		meeting = ndb.Key(urlsafe=key_url).get()
 		section_title = meeting.getname()
 		baselink += key_url + "/"
@@ -425,7 +426,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 					sumFemaleLeadersAttendenceCount += femaleLeadersAttendenceCount
 					sumMaleLeadersAttendenceCount += maleLeadersAttendenceCount
 
-		if key_url == "dak" or key_url == "excel":
+		if key_url == "dak" or key_url == "excel" or key_url == "json":
 			dak = DakData()
 			dak.foereningsNamn = scoutgroup.getname()
 			dak.foreningsID = scoutgroup.foreningsID
@@ -442,9 +443,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 			for tp in trooppersons:
 				p = personsDict[tp.person]
 				if tp.leader:
-					dak.kort.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
+					dak.kort.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
 				else:
-					dak.kort.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
+					dak.kort.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
 				
 			for m in meetings:
 				sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
@@ -453,9 +454,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 					if isAttending:
 						p = personsDict[tp.person]
 						if tp.leader:
-							sammankomst.ledare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
+							sammankomst.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
 						else:
-							sammankomst.deltagare.append(Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
+							sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
 				
 				dak.kort.Sammankomster.append(sammankomst)
 			if key_url == "excel":
@@ -464,6 +465,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 				response = make_response(resultbytes)
 				response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 				response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') + '-' + semester.getname() + '.xlsx;'
+				return response
+			elif key_url == "json":
+				jsonReport = JsonReport(dak, semester)
+				resultbytes = jsonReport.getReportString()
+				response = make_response(resultbytes)
+				response.headers['Content-Type'] = jsonReport.getMimeType()
+				response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(jsonReport.getFilename(), safe='') + ';'
 				return response
 			else:
 				result = render_template('dak.xml', dak=dak)
@@ -498,9 +506,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 					if p.getpatrol() != patrol:
 						continue
 					if tp.leader:
-						sensuslista.ledare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
+						sensuslista.ledare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
 					else:
-						sensuslista.deltagare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False))
+						sensuslista.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False))
 					
 				for m in meetings:
 					sammankomst = sensus.Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
@@ -511,9 +519,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 						isAttending = tp.person in m.attendingPersons
 
 						if tp.leader:
-							sammankomst.ledare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, isAttending))
+							sammankomst.ledare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, isAttending))
 						else:
-							sammankomst.deltagare.append(sensus.Deltagare(str(p.key.id()), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, isAttending))
+							sammankomst.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, isAttending))
 
 					sensuslista.Sammankomster.append(sammankomst)
 
