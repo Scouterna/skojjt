@@ -28,11 +28,26 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
 ### [Dokumentation](https://github.com/Scouterna/skojjt/wiki)
 
 ### Hur man testar/utvecklar i Windows:
-* Klona git-repon till lokal dator.
-* Installera Python 2.7 och [Google App Engine SDK (GAE)](https://storage.googleapis.com/appengine-sdks/featured/GoogleAppEngine-1.9.73.msi).
-* Starta GAE. Lägg till skojjt med File|Add existing application...
-* Markera skojjt i listan kicka start, sen browse.
-* Man kan också köra Visual Studio Code för att få brytpunkter i koden.
+* Installera Git
+* Installera Python 2.7
+* Installera [Google Cloud SDK](https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe).
+* Klona git-repot: 
+    + `git clone https://github.com/Scouterna/skojjt`
+* Uppdatera biblioteken (kan även behövas efter pull):
+    + `pip install -r requirements.txt -t lib`
+* Initiera Google Cloud:
+    + `gcloud init`
+* Du kan behöva uppdatera Google Cloud (om du redan har en installation):
+    + `gcloud components update`
+* Om du gör ändringar i data eller queries så kan du behöva köra:
+    + `gcloud datastore indexes create index.yaml`
+* Starta servern lokalt:
+    + `python "c:\Program Files (x86)\Google\google_appengine\dev_appserver.py" app.yaml`
+* Öppna en webläsare på adress: [http://localhost:8080/](http://localhost:8080/)
+* Deploy projektet publikt som `skojjt-X`(ditt val av namn)
+  + `gcloud app deploy index.yaml --project skojjt-X`
+  + `gcloud app deploy app.yaml --project skojjt-X`
+* Testa appen `gcloud app browse`
 
 ### Hur man testar/utvecklar i Linux:
 * Klona git-repon till lokal dator.

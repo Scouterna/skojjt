@@ -1,15 +1,6 @@
 runtime: python27
 api_version: 1
 threadsafe: yes
-skip_files:
-- ^(.*/)?#.*#$
-- ^(.*/)?.*~$
-- ^(.*/)?.*\.py[co]$
-- ^(.*/)?.*/RCS/.*$
-- ^(.*/)?\..*$
-- ^(.*/)?\.ini$
-- ^(.*/)?\.vscode$
-- ^(.*/)?\.pdf$
 
 default_expiration: "2h"
 

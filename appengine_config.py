@@ -13,5 +13,5 @@ import os
 vendor.add('lib')
 
 if os.environ.get('SERVER_SOFTWARE','').startswith('Development'):
-	logging.info("*** Dev mode ** ")
+	logging.info("*** Dev mode ***")
 	remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = ('REMOTE_ADDR', ['127.0.0.1'])
