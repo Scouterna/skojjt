@@ -8,6 +8,7 @@ Stocholm has 2-7 days, age 7-20, and does not include older people.
 Stockholm also needs postal address for each scout.
 """
 from collections import namedtuple
+from datetime import date
 from data import Meeting, Troop
 from datetime import datetime, date
 from flask import render_template, make_response
@@ -114,6 +115,10 @@ def response_sthlm(bidragcontainer):
         'antaldagar': str(bidrag.days)  # Should be total number of days
     }
 
+    today = date.today()
+    period_data = generate_sthlm_period_data(today.year, today.month, today.day)
+    data.update(period_data)
+
     persons_per_page = 16
     nr_pages, rest = divmod(nr_persons, persons_per_page)
     if rest > 0:
@@ -143,6 +148,35 @@ def response_sthlm(bidragcontainer):
     response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(ascii_doc_name)
     return response
+
+
+def generate_sthlm_period_data(year, month, day):
+    """Generate dictionary with period data for right period.
+    
+    Dec 16 - Jun 30, the period is Dec 1 to May 31.
+    Jul 1 - Dec 15, the period is Jun 1 to Nov. 30
+
+    """
+
+    if month <= 6 or (month == 12 and day > 15):  # Period 1
+        if month <= 6:
+            y = year
+        else:
+            y = year + 1
+        pd = {
+            'ansokningsar': str(y),
+            'sistaansokan': '30 juni %d' % y,
+            'periodstart': '1 december %d' % (y - 1),
+            'periodslut': '31 maj %d' % y
+        }
+    else: # Period 2
+        pd = {
+            'ansokningsar': str(year),
+            'sistaansokan': '15 december %d' % year,
+            'periodstart': '1 juni %d' % year,
+            'periodslut': '30 november %d' % year
+        }
+    return pd
 
 
 def person_sort(a, b):
