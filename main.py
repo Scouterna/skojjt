@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
 from flask import Flask, make_response, redirect, render_template, request
 from dataimport import dofixsgroupids, dosettroopsemester, GetBackupXML, UpdateSchemas

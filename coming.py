@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, request
 
 coming_blueprint = Blueprint('coming', __name__, template_folder='templates')

@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import datetime
 
 # http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
