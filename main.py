@@ -64,7 +64,7 @@ def getaccess():
             mail.send_mail(sender=user.email,
             to=','.join(adminEmails),
             subject="Användren: " + user.getname() + " vill ha access.\nKår: " + scoutgroup_name,
-            body="""""")    
+            body="""""")
         return redirect('/')
     else:
         return render_template('getaccess.html',
@@ -118,7 +118,7 @@ def adminaccess(userprefs_url=None):
             userprefs.put()
         else:
             section_title = userprefs.getname()
-            baselink += userprefs_url + '/' 
+            baselink += userprefs_url + '/'
             breadcrumbs.append({'link':baselink, 'text':section_title})
             return render_template('userprefs.html',
                 heading=section_title,
@@ -337,7 +337,7 @@ def setcurrentsemester():
         u.put()
 
     return redirect('/admin/')
-    
+
 @app.route('/admin/autoGroupAccess')
 def autoGroupAccess():
     user = UserPrefs.current()

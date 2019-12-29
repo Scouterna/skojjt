@@ -19,7 +19,7 @@ def scoutgroupsummary(sgroup_url):
         semester = Semester.getOrCreateCurrent()
     else:
         semester = user.activeSemester.get()
-        
+
     sgroup_key = ndb.Key(urlsafe=sgroup_url)
     scoutgroup = sgroup_key.get()
     breadcrumbs = [{'link':'/', 'text':'Hem'}]

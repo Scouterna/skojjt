@@ -94,11 +94,11 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             if not user.isGroupAdmin():
                 return "", 403
             troop.delete()
-            troop = None    
+            troop = None
             del breadcrumbs[-1]
             baselink=breadcrumbs[-1]["link"]
         else:
-            form = htmlform.HtmlForm('deletetroop', submittext="Radera", buttonType="btn-danger", 
+            form = htmlform.HtmlForm('deletetroop', submittext="Radera", buttonType="btn-danger",
                 descriptionText=u"Vill du verkligen radera avdelningen och all registrerad närvaro?\nDet går här inte att ångra.")
             form.AddField('confirm', '', '', 'hidden')
             return render_template('form.html',
@@ -165,7 +165,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 except scoutnet.ScoutnetException as e:
                     return render_template('error.html', error=str(e))
             return redirect(breadcrumbs[-2]['link'])
-    
+
     if request.method == "GET" and len(request.args) > 0 and "action" in request.args:
         action = request.args["action"]
         logging.debug("action %s", action)
@@ -301,8 +301,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 
     # render main pages
     if scoutgroup == None:
-        return render_template('index.html', 
-            heading=section_title, 
+        return render_template('index.html',
+            heading=section_title,
             baselink=baselink,
             items=ScoutGroup.getgroupsforuser(user),
             breadcrumbs=breadcrumbs)
@@ -421,7 +421,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                             femaleLeadersAttendenceCount = maxLeaders / 2
                             maxLeaders -= femaleLeadersAttendenceCount
                             maleLeadersAttendenceCount = maxLeaders
-                        
+
                     sumFemaleLeadersAttendenceCount += femaleLeadersAttendenceCount
                     sumMaleLeadersAttendenceCount += maleLeadersAttendenceCount
 
@@ -438,14 +438,14 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 troop.put()
 
             dak.kort.NaervarokortNummer = str(troop.rapportID)
-            
+
             for tp in trooppersons:
                 p = personsDict[tp.person]
                 if tp.leader:
                     dak.kort.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
                 else:
                     dak.kort.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
-                
+
             for m in meetings:
                 sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
                 for tp in trooppersons:
@@ -456,7 +456,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                             sammankomst.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
                         else:
                             sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
-                
+
                 dak.kort.Sammankomster.append(sammankomst)
             if key_url == "excel":
                 excelReport = ExcelReport(dak, semester)
@@ -499,7 +499,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             for patrol in patrols:
                 sensuslista = sensus.SensusLista()
                 sensuslista.NamnPaaKort = troop.getname() + "/" + patrol
-                
+
                 for tp in trooppersons:
                     p = personsDict[tp.person]
                     if p.getpatrol() != patrol:
@@ -508,7 +508,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                         sensuslista.ledare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile))
                     else:
                         sensuslista.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False))
-                    
+
                 for m in meetings:
                     sammankomst = sensus.Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
                     for tp in trooppersons:
@@ -525,7 +525,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     sensuslista.Sammankomster.append(sammankomst)
 
                 sensusdata.listor.append(sensuslista)
-            
+
             result = render_template(
                         'sensusnarvaro.html',
                         sensusdata=sensusdata)

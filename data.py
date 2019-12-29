@@ -39,7 +39,7 @@ class Semester(ndb.Model):
         if year < 2016:
             raise ValueError("Invalid year %d" % year)
         return Semester(id=Semester.getid(year, ht), year=year, ht=ht)
-        
+
     @staticmethod
     def getOrCreateCurrent():
         thisdate = datetime.datetime.now()
@@ -67,7 +67,7 @@ class Semester(ndb.Model):
 
     def getname(self):
         return "%04d-%s" % (self.year, "ht" if self.ht else "vt")
-        
+
     def getMinDateStr(self):
         if self.ht:
             return "%04d-07-01" % (self.year)
@@ -112,7 +112,7 @@ class ScoutGroup(ndb.Model):
         if len(name) < 2:
             raise ValueError("Invalid name %s" % (name))
         return ScoutGroup(id=ScoutGroup.getid(name), name=name, scoutnetID=scoutnetID)
-    
+
     @staticmethod
     def getgroupsforuser(user):
         if user.hasadminaccess:
@@ -146,14 +146,14 @@ class Troop(ndb.Model):
     @staticmethod
     def create(name, troop_id, scoutgroup_key, semester_key):
         return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
-        
+
     @staticmethod
     def getTroopsForUser(sgroup_key, user):
         return Troop.query(Troop.scoutgroup==sgroup_key, user.activeSemester==Troop.semester_key).fetch()
 
     def getname(self):
         return self.name
-        
+
     def delete(self):
         for tp in TroopPerson.getTroopPersonsForTroop(self.key):
             tp.delete()
@@ -218,10 +218,10 @@ class Person(PropertyWriteTracker):
     @staticmethod
     def getIsFemale(personnummer):
         return False if int(personnummer[-2])&1 == 1 else True
-    
+
     def isFemale(self):
         return Person.getIsFemale(self.personnr)
-        
+
     def setpersonnr(self, pnr):
         self.personnr = pnr.replace('-', '')
         self.birthdate = Person.persnumbertodate(pnr)
@@ -244,7 +244,7 @@ class Person(PropertyWriteTracker):
 
     def getyearsoldthisyear(self, year):
         return year - self.birthdate.year
-    
+
     def isLeader(self):
         if self.troop_roles != None:
             if any(u'ledare' in role for role in self.troop_roles):
@@ -254,13 +254,13 @@ class Person(PropertyWriteTracker):
 
     def isBoardMember(self):
         return self.group_roles != None and len(self.group_roles) > 0
-        
+
     def getpatrol(self):
         return self.patrool # TODO: fix spelling error
 
     def getReportID(self):
-        """Returns a person ID that can be used in reports. 
-        It will prefer the scoutnet id if imported, else the old key id. 
+        """Returns a person ID that can be used in reports.
+        It will prefer the scoutnet id if imported, else the old key id.
         Eventually all persons will have scoutnet id set."""
         return str(self.member_no) if self.member_no is not None else str(self.key.id())
 
@@ -295,7 +295,7 @@ class Meeting(ndb.Model):
     @staticmethod
     def getId(meetingDatetime, troop_key):
         return meetingDatetime.strftime("%Y%m%d%H%M")+str(troop_key.id())
-        
+
     @staticmethod
     def getOrCreate(troop_key, name, datetime, duration, ishike):
         m = Meeting.get_by_id(Meeting.getId(datetime, troop_key), use_memcache=True)
