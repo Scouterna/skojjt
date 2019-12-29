@@ -52,6 +52,7 @@ class UTF8Recoder:
     def next(self):
         return self.reader.next().encode("utf-8")
 
+
 class reader:
     '''A CSV reader which will iterate over lines in the CSV file "f",
     from content in the optional encoding.
@@ -62,11 +63,11 @@ class reader:
         self.reader = csv.reader(f, dialect=dialect, **kwds)
 
     def value(self, s):
-	try: return int(s)
-	except: pass
-	try: return float(s)
-	except: pass
-	return unicode(s, "utf-8")
+    try: return int(s)
+    except: pass
+    try: return float(s)
+    except: pass
+    return unicode(s, "utf-8")
 
     def next(self):
         row = self.reader.next()
@@ -74,6 +75,7 @@ class reader:
 
     def __iter__(self):
         return self
+
 
 class writer:
     '''A CSV writer which will write rows to CSV file "f",
@@ -93,13 +95,14 @@ class writer:
         data = self.queue.getvalue()
         data = data.decode("utf-8")
         # ... and reencode it into the target encoding
-	self.encoder.write(data)
+    self.encoder.write(data)
         # empty queue
         self.queue.truncate(0)
 
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
+
 
 class DictReader:
     def __init__(self, f, fieldnames=None, restkey=None, restval=None,
@@ -133,6 +136,7 @@ class DictReader:
                 d[key] = self.restval
         return d
 
+
 class DictWriter:
     def __init__(self, f, fieldnames, restval="", extrasaction="raise",
                  dialect="excel", *args, **kwds):
@@ -144,7 +148,7 @@ class DictWriter:
                    extrasaction)
         self.extrasaction = extrasaction
         self.writer = writer(f, dialect, *args, **kwds)
-	self.writer.writerow(fieldnames)
+    self.writer.writerow(fieldnames)
 
     def _dict_to_list(self, rowdict):
         if self.extrasaction == "raise":

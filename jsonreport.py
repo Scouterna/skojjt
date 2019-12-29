@@ -59,7 +59,7 @@ class TestJsonReport(unittest.TestCase):
         stream = json_report.getReportString()
         #print(stream)
         data = json.loads(stream)
-        
+
         self.assertEqual(data[u'foereningsNamn'], u"Test Scoutkår")
         self.assertEqual(data[u'foreningsID'], u"1111")
         self.assertEqual(data[u'kort'][u'NamnPaaKort'], "Testavdelning")
