@@ -63,7 +63,7 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
             bidragcontainer = createLagerbidragGroup(limits, scoutgroup, troops, bidrag)
         else:
             bidragcontainer = createLagerbidrag(limits, scoutgroup, trooppersons, troop_key, bidrag)
-        
+
         if region == 'gbg':
             return response_gbg(bidragcontainer)
         elif region == 'sthlm':

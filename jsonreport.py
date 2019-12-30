@@ -47,7 +47,7 @@ class TestJsonReport(unittest.TestCase):
         dak.kort.deltagare.append(Deltagare("1235", "Bertil", "Bertilsson", "198501011234", False, "bertil@test.com", "12345678", u"Göteborg"))
         sammankomst = Sammankomst(u"123", datetime.date(2019, 1, 1), 180, u"Möte")
         sammankomst.ledare.append(dak.kort.ledare[0])
-        sammankomst.deltagare.append(dak.kort.deltagare[0])   
+        sammankomst.deltagare.append(dak.kort.deltagare[0])
         dak.kort.Sammankomster.append(sammankomst)
         return dak
 
@@ -59,7 +59,7 @@ class TestJsonReport(unittest.TestCase):
         stream = json_report.getReportString()
         #print(stream)
         data = json.loads(stream)
-        
+
         self.assertEqual(data[u'foereningsNamn'], u"Test Scoutkår")
         self.assertEqual(data[u'foreningsID'], u"1111")
         self.assertEqual(data[u'kort'][u'NamnPaaKort'], "Testavdelning")
