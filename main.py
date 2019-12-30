@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import datetime
+import logging
+import scoutnet
+import sys
 from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
 from flask import Flask, make_response, redirect, render_template, request
-from dataimport import dofixsgroupids, dosettroopsemester, GetBackupXML, UpdateSchemas
+from dataimport import dosettroopsemester, GetBackupXML, UpdateSchemas
 from imports import import_page, progress
 from google.appengine.api import mail, users
 from google.appengine.ext import ndb
@@ -9,10 +13,6 @@ from groupsummary import groupsummary
 from persons import persons
 from scoutgroupinfo import scoutgroupinfo
 from start import start
-import datetime
-import logging
-import scoutnet
-import sys
 
 app = Flask(__name__)
 app.debug = True
@@ -305,16 +305,6 @@ def settroopsemester():
 
     dosettroopsemester()
     return redirect('/admin/')
-
-@app.route('/admin/fixsgroupids/')
-def fixsgroupids():
-    user = UserPrefs.current()
-    if not user.isAdmin():
-        return "denied", 403
-
-    dofixsgroupids()
-    return redirect('/admin/')
-
 
 @app.route('/admin/updateschemas')
 def doupdateschemas():

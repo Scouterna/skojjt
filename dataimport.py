@@ -5,7 +5,6 @@ from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
 import logging
 import scoutnet
-import ucsv
 import urllib2
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
@@ -79,16 +78,6 @@ def GetBackupXML():
     return xml
 
 
-def GetOrgnrAndKommunIDForGroup(groupname):
-    groupname = groupname.lower()
-    with open('data/kommunid.csv', 'rb') as f:
-        reader = ucsv.DictReader(f, delimiter=',', quoting=ucsv.QUOTE_ALL, fieldnames=['namn', 'id', 'orgnr'])
-        for row in reader:
-            name = row['namn'].lower().strip("\"")
-            if name == groupname:
-                return str(row['id']), str(row['orgnr'])
-    return "", ""
-
 class ScoutnetImporter:
     commit = True
     rapportID = 1
@@ -136,7 +125,6 @@ class ScoutnetImporter:
             self.result.append(u"Ny kår %s, id=%s" % (name, str(scoutnetID)))
             group = ScoutGroup.create(name, scoutnetID)
             group.scoutnetID = scoutnetID
-            group.foreningsID, group.organisationsnummer = GetOrgnrAndKommunIDForGroup(name)
             if self.commit:
                 group.put()
 
@@ -274,16 +262,6 @@ def DeleteAllData():
     entries.extend(UserPrefs.query().fetch(keys_only=True))
     ndb.delete_multi(entries)
     ndb.get_context().clear_cache() # clear memcache
-
-
-def dofixsgroupids():
-    sgroups = ScoutGroup.query().fetch(1000)
-    for group in sgroups:
-        fid, orgnr = GetOrgnrAndKommunIDForGroup(group.getname())
-        if fid != "" and orgnr != "":
-            group.foreningsID = fid
-            group.organisationsnummer = orgnr
-            group.put()
 
 
 def dosettroopsemester():
