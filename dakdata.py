@@ -6,7 +6,7 @@ http://www.sverigesforeningssystem.se/dak-formatet/vad-ar-dak/
 """
 import datetime
 
-class Deltagare(object): # pylint: disable=wrong-import-position
+class Deltagare(object):
     def __init__(self, uid, foernamn, efternamn, personnummer, ledare, epost="", mobil_nr="", postnummer=""):
         self.uid = uid
         self.foernamn = foernamn
@@ -69,8 +69,7 @@ class Narvarokort(object):
     def __init__(self):
         self.deltagare = []
         self.ledare = []
-        # json export do not like the name sammankomster.
-        self.Sammankomster = [] # pylint: disable=invalid-name
+        self.sammankomster = []
         self.naervarokort_nummer = ""
         self.lokal = "Scouthuset"
         self.namn_paa_kort = ""

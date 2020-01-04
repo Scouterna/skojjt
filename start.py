@@ -457,7 +457,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                         else:
                             sammankomsten.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
 
-                dak.kort.Sammankomster.append(sammankomsten)
+                dak.kort.sammankomster.append(sammankomsten)
             if key_url == "excel":
                 excelReport = ExcelReport(dak, semester)
                 resultbytes = excelReport.getFilledInExcelSpreadsheet()

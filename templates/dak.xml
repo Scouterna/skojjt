@@ -7,7 +7,7 @@
 		    <Lokal>{{dak.kort.lokal}}</Lokal>
         <NamnPaaKort>{{dak.kort.namn_paa_kort}}</NamnPaaKort>
         <Sammankomster>
-		{% for sammankomst in dak.kort.Sammankomster %}
+		{% for sammankomst in dak.kort.sammankomster %}
           <Sammankomst Datum="{{sammankomst.get_date_string()}}" kod="{{sammankomst.kod}}">
             <StartTid>{{sammankomst.get_start_time_string()}}</StartTid>
             <StoppTid>{{sammankomst.get_stop_time_string()}}</StoppTid>
@@ -23,7 +23,7 @@
               </Deltagare>
 			  {% endfor %}
             </DeltagarLista>
-            <LedarLista> 
+            <LedarLista>
 			  {% for deltagare in sammankomst.ledare %}
               <Ledare id="{{deltagare.uid}}">
                 <Handikapp>false</Handikapp>

@@ -27,7 +27,7 @@ class ExcelReport:
         ledareCount = len(self.dak.kort.ledare)
         totalPersons = deltagareCount + ledareCount
 
-        for index, sammankomst in enumerate(self.dak.kort.Sammankomster):
+        for index, sammankomst in enumerate(self.dak.kort.sammankomster):
             aktivitetColumn = 11+index
             ws.cell(row=2, column=aktivitetColumn).value = sammankomst.aktivitet
             ws.cell(row=7, column=aktivitetColumn).value = sammankomst.get_start_time_string('%H')
