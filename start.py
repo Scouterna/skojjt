@@ -427,17 +427,17 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 
         if key_url == "dak" or key_url == "excel" or key_url == "json":
             dak = DakData()
-            dak.foereningsNamn = scoutgroup.getname()
-            dak.foreningsID = scoutgroup.foreningsID
+            dak.foerenings_namn = scoutgroup.getname()
+            dak.forenings_id = scoutgroup.foreningsID
             dak.organisationsnummer = scoutgroup.organisationsnummer
-            dak.kommunID = scoutgroup.kommunID
-            dak.kort.NamnPaaKort = troop.getname()
+            dak.kommun_id = scoutgroup.kommunID
+            dak.kort.namn_paa_kort = troop.getname()
             # hack generate an "unique" id, if there is none
             if troop.rapportID == None or troop.rapportID == 0:
                 troop.rapportID = random.randint(1000, 1000000)
                 troop.put()
 
-            dak.kort.NaervarokortNummer = str(troop.rapportID)
+            dak.kort.naervarokort_nummer = str(troop.rapportID)
 
             for tp in trooppersons:
                 p = personsDict[tp.person]
@@ -447,36 +447,36 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     dak.kort.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
 
             for m in meetings:
-                sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
+                sammankomsten = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
                 for tp in trooppersons:
                     isAttending = tp.person in m.attendingPersons
                     if isAttending:
                         p = personsDict[tp.person]
                         if tp.leader:
-                            sammankomst.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
+                            sammankomsten.ledare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), True, p.email, p.mobile, p.zip_code))
                         else:
-                            sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
+                            sammankomsten.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False, p.email, p.mobile, p.zip_code))
 
-                dak.kort.Sammankomster.append(sammankomst)
+                dak.kort.Sammankomster.append(sammankomsten)
             if key_url == "excel":
                 excelReport = ExcelReport(dak, semester)
                 resultbytes = excelReport.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') + '-' + semester.getname() + '.xlsx;'
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') + '-' + semester.getname() + '.xlsx;'
                 return response
             elif key_url == "json":
-                jsonReport = JsonReport(dak, semester)
-                resultbytes = jsonReport.getReportString()
+                jReport = JsonReport(dak, semester)
+                resultbytes = jReport.get_report_string()
                 response = make_response(resultbytes)
-                response.headers['Content-Type'] = jsonReport.getMimeType()
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(jsonReport.getFilename(), safe='') + ';'
+                response.headers['Content-Type'] = jReport.get_mime_type()
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(jReport.get_filename(), safe='') + ';'
                 return response
             else:
                 result = render_template('dak.xml', dak=dak)
                 response = make_response(result)
                 response.headers['Content-Type'] = 'application/xml'
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') + '-' + semester.getname() + '.xml;'
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') + '-' + semester.getname() + '.xml;'
                 return response
         elif key_url == "sensus":
             leaders = []
