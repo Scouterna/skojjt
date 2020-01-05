@@ -10,24 +10,37 @@ import os
 import json
 import unittest
 import datetime
+
+# Disable all import warnings since the imports are pretty hacky
+#pylint: disable=import-error,wrong-import-order,wrong-import-position
+sys.path.append('../lib') # add lib to path for unit-testing
+sys.path.append('..') # add parent to path for unit-testing
+sys.path.append('./lib') # add lib to path for unit-testing
+sys.path.append('.') # add current dir to path for unit-testing
 import xmlschema
 import jsonpickle
 from openpyxl import load_workbook
 from flask import Flask, render_template
-sys.path.append('../lib') # add lib to path for unit-testing
-sys.path.append('..') # add lib to path for unit-testing
-from jsonreport import JsonReport # pylint: disable=wrong-import-position
-from dakdata import DakData, Deltagare, Sammankomst # pylint: disable=wrong-import-position
+from jsonreport import JsonReport
+from dakdata import DakData, Deltagare, Sammankomst
 if platform.system() == 'Windows':
     # Add app engine paths on windows.
     sys.path.append("C:/Program Files (x86)/Google/google_appengine")
     sys.path.append("C:/Program Files (x86)/Google/google_appengine/lib")
     sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine/api")
     sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine")
-from google.appengine.ext import ndb # pylint: disable=wrong-import-position
-from google.appengine.ext import testbed # pylint: disable=wrong-import-position
-from excelreport import ExcelReport # pylint: disable=wrong-import-position
-from data import Semester # pylint: disable=wrong-import-position
+elif platform.system() == 'Darwin':  # i.e. MacOS
+    BASE = "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/"
+    sys.path.append(BASE + "platform/google_appengine/lib/fancy_urllib")
+    sys.path.append(BASE + "platform/google_appengine/lib")
+    sys.path.append(BASE + "platform/google_appengine/api")
+    sys.path.append(BASE + "platform/google_appengine")
+    sys.path.append(BASE + "lib/third_party")
+
+from google.appengine.ext import ndb
+from google.appengine.ext import testbed
+from excelreport import ExcelReport
+from data import Semester
 
 class XmlValidator(object):
     "XML validation"
