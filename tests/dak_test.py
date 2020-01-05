@@ -42,7 +42,8 @@ from google.appengine.ext import testbed
 from excelreport import ExcelReport
 from data import Semester
 
-class XmlValidator(object):
+
+class XmlValidator():
     "XML validation"
     def __init__(self, xsdPath):
         self.xmlschema = xmlschema.XMLSchema(xsdPath)
@@ -96,6 +97,7 @@ def create_flask_app(cfg=None):
     # app.config['DEBUG'] = True
     # app.config['SERVER_NAME'] = 'localhost'
     return app
+
 
 class TestJsonReport(unittest.TestCase):
     "DAK handling tests"
@@ -242,6 +244,7 @@ class TestJsonReport(unittest.TestCase):
         self.assertEqual(1, worksheets['M15'].value)
 
         os.remove(generated_path)
+
 
 if __name__ == '__main__':
     unittest.main()
