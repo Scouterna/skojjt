@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Aktivitetskort xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://aktivitetskort.net.umea.se/importSchema.xsd">
-  <Kommun kommunID="{{dak.kommunID}}" version="2.1">
-      <Foerening foereningsID="{{dak.foreningsID}}" foereningsNamn="{{dak.foereningsNamn}}" organisationsnummer="{{dak.organisationsnummer}}">
-      <Naervarokort NaervarokortNummer="{{dak.kort.NaervarokortNummer}}">
-        <Aktivitet>{{dak.kort.Aktivitet}}</Aktivitet>
-		<Lokal>{{dak.kort.Lokal}}</Lokal>
-        <NamnPaaKort>{{dak.kort.NamnPaaKort}}</NamnPaaKort>
+  <Kommun kommunID="{{dak.kommun_id}}" version="2.1">
+      <Foerening foereningsID="{{dak.forenings_id}}" foereningsNamn="{{dak.foerenings_namn}}" organisationsnummer="{{dak.organisationsnummer}}">
+      <Naervarokort NaervarokortNummer="{{dak.kort.naervarokort_nummer}}">
+        <Aktivitet>{{dak.kort.aktivitet}}</Aktivitet>
+		    <Lokal>{{dak.kort.lokal}}</Lokal>
+        <NamnPaaKort>{{dak.kort.namn_paa_kort}}</NamnPaaKort>
         <Sammankomster>
-		{% for sammankomst in dak.kort.Sammankomster %}
-          <Sammankomst Datum="{{sammankomst.GetDateString()}}" kod="{{sammankomst.kod}}">
-            <StartTid>{{sammankomst.GetStartTimeString()}}</StartTid>
-            <StoppTid>{{sammankomst.GetStopTimeString()}}</StoppTid>
-            <Aktivitet>{{sammankomst.Aktivitet}}</Aktivitet>
-			<Lokal>{{dak.kort.Lokal}}</Lokal>
-            <Typ>{{dak.kort.Aktivitet}}</Typ>
+		{% for sammankomst in dak.kort.sammankomster %}
+          <Sammankomst Datum="{{sammankomst.get_date_string()}}" kod="{{sammankomst.kod}}">
+            <StartTid>{{sammankomst.get_start_time_string()}}</StartTid>
+            <StoppTid>{{sammankomst.get_stop_time_string()}}</StoppTid>
+            <Aktivitet>{{sammankomst.aktivitet}}</Aktivitet>
+			      <Lokal>{{dak.kort.lokal}}</Lokal>
+            <Typ>{{dak.kort.aktivitet}}</Typ>
             <Metod>Add</Metod>
             <DeltagarLista>
 			  {% for deltagare in sammankomst.deltagare %}
-              <Deltagare id="{{deltagare.id}}">
+              <Deltagare id="{{deltagare.uid}}">
                 <Handikapp>false</Handikapp>
                 <Naervarande>true</Naervarande>
               </Deltagare>
 			  {% endfor %}
             </DeltagarLista>
-            <LedarLista> 
+            <LedarLista>
 			  {% for deltagare in sammankomst.ledare %}
-              <Ledare id="{{deltagare.id}}">
+              <Ledare id="{{deltagare.uid}}">
                 <Handikapp>false</Handikapp>
                 <Naervarande>true</Naervarande>
               </Ledare>
 			  {% endfor %}
-		    </LedarLista>
+		        </LedarLista>
           </Sammankomst>
 		{% endfor%}
         </Sammankomster>
@@ -39,21 +39,21 @@
   </Kommun>
   <DeltagarRegister>
   {% for deltagare in dak.kort.deltagare %}
-    <Deltagare id="{{deltagare.id}}">
-      <Foernamn>{{deltagare.Foernamn}}</Foernamn>
-      <Efternamn>{{deltagare.Efternamn}}</Efternamn>
-      <Personnummer>{{deltagare.Personnummer}}</Personnummer>
+    <Deltagare id="{{deltagare.uid}}">
+      <Foernamn>{{deltagare.foernamn}}</Foernamn>
+      <Efternamn>{{deltagare.efternamn}}</Efternamn>
+      <Personnummer>{{deltagare.personnummer}}</Personnummer>
     </Deltagare>
   {% endfor %}
   </DeltagarRegister>
   <LedarRegister>
    {% for deltagare in dak.kort.ledare %}
-    <Ledare id="{{deltagare.id}}">
-      <Foernamn>{{deltagare.Foernamn}}</Foernamn>
-      <Efternamn>{{deltagare.Efternamn}}</Efternamn>
-      <Personnummer>{{deltagare.Personnummer}}</Personnummer>
-      <Epost>{{deltagare.Epost}}</Epost>
-      <MobilNr>{{deltagare.MobilNr}}</MobilNr>
+    <Ledare id="{{deltagare.uid}}">
+      <Foernamn>{{deltagare.foernamn}}</Foernamn>
+      <Efternamn>{{deltagare.efternamn}}</Efternamn>
+      <Personnummer>{{deltagare.personnummer}}</Personnummer>
+      <Epost>{{deltagare.epost}}</Epost>
+      <MobilNr>{{deltagare.mobil_nr}}</MobilNr>
     </Ledare>
 	{% endfor %}
   </LedarRegister>

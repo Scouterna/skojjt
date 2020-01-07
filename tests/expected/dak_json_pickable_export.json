@@ -1,0 +1,160 @@
+{
+    "py/object": "dakdata.DakData", 
+    "foerenings_namn": "Test Scoutk\u00e5r", 
+    "organisationsnummer": "556677-8899", 
+    "forenings_id": "1111", 
+    "kommun_id": "0", 
+    "kort": {
+        "py/object": "dakdata.Narvarokort", 
+        "deltagare": [
+            {
+                "py/object": "dakdata.Deltagare", 
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200501011234", 
+                "uid": "1235", 
+                "ledare": false, 
+                "mobil_nr": "12345678", 
+                "foernamn": "Bertil", 
+                "efternamn": "Bertilsson", 
+                "epost": "bertil@test.com"
+            }, 
+            {
+                "py/object": "dakdata.Deltagare", 
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200601011244", 
+                "uid": "1236", 
+                "ledare": false, 
+                "mobil_nr": "12345679", 
+                "foernamn": "Ada", 
+                "efternamn": "Adasson", 
+                "epost": "ada@test.com"
+            }, 
+            {
+                "py/object": "dakdata.Deltagare", 
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200701011244", 
+                "uid": "1237", 
+                "ledare": false, 
+                "mobil_nr": "12345679", 
+                "foernamn": "Ceda", 
+                "efternamn": "Cedasson", 
+                "epost": "ada@test.com"
+            }
+        ], 
+        "ledare": [
+            {
+                "py/object": "dakdata.Deltagare", 
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "198501011234", 
+                "uid": "1234", 
+                "ledare": true, 
+                "mobil_nr": "12345678", 
+                "foernamn": "Adam", 
+                "efternamn": "Adamsson", 
+                "epost": "adam@test.com"
+            }
+        ], 
+        "namn_paa_kort": "Testavdelning", 
+        "naervarokort_nummer": "1", 
+        "lokal": "Scouthuset", 
+        "sammankomster": [
+            {
+                "py/object": "dakdata.Sammankomst", 
+                "deltagare": [
+                    {
+                        "py/id": 3
+                    }, 
+                    {
+                        "py/id": 4
+                    }, 
+                    {
+                        "py/id": 5
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "py/id": 7
+                    }
+                ], 
+                "datum": {
+                    "py/object": "datetime.datetime", 
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.datetime"
+                        }, 
+                        [
+                            "B+MBARIeAAAAAA=="
+                        ]
+                    ]
+                }, 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }, 
+            {
+                "py/object": "dakdata.Sammankomst", 
+                "deltagare": [
+                    {
+                        "py/id": 3
+                    }, 
+                    {
+                        "py/id": 4
+                    }, 
+                    {
+                        "py/id": 5
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "py/id": 7
+                    }
+                ], 
+                "datum": {
+                    "py/object": "datetime.datetime", 
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.datetime"
+                        }, 
+                        [
+                            "B+MBBxIeAAAAAA=="
+                        ]
+                    ]
+                }, 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }, 
+            {
+                "py/object": "dakdata.Sammankomst", 
+                "deltagare": [
+                    {
+                        "py/id": 3
+                    }, 
+                    {
+                        "py/id": 5
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "py/id": 7
+                    }
+                ], 
+                "datum": {
+                    "py/object": "datetime.datetime", 
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.datetime"
+                        }, 
+                        [
+                            "B+MBDhIeAAAAAA=="
+                        ]
+                    ]
+                }, 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }
+        ], 
+        "aktivitet": "Moete"
+    }
+}
