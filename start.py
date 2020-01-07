@@ -427,17 +427,17 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
 
         if key_url in ("dak", "excel", "json"):
             dak = DakData()
-            dak.foereningsNamn = scoutgroup.getname()
-            dak.foreningsID = scoutgroup.foreningsID
+            dak.foerenings_namn = scoutgroup.getname()
+            dak.forenings_id = scoutgroup.foreningsID
             dak.organisationsnummer = scoutgroup.organisationsnummer
-            dak.kommunID = scoutgroup.kommunID
-            dak.kort.NamnPaaKort = troop.getname()
+            dak.kommun_id = scoutgroup.kommunID
+            dak.kort.namn_paa_kort = troop.getname()
             # hack generate an "unique" id, if there is none
             if troop.rapportID is None or troop.rapportID == 0:
                 troop.rapportID = random.randint(1000, 1000000)
                 troop.put()
 
-            dak.kort.NaervarokortNummer = str(troop.rapportID)
+            dak.kort.naervarokort_nummer = str(troop.rapportID)
 
             for troop_person in troop_persons:
                 p = persons_dict[troop_person.person]
@@ -461,7 +461,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                             sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(),
                                                                    False, p.email, p.mobile, p.zip_code))
 
-                dak.kort.Sammankomster.append(sammankomst)
+                dak.kort.sammankomster.append(sammankomsten)
             if key_url == "excel":
                 excel_report = ExcelReport(dak, semester)
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()

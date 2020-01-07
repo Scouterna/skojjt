@@ -1,0 +1,198 @@
+{
+    "kort": {
+        "deltagare": [
+            {
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200501011234", 
+                "uid": "1235", 
+                "ledare": false, 
+                "mobil_nr": "12345678", 
+                "foernamn": "Bertil", 
+                "efternamn": "Bertilsson", 
+                "epost": "bertil@test.com"
+            }, 
+            {
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200601011244", 
+                "uid": "1236", 
+                "ledare": false, 
+                "mobil_nr": "12345679", 
+                "foernamn": "Ada", 
+                "efternamn": "Adasson", 
+                "epost": "ada@test.com"
+            }, 
+            {
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "200701011244", 
+                "uid": "1237", 
+                "ledare": false, 
+                "mobil_nr": "12345679", 
+                "foernamn": "Ceda", 
+                "efternamn": "Cedasson", 
+                "epost": "ada@test.com"
+            }
+        ], 
+        "ledare": [
+            {
+                "postnummer": "G\u00f6teborg", 
+                "personnummer": "198501011234", 
+                "uid": "1234", 
+                "ledare": true, 
+                "mobil_nr": "12345678", 
+                "foernamn": "Adam", 
+                "efternamn": "Adamsson", 
+                "epost": "adam@test.com"
+            }
+        ], 
+        "namn_paa_kort": "Testavdelning", 
+        "naervarokort_nummer": "1", 
+        "lokal": "Scouthuset", 
+        "sammankomster": [
+            {
+                "deltagare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200501011234", 
+                        "uid": "1235", 
+                        "ledare": false, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Bertil", 
+                        "efternamn": "Bertilsson", 
+                        "epost": "bertil@test.com"
+                    }, 
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200601011244", 
+                        "uid": "1236", 
+                        "ledare": false, 
+                        "mobil_nr": "12345679", 
+                        "foernamn": "Ada", 
+                        "efternamn": "Adasson", 
+                        "epost": "ada@test.com"
+                    }, 
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200701011244", 
+                        "uid": "1237", 
+                        "ledare": false, 
+                        "mobil_nr": "12345679", 
+                        "foernamn": "Ceda", 
+                        "efternamn": "Cedasson", 
+                        "epost": "ada@test.com"
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "198501011234", 
+                        "uid": "1234", 
+                        "ledare": true, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Adam", 
+                        "efternamn": "Adamsson", 
+                        "epost": "adam@test.com"
+                    }
+                ], 
+                "datum": "2019-01-01 18:30:00", 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }, 
+            {
+                "deltagare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200501011234", 
+                        "uid": "1235", 
+                        "ledare": false, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Bertil", 
+                        "efternamn": "Bertilsson", 
+                        "epost": "bertil@test.com"
+                    }, 
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200601011244", 
+                        "uid": "1236", 
+                        "ledare": false, 
+                        "mobil_nr": "12345679", 
+                        "foernamn": "Ada", 
+                        "efternamn": "Adasson", 
+                        "epost": "ada@test.com"
+                    }, 
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200701011244", 
+                        "uid": "1237", 
+                        "ledare": false, 
+                        "mobil_nr": "12345679", 
+                        "foernamn": "Ceda", 
+                        "efternamn": "Cedasson", 
+                        "epost": "ada@test.com"
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "198501011234", 
+                        "uid": "1234", 
+                        "ledare": true, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Adam", 
+                        "efternamn": "Adamsson", 
+                        "epost": "adam@test.com"
+                    }
+                ], 
+                "datum": "2019-01-07 18:30:00", 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }, 
+            {
+                "deltagare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200501011234", 
+                        "uid": "1235", 
+                        "ledare": false, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Bertil", 
+                        "efternamn": "Bertilsson", 
+                        "epost": "bertil@test.com"
+                    }, 
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "200701011244", 
+                        "uid": "1237", 
+                        "ledare": false, 
+                        "mobil_nr": "12345679", 
+                        "foernamn": "Ceda", 
+                        "efternamn": "Cedasson", 
+                        "epost": "ada@test.com"
+                    }
+                ], 
+                "ledare": [
+                    {
+                        "postnummer": "G\u00f6teborg", 
+                        "personnummer": "198501011234", 
+                        "uid": "1234", 
+                        "ledare": true, 
+                        "mobil_nr": "12345678", 
+                        "foernamn": "Adam", 
+                        "efternamn": "Adamsson", 
+                        "epost": "adam@test.com"
+                    }
+                ], 
+                "datum": "2019-01-14 18:30:00", 
+                "kod": "123", 
+                "duration": 90, 
+                "aktivitet": "M\u00f6te"
+            }
+        ], 
+        "aktivitet": "Moete"
+    }, 
+    "forenings_id": "1111", 
+    "kommun_id": "0", 
+    "foerenings_namn": "Test Scoutk\u00e5r", 
+    "organisationsnummer": "556677-8899"
+}

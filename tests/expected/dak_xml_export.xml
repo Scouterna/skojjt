@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Aktivitetskort xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://aktivitetskort.net.umea.se/importSchema.xsd">
+  <Kommun kommunID="0" version="2.1">
+      <Foerening foereningsID="1111" foereningsNamn="Test Scoutkår" organisationsnummer="556677-8899">
+      <Naervarokort NaervarokortNummer="1">
+        <Aktivitet>Moete</Aktivitet>
+		    <Lokal>Scouthuset</Lokal>
+        <NamnPaaKort>Testavdelning</NamnPaaKort>
+        <Sammankomster>
+		
+          <Sammankomst Datum="2019-01-01" kod="123">
+            <StartTid>18:30:00</StartTid>
+            <StoppTid>20:00:00</StoppTid>
+            <Aktivitet>Möte</Aktivitet>
+			      <Lokal>Scouthuset</Lokal>
+            <Typ>Moete</Typ>
+            <Metod>Add</Metod>
+            <DeltagarLista>
+			  
+              <Deltagare id="1235">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+              <Deltagare id="1236">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+              <Deltagare id="1237">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+            </DeltagarLista>
+            <LedarLista>
+			  
+              <Ledare id="1234">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Ledare>
+			  
+		        </LedarLista>
+          </Sammankomst>
+		
+          <Sammankomst Datum="2019-01-07" kod="123">
+            <StartTid>18:30:00</StartTid>
+            <StoppTid>20:00:00</StoppTid>
+            <Aktivitet>Möte</Aktivitet>
+			      <Lokal>Scouthuset</Lokal>
+            <Typ>Moete</Typ>
+            <Metod>Add</Metod>
+            <DeltagarLista>
+			  
+              <Deltagare id="1235">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+              <Deltagare id="1236">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+              <Deltagare id="1237">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+            </DeltagarLista>
+            <LedarLista>
+			  
+              <Ledare id="1234">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Ledare>
+			  
+		        </LedarLista>
+          </Sammankomst>
+		
+          <Sammankomst Datum="2019-01-14" kod="123">
+            <StartTid>18:30:00</StartTid>
+            <StoppTid>20:00:00</StoppTid>
+            <Aktivitet>Möte</Aktivitet>
+			      <Lokal>Scouthuset</Lokal>
+            <Typ>Moete</Typ>
+            <Metod>Add</Metod>
+            <DeltagarLista>
+			  
+              <Deltagare id="1235">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+              <Deltagare id="1237">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Deltagare>
+			  
+            </DeltagarLista>
+            <LedarLista>
+			  
+              <Ledare id="1234">
+                <Handikapp>false</Handikapp>
+                <Naervarande>true</Naervarande>
+              </Ledare>
+			  
+		        </LedarLista>
+          </Sammankomst>
+		
+        </Sammankomster>
+      </Naervarokort>
+    </Foerening>
+  </Kommun>
+  <DeltagarRegister>
+  
+    <Deltagare id="1235">
+      <Foernamn>Bertil</Foernamn>
+      <Efternamn>Bertilsson</Efternamn>
+      <Personnummer>200501011234</Personnummer>
+    </Deltagare>
+  
+    <Deltagare id="1236">
+      <Foernamn>Ada</Foernamn>
+      <Efternamn>Adasson</Efternamn>
+      <Personnummer>200601011244</Personnummer>
+    </Deltagare>
+  
+    <Deltagare id="1237">
+      <Foernamn>Ceda</Foernamn>
+      <Efternamn>Cedasson</Efternamn>
+      <Personnummer>200701011244</Personnummer>
+    </Deltagare>
+  
+  </DeltagarRegister>
+  <LedarRegister>
+   
+    <Ledare id="1234">
+      <Foernamn>Adam</Foernamn>
+      <Efternamn>Adamsson</Efternamn>
+      <Personnummer>198501011234</Personnummer>
+      <Epost>adam@test.com</Epost>
+      <MobilNr>12345678</MobilNr>
+    </Ledare>
+	
+  </LedarRegister>
+</Aktivitetskort>
