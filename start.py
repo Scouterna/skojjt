@@ -461,13 +461,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                             sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(),
                                                                    False, p.email, p.mobile, p.zip_code))
 
-                dak.kort.sammankomster.append(sammankomsten)
+                dak.kort.sammankomster.append(sammankomst)
             if key_url == "excel":
                 excel_report = ExcelReport(dak, semester)
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xlsx;')
                 return response
             elif key_url == "json":
@@ -481,7 +481,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 result = render_template('dak.xml', dak=dak)
                 response = make_response(result)
                 response.headers['Content-Type'] = 'application/xml'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xml;')
                 return response
         elif key_url == "sensus":
