@@ -472,10 +472,10 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 return response
             elif key_url == "json":
                 json_report = JsonReport(dak, semester)
-                resultbytes = json_report.getReportString()
+                resultbytes = json_report.get_report_string()
                 response = make_response(resultbytes)
-                response.headers['Content-Type'] = json_report.getMimeType()
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(json_report.getFilename(), safe='') + ';'
+                response.headers['Content-Type'] = json_report.get_mime_type()
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(json_report.get_filename(), safe='') + ';'
                 return response
             else:
                 result = render_template('dak.xml', dak=dak)
