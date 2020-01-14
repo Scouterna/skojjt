@@ -461,27 +461,27 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                             sammankomst.deltagare.append(Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(),
                                                                    False, p.email, p.mobile, p.zip_code))
 
-                dak.kort.sammankomster.append(sammankomsten)
+                dak.kort.sammankomster.append(sammankomst)
             if key_url == "excel":
                 excel_report = ExcelReport(dak, semester)
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xlsx;')
                 return response
             elif key_url == "json":
                 json_report = JsonReport(dak, semester)
-                resultbytes = json_report.getReportString()
+                resultbytes = json_report.get_report_string()
                 response = make_response(resultbytes)
-                response.headers['Content-Type'] = json_report.getMimeType()
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(json_report.getFilename(), safe='') + ';'
+                response.headers['Content-Type'] = json_report.get_mime_type()
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(json_report.get_filename(), safe='') + ';'
                 return response
             else:
                 result = render_template('dak.xml', dak=dak)
                 response = make_response(result)
                 response.headers['Content-Type'] = 'application/xml'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.NamnPaaKort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xml;')
                 return response
         elif key_url == "sensus":
