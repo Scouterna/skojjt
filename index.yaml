@@ -17,6 +17,17 @@ indexes:
 
 - kind: Meeting
   properties:
+  - name: attendingPersons
+  - name: ishike
+  - name: datetime
+
+- kind: Meeting
+  properties:
+  - name: ishike
+  - name: datetime
+
+- kind: Meeting
+  properties:
   - name: semester
   - name: troop
   - name: datetime
