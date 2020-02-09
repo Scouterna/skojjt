@@ -98,6 +98,8 @@ class ScoutGroup(ndb.Model):
     default_lagerplats = ndb.StringProperty(required=False, default="")
     firmatecknare = ndb.StringProperty(required=False, default="")
     firmatecknartelefon = ndb.StringProperty(required=False, default="")
+    attendance_min_year = ndb.IntegerProperty(required=False, default=15)
+    attendance_incl_hike = ndb.BooleanProperty(required=False, default=True)
 
     @staticmethod
     def getid(name):

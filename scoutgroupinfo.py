@@ -38,6 +38,8 @@ def show(sgroup_url):
         scoutgroup.default_lagerplats = request.form['lagerplats'].strip()
         scoutgroup.firmatecknare = request.form['firmatecknare'].strip()
         scoutgroup.firmatecknartelefon = request.form['firmatecknartelefon'].strip()
+        scoutgroup.attendance_min_year = request.form.get('attendance_min_year', type=int)
+        scoutgroup.attendance_incl_hike = request.form.get('attendance_incl_hike') == 'on'
         scoutgroup.put()
         if "import" in request.form:
             return startAsyncImport(scoutgroup.apikey_all_members, scoutgroup.scoutnetID, Semester.getOrCreateCurrent().key, user, request)
