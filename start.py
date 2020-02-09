@@ -13,6 +13,7 @@ import lagerbidrag
 import scoutnet
 import sensus
 from excelreport import ExcelReport
+from excelreport_sthlm import ExcelReportSthlm
 from jsonreport import JsonReport
 from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
 from dakdata import DakData, Deltagare, Sammankomst
@@ -321,7 +322,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
                                lagerplats=scoutgroup.default_lagerplats,
                                breadcrumbs=breadcrumbs)
-    elif key_url is not None and key_url not in ("dak", "sensus", "lagerbidrag", "excel", "json"):
+    elif key_url is not None and key_url not in ("dak", "sensus", "lagerbidrag", "excel", "excel_sthlm", "json"):
         meeting = ndb.Key(urlsafe=key_url).get()
         section_title = meeting.getname()
         baselink += key_url + "/"
@@ -425,7 +426,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     sum_female_leader_attendance_count += female_leader_attendence_count
                     sum_male_leader_attendance_count += male_leader_attendance_count
 
-        if key_url in ("dak", "excel", "json"):
+        if key_url in ("dak", "excel", "excel_sthlm", "json"):
             dak = DakData()
             dak.foerenings_namn = scoutgroup.getname()
             dak.forenings_id = scoutgroup.foreningsID
@@ -449,6 +450,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                                         False, p.email, p.mobile, p.zip_code))
 
             for m in meetings:
+                if (not scoutgroup.attendance_incl_hike) and m.ishike:
+                    continue
                 sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
                 for troop_person in troop_persons:
                     is_attending = troop_person.person in m.attendingPersons
@@ -462,8 +465,12 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                                                    False, p.email, p.mobile, p.zip_code))
 
                 dak.kort.sammankomster.append(sammankomst)
-            if key_url == "excel":
-                excel_report = ExcelReport(dak, semester)
+            if key_url in ("excel", "excel_sthlm"):
+                if key_url == "excel":
+                    excel_report = ExcelReport(dak, semester)
+                else:
+                    dak.kort.lokal = scoutgroup.default_lagerplats
+                    excel_report = ExcelReportSthlm(dak, semester)
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
