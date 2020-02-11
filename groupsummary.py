@@ -3,6 +3,7 @@ from data import Meeting, Person, Semester, UserPrefs
 from google.appengine.ext import ndb
 from flask import Blueprint, render_template
 import datetime
+import logging
 
 groupsummary = Blueprint('groupsummary_page', __name__, template_folder='templates')
 
@@ -57,18 +58,29 @@ def scoutgroupsummary(sgroup_url):
     to_date_time = datetime.datetime.strptime(str(semester.year) + "-12-31 00:00", "%Y-%m-%d %H:%M")
 
     emails = []
-    for person in Person.query(Person.scoutgroup==sgroup_key).fetch():
+    for nr, person in enumerate(Person.query(Person.scoutgroup==sgroup_key).fetch()):
         if person.member_years is None or semester.year not in person.member_years:
             continue
         if person.email is not None and len(person.email) != 0 and person.email not in emails:
             emails.append(person.email)
 
-        number_of_meetings = Meeting.query(Meeting.attendingPersons==person.key,
-                                           Meeting.datetime >= from_date_time,
-                                           Meeting.datetime <= to_date_time,
-                                           Meeting.ishike == scoutgroup.attendance_incl_hike).count()
-
         age = person.getyearsoldthisyear(year)
+
+        if scoutgroup.attendance_incl_hike:
+            number_of_meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                              Meeting.datetime >= from_date_time,
+                                              Meeting.datetime <= to_date_time).count()
+            if number_of_meetings > 0:
+                logging.info("Nr %d Person %s %s, age=%s, meetings=%d" % (nr, person.firstname, person.lastname, age, number_of_meetings))
+        else:
+           meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                    Meeting.datetime >= from_date_time,
+                                    Meeting.datetime <= to_date_time)
+           nr_all = meetings.count()
+           nr_hike_meetings = meetings.filter(Meeting.ishike == True).count()
+           number_of_meetings = nr_all - nr_hike_meetings
+           logging.info("Nr %d Person %s %s, age=%s, meetings=%d of %d" % (nr, person.firstname, person.lastname, age, number_of_meetings, nr_all))
+
         index = 0
         if 7 <= age <= 25:
             index = age-startage + 1
