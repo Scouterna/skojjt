@@ -2,7 +2,8 @@
 {% block main %}
 <h1>Föreningsredovisning år {{year}}</h1>
 <h2>Åldersfördelning</h2>
-Som bidragsberättigad medlem räknas den som deltagit i föreningens planerade aktiviteter vid minst 10 tillfällen under året.<br />
+Som bidragsberättigad medlem räknas den som deltagit i föreningens planerade aktiviteter vid minst {{min_nr_meetings}} tillfällen under året.<br />
+Lägerdagar är {% if not incl_hikes %} inte {%endif%} inkluderade.
 Inom parantes är totalt antal medlemmar i åldern.
 <div class="table-responsive">
 	<table class="table table-striped">

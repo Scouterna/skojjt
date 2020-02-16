@@ -63,9 +63,20 @@ def scoutgroupsummary(sgroup_url):
         if person.email is not None and len(person.email) != 0 and person.email not in emails:
             emails.append(person.email)
 
-        number_of_meetings = Meeting.query(Meeting.attendingPersons==person.key, Meeting.datetime >= from_date_time, Meeting.datetime <= to_date_time).count()
-
         age = person.getyearsoldthisyear(year)
+
+        if scoutgroup.attendance_incl_hike:
+            number_of_meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                              Meeting.datetime >= from_date_time,
+                                              Meeting.datetime <= to_date_time).count()
+        else:
+           meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                    Meeting.datetime >= from_date_time,
+                                    Meeting.datetime <= to_date_time)
+           nr_all = meetings.count()
+           nr_hike_meetings = meetings.filter(Meeting.ishike == True).count()
+           number_of_meetings = nr_all - nr_hike_meetings
+
         index = 0
         if 7 <= age <= 25:
             index = age-startage + 1
@@ -83,7 +94,7 @@ def scoutgroupsummary(sgroup_url):
             men += 1
             ages[index].men += 1
 
-        if number_of_meetings > 9:
+        if number_of_meetings >= scoutgroup.attendance_min_year:
             if person.isFemale():
                 womenMeetings += 1
                 ages[index].womenMeetings += 1
@@ -104,4 +115,7 @@ def scoutgroupsummary(sgroup_url):
                 leaders[index].men += 1
 
     ages.append(Item("Totalt", women, womenMeetings, men, menMeetings))
-    return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders, breadcrumbs=breadcrumbs, emails=emails, year=semester.year)
+    return render_template('groupsummary.html', ages=ages, boardmebers=boardmebers, leaders=leaders,
+                           breadcrumbs=breadcrumbs, emails=emails, year=semester.year,
+                           min_nr_meetings=str(scoutgroup.attendance_min_year),
+                           incl_hikes=scoutgroup.attendance_incl_hike)
