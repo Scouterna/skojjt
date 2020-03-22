@@ -70,7 +70,7 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
         - `source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.bash.inc`
 * Konfigurera GAE `gcloud init`
 * Kör lokal test-server och admin fönster:
-  + `dev_server.py app.yaml`
+  + `dev_appserver.py app.yaml`
   + `open http://localhost:8080`
 * Deploy projektet `skojjt-X`(ditt val av namn)
   + `gcloud app deploy index.yaml --project skojjt-X`
