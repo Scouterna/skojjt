@@ -1,44 +1,30 @@
 runtime: python38
+entrypoint: gunicorn -b :$PORT api:app
 
 default_expiration: "2h"
-entrypoint: main.app
 
 handlers:
 - url: /favicon.ico
-  static_files: img/favicon.ico
-  upload: img/favicon.ico
+  static_files: build/img/favicon.ico
+  upload: build/img/favicon.ico
 
 - url: /manifest.json
-  static_files: img/manifest.json
-  upload: img/manifest.json
+  static_files: manifest.json
+  upload: manifest.json
 
 - url: /css
-  static_dir: css
+  static_dir: build/css
 
 - url: /img
-  static_dir: img
-
-- url: /data
-  static_dir: data
+  static_dir: build/img
 
 - url: /js
-  static_dir: js
+  static_dir: build/js
 
-- url: /fonts
-  static_dir: fonts
-
-- url: /progress/.*
+- url: /
   script: auto
   secure: always
 
-- url: /tasks/.*
-  script: auto
-  secure: always
-  
-- url: /admin/.*
-  script: auto
-  secure: always
-  
-- url: .*  # This regex directs all routes to main.app
+- url: /api/
   script: auto
   secure: always
