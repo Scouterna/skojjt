@@ -4,6 +4,7 @@
 # in `lib/` subdirectory.
 #
 # Note: The `lib` directory is added to `sys.path` by `appengine_config.py`.
+gunicorn==20.0.4
 Flask==1.1.2
 openpyxl==3.0.3
 docx-mailmerge==0.5.0
