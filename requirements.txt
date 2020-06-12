@@ -4,8 +4,8 @@
 # in `lib/` subdirectory.
 #
 # Note: The `lib` directory is added to `sys.path` by `appengine_config.py`.
-Flask==1.0.4
-openpyxl==2.5.12
-docx-mailmerge==0.4.0
-lxml==4.4.0
-jsonpickle==1.2
+Flask==1.1.2
+openpyxl==3.0.3
+docx-mailmerge==0.5.0
+lxml==4.5.1
+jsonpickle==1.4.1

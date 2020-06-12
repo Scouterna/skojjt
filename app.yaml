@@ -1,18 +1,7 @@
-runtime: python27
-api_version: 1
-threadsafe: yes
+runtime: python38
 
 default_expiration: "2h"
-
-libraries:
-- name: ssl
-  version: latest
-- name: lxml
-  version: latest
-  
-builtins:
-- deferred: on
-- remote_api: on
+entrypoint: main.app
 
 handlers:
 - url: /favicon.ico
@@ -31,7 +20,6 @@ handlers:
 
 - url: /data
   static_dir: data
-  application_readable: true
 
 - url: /js
   static_dir: js
@@ -40,21 +28,17 @@ handlers:
   static_dir: fonts
 
 - url: /progress/.*
-  script: main.app
-  login: required
+  script: auto
   secure: always
 
 - url: /tasks/.*
-  script: main.app
-  login: admin
+  script: auto
   secure: always
   
 - url: /admin/.*
-  script: main.app
-  login: admin
+  script: auto
   secure: always
   
 - url: .*  # This regex directs all routes to main.app
-  script: main.app
-  login: required
+  script: auto
   secure: always
