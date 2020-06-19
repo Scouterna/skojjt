@@ -5,29 +5,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pingElement = document.getElementById("ping") as HTMLParagraphElement;
     const dbCheckElement = document.getElementById("dbcheck") as HTMLParagraphElement;
 
-    const fetchPromise = fetch("/ping");
+    const fetchJson = async (url: string, fetchOptions?: RequestInit) => {
+        const response = await fetch(url, fetchOptions);
+        if (!response.ok) {
+            throw response;
+        }
+        return await response.json();
+    };
+
+    const pingPromise = fetchJson("/ping");
     try {
-        await fetchPromise;
+        await pingPromise;
     } catch (e) {
         console.error(e);
-        pingElement.innerText = "Rest-API no respondse.";
+        pingElement.innerText = "Rest-API failed: " + (e.statusText || e);
         return;
     }
-    const response = await fetchPromise;
-    if(!response.ok) {
-        pingElement.innerText = "Rest-API bad response status.";
-        return;
-    }
-    const jsonPromise = response.json();
-    try {
-        await jsonPromise;
-    } catch (e) {
-        console.error(e);
-        pingElement.innerText = "Rest-API invalid response.";
-        return;
-    }
-    const json = await jsonPromise;
-    if(json.ping !== "pong") {
+    const ping = await pingPromise;
+    if (ping.ping !== "pong") {
         pingElement.innerText = "Rest-API bad response.";
         return;
     }
@@ -35,32 +30,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     pingElement.innerText = "Rest-API is working";
     dbCheckElement.innerText = "Testing db-connection?";
 
-    const fetchPromise2 = fetch("/api/dbtest");
+    const dbTestPromise = fetchJson("/api/dbtest");
     try {
-        await fetchPromise2;
+        await dbTestPromise;
     } catch (e) {
         console.error(e);
-        dbCheckElement.innerText = "DB-test no response";
+        dbCheckElement.innerText = "DB-test failed: " + (e.statusText || e);
         return;
     }
-    const response2 = await fetchPromise2;
-    if(!response2.ok) {
-        dbCheckElement.innerText = "DB-test bad response status.";
-        return;
-    }
-    const jsonPromise2 = response2.json();
-    try {
-        await jsonPromise2;
-    } catch (e) {
-        console.error(e);
-        dbCheckElement.innerText = "DB-test invalid response";
-        return;
-    }
-    const json2 = await jsonPromise2;
-    if(!json2.ok || isNaN(json2.count)) {
+    const dbTest = await dbTestPromise;
+    if (!dbTest.ok || isNaN(dbTest.count)) {
         dbCheckElement.innerText = "DB-test bad response";
         return;
     }
 
-    dbCheckElement.innerText = "Database connection is working, counter = " + json2.count + ".";
+    dbCheckElement.innerText = "Database connection is working, counter = " + dbTest.count + ".";
 });
