@@ -18,7 +18,10 @@ services:
     ports:
       - "80"
     environment:
-      MONGODB_URI: "mongodb://mongo:27017/"
+      MONGO_URI: "mongodb://%s:%s@mongo:27017/"
+      MONGO_DATABASE: narvaro
+      MONGO_USER: root
+      MONGO_PASSWORD: password
       JWT_URL: "https://beta.scoutid.se/jwt/jwt.php"
       JWT_KEY_NAME: "local"
 
