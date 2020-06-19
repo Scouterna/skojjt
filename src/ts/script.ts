@@ -57,10 +57,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     const json2 = await jsonPromise2;
-    if(json2.ping !== "pong") {
+    if(!json2.ok || isNaN(json2.count)) {
         dbCheckElement.innerText = "DB-test bad response";
         return;
     }
 
-    dbCheckElement.innerText = "Database connection is working.";
+    dbCheckElement.innerText = "Database connection is working, counter = " + json2.count + ".";
 });
