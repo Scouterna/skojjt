@@ -8,6 +8,7 @@ COPY config/requirements.txt /tmp/
 RUN pip install -U pip
 RUN pip install -r /tmp/requirements.txt
 
+COPY config/jwtkeys /etc/jwtkeys
 COPY app /app
 COPY build /static/build
 COPY src/html /static/src/html
