@@ -1,4 +1,5 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.8-alpine
+RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev
 COPY config/supervisord.ini /etc/supervisor.d/supervisord.ini
 COPY config/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
