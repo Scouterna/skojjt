@@ -18,12 +18,15 @@ services:
     ports:
       - "80"
     environment:
+      HOST_NAME: "localhost"
       MONGO_URI: "mongodb://%s:%s@mongo:27017/"
       MONGO_DATABASE: narvaro
       MONGO_USER: root
       MONGO_PASSWORD: password
       JWT_URL: "https://beta.scoutid.se/jwt/jwt.php"
       JWT_KEY_NAME: "local"
+      JWT_PUBLIC_KEY_FILE: "/etc/jwtkeys/jwt.beta.pub.key"
+      JWT_SOURCE_HOST: "www.scoutnet.se"
 
   narvarodb:
     image: mongo:4
