@@ -11,7 +11,7 @@ stages:
     jobs:
       - template: templates/build-service.job.yaml
         parameters:
-          serviceName: parameters.serviceName
+          serviceName: ${{ variables.serviceName }}
           subPath: ./
           stepsTemplate: build.yaml
   - stage: ${{ format('beta_deploy_{0}', variables.serviceName) }}
