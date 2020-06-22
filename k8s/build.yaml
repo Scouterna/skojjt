@@ -27,7 +27,7 @@ steps:
     condition: and(succeeded(), eq(variables.updated, 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/azure/test'))
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: 'k8s'
+      PathtoPublish: 'k8s/aks.yaml'
       ArtifactName: ${{ format('{0}-deploy', parameters.serviceName) }}
       publishLocation: 'Container'
     # TODO change refs/heads/azure/test to refs/heads/master when switching to master
