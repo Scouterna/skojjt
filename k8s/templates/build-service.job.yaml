@@ -15,7 +15,7 @@ jobs:
         parameters:
           serviceName: ${{ parameters.serviceName }}
           subPath: ${{ parameters.subPath }}
-      - template:  k8s/build.yaml
+      - template:  build.yaml
         parameters:
           serviceName: ${{ parameters.serviceName }}
       - template: tag-build.step.yaml

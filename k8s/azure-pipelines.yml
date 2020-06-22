@@ -4,8 +4,8 @@ pr:
   - azure/test # TODO change to master later
 
 jobs:
-  - template: k8s/templates/build-service.job.yaml
+  - template: templates/build-service.job.yaml
     parameters:
       serviceName: skojjt
       subPath: ./
-      stepsTemplate: k8s/build.yaml
+      stepsTemplate: build.yaml
