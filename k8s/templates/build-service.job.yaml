@@ -11,7 +11,7 @@ jobs:
     steps:
       - checkout: self
         persistCredentials: true
-      - template: check-update-status.step.yaml  
+      - template: check-update-status.step.yaml
         parameters:
           serviceName: ${{ parameters.serviceName }}
           subPath: ${{ parameters.subPath }}

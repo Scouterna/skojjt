@@ -7,6 +7,6 @@ steps:
     name: ${{ format('check_update_status_for_{0}', parameters.serviceName) }}
     displayName: ${{ format('Check if {0} is updated', parameters.serviceName) }}
     inputs:
-      scriptPath: scripts/check-update-status.sh
+      scriptPath: k8s/scripts/check-update-status.sh
       disableAutoCwd: true
       args: ${{ format('{0} {1}', parameters.serviceName, parameters.subPath) }}
