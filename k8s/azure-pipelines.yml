@@ -24,6 +24,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - script: echo Fake beta script
   - stage: ${{ format('tag_{0}', variables.serviceName) }}
     displayName: Github Tag version
@@ -35,6 +36,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - script: echo Fake tag script
   - stage: ${{ format('live_deploy_{0}', variables.serviceName) }}
     displayName: Deploy to Production
@@ -46,4 +48,5 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download:  ${{ format('{0}-deploy', variables.serviceName) }}
                 - script: echo Fake live-server script
