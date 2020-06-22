@@ -1,0 +1,24 @@
+parameters:
+  serviceName: ''
+  subPath: ''
+  stepsTemplate: ''
+
+jobs:
+  - job: ${{ format('build_{0}', parameters.serviceName) }}
+    displayName: ${{ format('Build {0}', parameters.serviceName) }}
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - checkout: self
+        persistCredentials: true
+      - template: check-update-status.step.yaml  
+        parameters:
+          serviceName: ${{ parameters.serviceName }}
+          subPath: ${{ parameters.subPath }}
+      - template:  k8s/build.yaml
+        parameters:
+          serviceName: ${{ parameters.serviceName }}
+      - template: tag-build.step.yaml
+        parameters:
+          serviceName: ${{ parameters.serviceName }}
+

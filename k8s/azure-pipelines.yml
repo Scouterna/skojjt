@@ -1,0 +1,11 @@
+trigger:
+  - azure/test # TODO change to master later
+pr:
+  - azure/test # TODO change to master later
+
+jobs:
+  - template: k8s/templates/build-service.job.yaml
+    parameters:
+      serviceName: skojjt
+      subPath: ./
+      stepsTemplate: k8s/build.yaml

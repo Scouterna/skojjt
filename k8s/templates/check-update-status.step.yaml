@@ -1,0 +1,12 @@
+parameters:
+  serviceName: ''
+  subPath: ''
+
+steps:
+  - task: ShellScript@2
+    name: ${{ format('check_update_status_for_{0}', parameters.serviceName) }}
+    displayName: ${{ format('Check if {0} is updated', parameters.serviceName) }}
+    inputs:
+      scriptPath: .azure-pipelines/scripts/check-update-status.sh
+      disableAutoCwd: true
+      args: ${{ format('{0} {1}', parameters.serviceName, parameters.subPath) }}

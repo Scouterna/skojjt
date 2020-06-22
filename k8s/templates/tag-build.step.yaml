@@ -1,0 +1,12 @@
+parameters:
+  serviceName: ''
+
+steps:
+  - bash: |
+      tag="build-$(echo $SERVICE | tr '[:upper:]' '[:lower:]')-$BUILD_BUILDID"
+      git tag "$tag"
+      git push --tags
+    displayName: ${{ format('Tag Build {0} of {1}', variables.Build.BuildId, parameters.serviceName) }}
+    condition: and(succeeded(), eq(variables.updated, 'true'))
+    env:
+      SERVICE: ${{ parameters.serviceName }} 
