@@ -24,7 +24,6 @@ services:
       MONGO_USER: root
       MONGO_PASSWORD: password
       JWT_URL: "https://beta.scoutid.se/jwt/jwt.php"
-      JWT_KEY_NAME: "local"
       JWT_PUBLIC_KEY_FILE: "/etc/jwtkeys/jwt.beta.pub.key"
       JWT_SOURCE_HOST: "www.scoutnet.se"
 
