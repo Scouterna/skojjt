@@ -14,7 +14,8 @@ stages:
           serviceName: parameters.serviceName
           subPath: ./
           stepsTemplate: build.yaml
-  - stage: Deploy to Beta
+  - stage: ${{ format('beta_deploy_{0}', variables.serviceName) }}
+    displayName: Deploy to Beta
     jobs:
       - deployment: ${{ format('beta_deploy_{0}', variables.serviceName) }}
         displayName: ${{ format('Beta Deploy {0}', variables.serviceName) }}
@@ -23,7 +24,8 @@ stages:
             deploy:
               steps:
                 - script: echo Fake beta script
-  - stage: Github Tag version
+  - stage: ${{ format('tag_{0}', variables.serviceName) }}
+    displayName: Github Tag version
     jobs:
       - deployment: ${{ format('tag_{0}', variables.serviceName) }}
         displayName: ${{ format('Tag {0} version', variables.serviceName) }}
@@ -32,7 +34,8 @@ stages:
             deploy:
               steps:
                 - script: echo Fake tag script
-  - stage: Deploy to Production
+  - stage: ${{ format('live_deploy_{0}', variables.serviceName) }}
+    displayName: Deploy to Production
     jobs:
       - deployment: ${{ format('deploy_{0}', variables.serviceName) }}
         displayName: ${{ format('Deploy {0}', variables.serviceName) }}
