@@ -1,0 +1,46 @@
+parameters:
+  serviceName: ''
+
+steps:
+  - bash: |
+      ${{ format('docker build . --tag scouterna.azurecr.io/{0}:{1}-{2}', parameters.serviceName, '$BUILD_SOURCEBRANCHNAME', '$BUILD_SOURCEVERSION') }}
+    displayName: ${{ format('Build {0} docker image', parameters.serviceName) }}
+    condition: succeeded()
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'acr'
+      repository: ${{ parameters.serviceName }}
+      command: 'push'
+      tags: '$(Build.SourceBranchName)-$(Build.SourceVersion)'
+    displayName: ${{ format('Push {0} docker image', parameters.serviceName) }}
+    condition: succeeded()
+  - bash: |
+      ${{ format(
+          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt@ > aks.yaml',
+          parameters.serviceName,
+          '$BUILD_SOURCEBRANCHNAME',
+          '$BUILD_SOURCEVERSION'
+      ) }}
+    workingDirectory: k8s
+    condition: succeeded()
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'k8s/aks.yaml'
+      ArtifactName: ${{ format('{0}-deploy', parameters.serviceName) }}
+      publishLocation: 'Container'
+    condition: succeeded()
+  - bash: |
+      ${{ format(
+          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt-staging@ > aks.staging.yaml',
+          parameters.serviceName,
+          '$BUILD_SOURCEBRANCHNAME',
+          '$BUILD_SOURCEVERSION'
+      ) }}
+    workingDirectory: k8s
+    condition: succeeded()
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'k8s/aks.staging.yaml'
+      ArtifactName: ${{ format('{0}-staging-deploy', parameters.serviceName) }}
+      publishLocation: 'Container'
+    condition: succeeded()

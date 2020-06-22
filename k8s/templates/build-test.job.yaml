@@ -1,0 +1,15 @@
+parameters:
+  serviceName: ''
+
+jobs:
+  - job: ${{ format('build_{0}', parameters.serviceName) }}
+    displayName: ${{ format('Build {0}', parameters.serviceName) }}
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - checkout: self
+        persistCredentials: true
+      - template:  ../build-test.yaml
+        parameters:
+          serviceName: ${{ parameters.serviceName }}
+

@@ -1,0 +1,80 @@
+trigger:
+  - azure/master
+pr: none
+
+variables:
+  serviceName: skojjt
+  BuildNumber: '$(Build.BuildNumber)'
+
+stages:
+  - stage: ${{ format('build_pipleine_{0}', variables.serviceName) }}
+    jobs:
+      - template: templates/build-service.job.yaml
+        parameters:
+          serviceName: ${{ variables.serviceName }}
+  - stage: ${{ format('beta_deploy_{0}', variables.serviceName) }}
+    displayName: Deploy to Beta
+    jobs:
+      - deployment: ${{ format('beta_deploy_{0}', variables.serviceName) }}
+        displayName: ${{ format('Beta Deploy {0}', variables.serviceName) }}
+        environment: skojjt-staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: ${{ format('{0}-staging-deploy', variables.serviceName) }}
+                - task: Kubernetes@1
+                  displayName: kubectl apply -n skojjt-staging -f aks.staging.yaml
+                  inputs:
+                    namespace: skojjt-staging
+                    command: apply
+                    arguments: -f $(Pipeline.Workspace)/skojjt-staging-deploy/aks.staging.yaml
+                    connectionType: Kubernetes Service Connection
+                    kubernetesServiceEndpoint: skojjt-staging
+
+  - stage: ${{ format('tag_{0}', variables.serviceName) }}
+    displayName: Github Tag version
+    jobs:
+      - deployment: ${{ format('tag_{0}', variables.serviceName) }}
+        displayName: ${{ format('Tag {0} version', variables.serviceName) }}
+        environment: skojjt
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - checkout: self
+                  persistCredentials: true
+                  clean: true
+                - bash: ${{ format( 'git tag {0} && git push origin {0}', variables.BuildNumber) }}
+                  displayName: ${{ format('Tag Build {0} of {1}', variables.BuildNumber, variables.serviceName) }}
+                - task: GitHubRelease@0
+                  inputs:
+                    gitHubConnection: github
+                    repositoryName: '$(Build.Repository.Name)'
+                    action: create
+                    target: '$(Build.SourceVersion)'
+                    tagSource: manual
+                    tag: '$(Build.BuildNumber)'
+
+  - stage: ${{ format('live_deploy_{0}', variables.serviceName) }}
+    displayName: Deploy to Production
+    jobs:
+      - deployment: ${{ format('deploy_{0}', variables.serviceName) }}
+        displayName: ${{ format('Deploy {0}', variables.serviceName) }}
+        environment: skojjt
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: ${{ format('{0}-deploy', variables.serviceName) }}
+                - task: Kubernetes@1
+                  displayName: kubectl apply -n skojjt -f aks.yaml
+                  inputs:
+                    namespace: skojjt
+                    command: apply
+                    arguments: -f $(Pipeline.Workspace)/skojjt-deploy/aks.yaml
+                    connectionType: Kubernetes Service Connection
+                    kubernetesServiceEndpoint: skojjt

@@ -1,3 +1,5 @@
 /docker-compose.yaml
+/k8s/aks.yaml
+/k8s/aks.staging.yaml
 /src/node_modules/
 __pycache__
