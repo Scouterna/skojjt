@@ -64,6 +64,6 @@ stages:
                     command: apply
                     arguments: -f skojjt-deploy/aks.yaml
                     connectionType: Azure Resource Manager
-                    azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-                    azureResourceGroup: $(azureResourceGroup)
-                    kubernetesCluster: $(kubernetesCluster)
+                    azureSubscriptionEndpoint: 'acr'
+                    azureResourceGroup: 'web'
+                    kubernetesCluster: 'webservices'
