@@ -19,6 +19,7 @@ stages:
     jobs:
       - deployment: ${{ format('beta_deploy_{0}', variables.serviceName) }}
         displayName: ${{ format('Beta Deploy {0}', variables.serviceName) }}
+        environment: skojjt-staging
         strategy:
           runOnce:
             deploy:
@@ -29,6 +30,7 @@ stages:
     jobs:
       - deployment: ${{ format('tag_{0}', variables.serviceName) }}
         displayName: ${{ format('Tag {0} version', variables.serviceName) }}
+        environment: skojjt
         strategy:
           runOnce:
             deploy:
@@ -39,6 +41,7 @@ stages:
     jobs:
       - deployment: ${{ format('deploy_{0}', variables.serviceName) }}
         displayName: ${{ format('Deploy {0}', variables.serviceName) }}
+        environment: skojjt
         strategy:
           runOnce:
             deploy:
