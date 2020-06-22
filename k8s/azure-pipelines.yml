@@ -3,18 +3,21 @@ trigger:
 pr:
   - azure/test # TODO change to master later
 
+variables:
+  serviceName: skojjt
+
 stages:
-  - stage: build_pipleine_skojjt
+  - stage: ${{ format('build_pipleine_{0}', variables.serviceName) }}
     jobs:
       - template: templates/build-service.job.yaml
         parameters:
-          serviceName: skojjt
+          serviceName: parameters.serviceName
           subPath: ./
           stepsTemplate: build.yaml
   - stage: Deploy to Beta
     jobs:
-      - deployment: ${{ format('beta_deploy_{0}', parameters.serviceName) }}
-        displayName: ${{ format('Beta Deploy {0}', parameters.serviceName) }}
+      - deployment: ${{ format('beta_deploy_{0}', variables.serviceName) }}
+        displayName: ${{ format('Beta Deploy {0}', variables.serviceName) }}
         strategy:
           runOnce:
             deploy:
@@ -22,8 +25,8 @@ stages:
                 - script: echo Fake beta script
   - stage: Github Tag version
     jobs:
-      - deployment: ${{ format('tag_{0}', parameters.serviceName) }}
-        displayName: ${{ format('Tag {0} version', parameters.serviceName) }}
+      - deployment: ${{ format('tag_{0}', variables.serviceName) }}
+        displayName: ${{ format('Tag {0} version', variables.serviceName) }}
         strategy:
           runOnce:
             deploy:
@@ -31,8 +34,8 @@ stages:
                 - script: echo Fake tag script
   - stage: Deploy to Production
     jobs:
-      - deployment: ${{ format('deploy_{0}', parameters.serviceName) }}
-        displayName: ${{ format('Deploy {0}', parameters.serviceName) }}
+      - deployment: ${{ format('deploy_{0}', variables.serviceName) }}
+        displayName: ${{ format('Deploy {0}', variables.serviceName) }}
         strategy:
           runOnce:
             deploy:
