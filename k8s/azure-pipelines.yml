@@ -9,3 +9,7 @@ jobs:
       serviceName: skojjt
       subPath: ./
       stepsTemplate: build.yaml
+  - template: templates/deploy-service.job.yaml
+    parameters:
+      serviceName: skojjt
+      stepsTemplate: build.yaml
