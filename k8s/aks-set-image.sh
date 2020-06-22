@@ -1,0 +1,3 @@
+sed aks.yaml.template \
+    -e "s@%IMAGE%@$PIPELINE_ACR/$SYSTEM_TEAMPROJECT:$BUILD_SOURCEBRANCHNAME.$BUILD_SOURCEVERSION@" \
+    > aks.yaml

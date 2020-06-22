@@ -1,3 +1,4 @@
 /docker-compose.yaml
+/k8s/aks.yaml
 /src/node_modules/
 __pycache__
