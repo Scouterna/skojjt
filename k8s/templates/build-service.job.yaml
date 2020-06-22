@@ -18,7 +18,4 @@ jobs:
       - template:  ../build.yaml
         parameters:
           serviceName: ${{ parameters.serviceName }}
-      - template: tag-build.step.yaml
-        parameters:
-          serviceName: ${{ parameters.serviceName }}
 
