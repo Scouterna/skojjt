@@ -1,38 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: narvaro
+  namespace: skojjt
   labels:
-    app: narvaro
-  name: narvaro
+    app: skojjt
+  name: skojjt
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: narvaro
+      app: skojjt
   template:
     metadata:
       labels:
-        app: narvaro
+        app: skojjt
     spec:
       containers:
-        - name: narvaro
+        - name: skojjt
           image: %IMAGE%
           env:
             - name: MONGO_URI
-              value: "mongodb://%s:%s@mongo:27017/"
+              value: "mongodb://%s:%s@skojjt.mongo.cosmos.azure.com:10255/"
             - name: MONGO_DATABASE
-              value: "narvaro"
+              value: "skojjt"
             - name: MONGO_USER
-              value: "root"
+              value: "skojjt"
             - name: MONGO_PASSWORD
-              value: "password"
+              valueFrom:
+                secretKeyRef:
+                  key: dbpass
+                  name: dbpass
             - name: HOST_NAME
-              value: "narvaro.webservices.scouterna.net"
+              value: "skojjt.webservices.scouterna.net"
             - name: JWT_URL
-              value: "https://beta.scoutid.se/jwt/jwt.php"
+              value: "https://scoutid.se/jwt/jwt.php"
             - name: JWT_PUBLIC_KEY_FILE
-              value: "/etc/jwtkeys/jwt.beta.pub.key"
+              value: "/etc/jwtkeys/jwt.live.pub.key"
             - name: JWT_SOURCE_HOST
               value: "www.scoutnet.se"
           ports:
@@ -42,38 +45,38 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: narvaro
-  name: narvaro
+  namespace: skojjt
+  name: skojjt
 spec:
   ports:
     - port: 80
       protocol: TCP
       targetPort: 80
   selector:
-    app: narvaro
+    app: skojjt
 ---
 # This Ingress definition will cause cert-manager to automatically request
 # a certificate from Let's Encrypt for the specified hostname.
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  namespace: narvaro
-  name: narvaro
+  namespace: skojjt
+  name: skojjt
   annotations:
     kubernetes.io/tls-acme: "true"
     certmanager.k8s.io/cluster-issuer: letsencrypt-prod
 spec:
   tls:
-    - secretName: narvaro-webservices-scouterna-net
+    - secretName: skojjt-webservices-scouterna-net
       hosts:
-        - narvaro.webservices.scouterna.net
+        - skojjt.webservices.scouterna.net
   rules:
-    - host: narvaro.webservices.scouterna.net
+    - host: skojjt.webservices.scouterna.net
       http:
         paths:
           - path: /
             backend:
-              serviceName: narvaro
+              serviceName: skojjt
               servicePort: 80
 ---
 # This KongIngress definition (with the same name as the Ingress above)
@@ -82,8 +85,8 @@ spec:
 apiVersion: configuration.konghq.com/v1
 kind: KongIngress
 metadata:
-  namespace: narvaro
-  name: narvaro
+  namespace: skojjt
+  name: skojjt
 route:
   protocols:
     - https
