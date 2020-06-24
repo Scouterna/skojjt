@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: skojjt
+  namespace: %NAMESPACE%
   labels:
     app: skojjt
   name: skojjt
@@ -22,7 +22,7 @@ spec:
             - name: MONGO_URI
               value: "mongodb://%s:%s@skojjt.mongo.cosmos.azure.com:10255/"
             - name: MONGO_DATABASE
-              value: "skojjt"
+              value: "%NAMESPACE%"
             - name: MONGO_USER
               value: "skojjt"
             - name: MONGO_PASSWORD
@@ -45,7 +45,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: skojjt
+  namespace: %NAMESPACE%
   name: skojjt
 spec:
   ports:
@@ -60,7 +60,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  namespace: skojjt
+  namespace: %NAMESPACE%
   name: skojjt
   annotations:
     kubernetes.io/tls-acme: "true"
@@ -85,7 +85,7 @@ spec:
 apiVersion: configuration.konghq.com/v1
 kind: KongIngress
 metadata:
-  namespace: skojjt
+  namespace: %NAMESPACE%
   name: skojjt
 route:
   protocols:

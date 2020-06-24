@@ -17,7 +17,7 @@ steps:
     condition: and(succeeded(), eq(variables.updated, 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/azure/test'))
   - bash: |
       ${{ format(
-          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ > aks.yaml',
+          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt@ > aks.yaml',
           parameters.serviceName,
           '$BUILD_SOURCEBRANCHNAME',
           '$BUILD_SOURCEVERSION'
@@ -29,6 +29,23 @@ steps:
     inputs:
       PathtoPublish: 'k8s/aks.yaml'
       ArtifactName: ${{ format('{0}-deploy', parameters.serviceName) }}
+      publishLocation: 'Container'
+    # TODO change refs/heads/azure/test to refs/heads/master when switching to master
+    condition: and(succeeded(), eq(variables.updated, 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/azure/test'))
+  - bash: |
+      ${{ format(
+          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt@ > aks.staging.yaml',
+          parameters.serviceName,
+          '$BUILD_SOURCEBRANCHNAME',
+          '$BUILD_SOURCEVERSION'
+      ) }}
+    workingDirectory: k8s
+    # TODO change refs/heads/azure/test to refs/heads/master when switching to master
+    condition: and(succeeded(), eq(variables.updated, 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/azure/test'))
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'k8s/aks.staging.yaml'
+      ArtifactName: ${{ format('{0}-staging-deploy', parameters.serviceName) }}
       publishLocation: 'Container'
     # TODO change refs/heads/azure/test to refs/heads/master when switching to master
     condition: and(succeeded(), eq(variables.updated, 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/azure/test'))
