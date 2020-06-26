@@ -31,7 +31,7 @@ steps:
     condition: succeeded()
   - bash: |
       ${{ format(
-          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt@ > aks.staging.yaml',
+          'sed aks.yaml.template -e s@%IMAGE%@scouterna.azurecr.io/{0}:{1}-{2}@ -e s@%NAMESPACE%@skojjt-staging@ > aks.staging.yaml',
           parameters.serviceName,
           '$BUILD_SOURCEBRANCHNAME',
           '$BUILD_SOURCEVERSION'
