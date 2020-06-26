@@ -21,8 +21,16 @@ stages:
             deploy:
               steps:
                 - download: current
-                  artifact: ${{ format('{0}-deploy', variables.serviceName) }}
-                - script: echo Fake beta script
+                  artifact: ${{ format('{0}-staging-deploy', variables.serviceName) }}
+                - task: Kubernetes@1
+                  displayName: kubectl apply -n skojjt-staging -f aks.staging.yaml
+                  inputs:
+                    namespace: skojjt-staging
+                    command: apply
+                    arguments: -f skojjt-staging-deploy/aks.staging.yaml
+                    connectionType: Kubernetes Service Connection
+                    kubernetesServiceEndpoint: skojjt-staging
+
   - stage: ${{ format('tag_{0}', variables.serviceName) }}
     displayName: Github Tag version
     jobs:
@@ -40,7 +48,9 @@ stages:
                     repositoryName: '$(Build.Repository.Name)'
                     action: create
                     target: '$(Build.SourceVersion)'
-                    tagSource: 'auto'
+                    tagSource: manual
+                    tag: $(Build.BuildNumber)
+
   - stage: ${{ format('live_deploy_{0}', variables.serviceName) }}
     displayName: Deploy to Production
     jobs:
@@ -59,7 +69,5 @@ stages:
                     namespace: skojjt
                     command: apply
                     arguments: -f skojjt-deploy/aks.yaml
-                    connectionType: Azure Resource Manager
-                    azureSubscriptionEndpoint: 'arm'
-                    azureResourceGroup: 'web'
-                    kubernetesCluster: 'webservices'
+                    connectionType: Kubernetes Service Connection
+                    kubernetesServiceEndpoint: skojjt
