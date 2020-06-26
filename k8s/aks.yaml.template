@@ -20,7 +20,7 @@ spec:
           image: %IMAGE%
           env:
             - name: MONGO_URI
-              value: "mongodb://%s:%s@skojjt.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@skojjt@"
+              value: "mongodb://%s:%s@skojjt.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@skojjt@"
             - name: MONGO_DATABASE
               value: "%NAMESPACE%"
             - name: MONGO_USER
