@@ -4,6 +4,7 @@ pr: none
 
 variables:
   serviceName: skojjt
+  BuildNumber: '$(Build.BuildNumber)'
 
 stages:
   - stage: ${{ format('build_pipleine_{0}', variables.serviceName) }}
@@ -44,8 +45,8 @@ stages:
               steps:
                 - download: none
                 - checkout: self
-                - bash: ${{ format( 'git tag {0} && git push origin {0}', $(Build.BuildNumber)) }}
-                  displayName: ${{ format('Tag Build {0} of {1}', $(Build.BuildNumber), variables.serviceName) }}
+                - bash: ${{ format( 'git tag {0} && git push origin {0}', variables.BuildNumber) }}
+                  displayName: ${{ format('Tag Build {0} of {1}', variables.BuildNumber, variables.serviceName) }}
                 - task: GitHubRelease@0
                   inputs:
                     gitHubConnection: github
