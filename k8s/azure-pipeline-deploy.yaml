@@ -43,8 +43,8 @@ stages:
             deploy:
               steps:
                 - download: none
-                - bash: ${{ format( 'git tag {0} && git push origin {0}', Build.BuildNumber) }}
-                  displayName: ${{ format('Tag Build {0} of {1}', Build.BuildNumber, parameters.serviceName) }}
+                - bash: ${{ format( 'git tag {0} && git push origin {0}', variables['Build.BuildNumber']) }}
+                  displayName: ${{ format('Tag Build {0} of {1}', variables['Build.BuildNumber'], parameters.serviceName) }}
                 - task: GitHubRelease@0
                   inputs:
                     gitHubConnection: github
