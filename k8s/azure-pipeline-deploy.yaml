@@ -43,6 +43,10 @@ stages:
             deploy:
               steps:
                 - download: none
+                - bash: |
+                    git tag $(Build.BuildNumber)
+                    git push origin $(Build.BuildNumber)
+                  displayName: ${{ format('Tag Build {0} of {1}', Build.BuildNumber, parameters.serviceName) }}
                 - task: GitHubRelease@0
                   inputs:
                     gitHubConnection: github
@@ -50,7 +54,7 @@ stages:
                     action: create
                     target: '$(Build.SourceVersion)'
                     tagSource: manual
-                    tag: $(Build.BuildNumber)
+                    tag: '$(Build.BuildNumber)'
 
   - stage: ${{ format('live_deploy_{0}', variables.serviceName) }}
     displayName: Deploy to Production
