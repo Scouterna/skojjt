@@ -1,5 +1,6 @@
 trigger:
   - azure/master
+pr: none
 
 variables:
   serviceName: skojjt
