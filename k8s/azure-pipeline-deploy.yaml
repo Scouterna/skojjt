@@ -27,7 +27,7 @@ stages:
                   inputs:
                     namespace: skojjt-staging
                     command: apply
-                    arguments: -f skojjt-staging-deploy/aks.staging.yaml
+                    arguments: -f $(Pipeline.Workspace)/skojjt-staging-deploy/aks.staging.yaml
                     connectionType: Kubernetes Service Connection
                     kubernetesServiceEndpoint: skojjt-staging
 
@@ -68,6 +68,6 @@ stages:
                   inputs:
                     namespace: skojjt
                     command: apply
-                    arguments: -f skojjt-deploy/aks.yaml
+                    arguments: -f $(Pipeline.Workspace)/skojjt-deploy/aks.yaml
                     connectionType: Kubernetes Service Connection
                     kubernetesServiceEndpoint: skojjt
