@@ -1,0 +1,8 @@
+parameters:
+  serviceName: ''
+
+steps:
+  - bash: |
+      ${{ format('docker build . --tag scouterna.azurecr.io/{0}:{1}-{2}', parameters.serviceName, '$BUILD_SOURCEBRANCHNAME', '$BUILD_SOURCEVERSION') }}
+    displayName: ${{ format('Build {0} docker image', parameters.serviceName) }}
+    condition: succeeded()

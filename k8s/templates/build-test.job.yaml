@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout: self
         persistCredentials: true
-      - template:  ../build-deploy.yaml
+      - template:  ../build-test.yaml
         parameters:
           serviceName: ${{ parameters.serviceName }}
 

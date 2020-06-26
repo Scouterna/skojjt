@@ -1,0 +1,12 @@
+pr:
+  - azure/master
+
+variables:
+  serviceName: skojjt
+
+stages:
+  - stage: ${{ format('build_pipleine_{0}', variables.serviceName) }}
+    jobs:
+      - template: templates/build-test.job.yaml
+        parameters:
+          serviceName: ${{ variables.serviceName }}
