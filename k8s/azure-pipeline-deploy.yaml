@@ -45,6 +45,8 @@ stages:
               steps:
                 - download: none
                 - checkout: self
+                  persistCredentials: true
+                  clean: true
                 - bash: ${{ format( 'git tag {0} && git push origin {0}', variables.BuildNumber) }}
                   displayName: ${{ format('Tag Build {0} of {1}', variables.BuildNumber, variables.serviceName) }}
                 - task: GitHubRelease@0
