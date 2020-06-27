@@ -45,3 +45,6 @@ class Auth:
 
         if user_source != os.getenv('JWT_SOURCE_HOST'):
             raise InvalidTokenError('Payload have bad sub-field')
+
+    def is_admin(self):
+        return "roles" in self.payload and "organisation:692:scoutid_admin" in self.payload["roles"]
