@@ -6,6 +6,15 @@ from init import api
 
 
 class XOrigin(Resource):
+    @staticmethod
+    def error(msg, data=None):
+        return {
+                   "user": False,
+                   "admin": False,
+                   "data": data,
+                   "error": msg
+               }
+
     def add_cors_headers(self, response):
         if 'origin' in request.headers:
             response.headers['Access-Control-Allow-Origin'] = request.headers['origin']

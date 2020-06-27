@@ -5,15 +5,6 @@ from auth.XOrigin import XOrigin
 
 
 class VerifyToken(XOrigin):
-    @staticmethod
-    def error(msg, data=None):
-        return {
-                   "user": False,
-                   "admin": False,
-                   "data": data,
-                   "error": msg
-               }
-
     # fetch("/api/jwt/verify_token", {headers: {Authorization: 'Bearer ' + localStorage.getItem('ScoutID-JWT-Token')}})
     def get(self):
         if "Authorization" not in request.headers:
