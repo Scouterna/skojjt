@@ -1,4 +1,4 @@
 flask
 flask_restful
-pymongo[tls]
 pyjwt[crypto]
+pymongo[tls]
