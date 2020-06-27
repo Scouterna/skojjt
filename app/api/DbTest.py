@@ -1,14 +1,13 @@
-import os
-import pymongo
 from flask_restful import Resource
+from db import db, db_error
 
 
 class DbTest(Resource):
     def get(self):
+        if db is None:
+            return {"ok": False, "error": str(db_error)}
         try:
-            authed_uri = os.getenv("MONGO_URI") % (os.getenv("MONGO_USER"), os.getenv("MONGO_PASSWORD"))
-            client = pymongo.MongoClient(authed_uri)
-            testdb = client["test"]["test"]
+            testdb = db["test"]
             query = {"id": "test"}
             row = testdb.find_one(query)
             if row is None:
