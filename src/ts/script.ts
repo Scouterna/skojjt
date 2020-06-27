@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const whoamiElement = document.getElementById("whoami") as HTMLInputElement;
     const whoamiErrorTest = 'Inte inloggad';
     const apiBaseUrl = location.origin + '/api/';
+    let config = null;
     let isLoggedIn = false;
 
     const fetchJson = async (url: string, fetchOptions?: RequestInit) => {
@@ -98,7 +99,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         if (!isLoggedIn) {
-            let jwtPromise = fetchJson("https://beta.scoutid.se/jwt/jwt.php", {credentials: 'include'});
+            if(!config) {
+                console.error('Loggin failed, as no config was received');
+                return false;
+            }
+            if(!config.jwturl) {
+                console.error('Loggin failed, as there is no jwturl in the received config');
+                return false;
+            }
+            let jwtPromise = fetchJson(config.jwturl, {credentials: 'include'});
             try {
                 await jwtPromise;
             } catch (e) {
@@ -196,6 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        config = await fetchJson("/api/config");
         await login(false);
         await navigate();
     })();
