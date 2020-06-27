@@ -1,12 +1,8 @@
-from flask import Flask, redirect
-from flask_restful import Resource, Api
-
+from flask import redirect
+from init import app, api
 from api.Config import ConfigResource
 from api.DbTest import DbTest
 from api.jwt.VerifyToken import VerifyToken
-
-app = Flask(__name__)
-api = Api(app)
 
 api.add_resource(ConfigResource, '/api/config')
 api.add_resource(DbTest, '/api/dbtest')
