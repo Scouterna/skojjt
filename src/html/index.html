@@ -2,21 +2,34 @@
 <html lang="sv">
     <head>
         <meta charset="UTF-8"/>
-        <title>Scout Närvaro</title>
+        <title>Skojjt</title>
         <link rel="stylesheet" href="/style.css"/>
         <script defer nomodule src="/es5.js"></script>
         <script defer type="module" src="/es6.js"></script>
     </head>
-    <body>
-        <h1><img alt="Scout Närvaro" src="/logo.png"/></h1>
-        <p id="ping">Ping?</p>
-        <p id="dbcheck"></p>
-        <p id="whoami">Inte inloggad</p>
-        <form id="login">
-            <fieldset>
-                <legend>Login</legend>
-                <input type="submit" value="Login" />
-            </fieldset>
-        </form>
+    <body class="guest">
+        <main>
+            <section>
+                <header>
+                    <h1><a href="/"><img alt="Skojjt" src="/logo.png"/></a></h1>
+                </header>
+                <article>
+                    <h2 id="whoami">Inte inloggad</h2>
+                    <nav class="guest_only">
+                        <a href="#!/login" id="login-button">Logga in med ScoutID</a>
+                    </nav>
+                </article>
+                <article class="user_only">
+                    <nav>
+                        <a href="#!/logout">Logga ut</a>
+                    </nav>
+                </article>
+            </section>
+        </main>
+        <nav class="navbar" role="navigation">
+            <ol class="breadcrumb">
+                <li><a href="/">Hem</a></li>
+            </ol>
+        </nav>
     </body>
 </html>

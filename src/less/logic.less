@@ -1,0 +1,17 @@
+body {
+  &:not(.guest) {
+    .guest_only {
+      display: none;
+    }
+  }
+  &:not(.admin) {
+    .admin_only {
+      display: none;
+    }
+  }
+  &.guest {
+    .user_only {
+      display: none;
+    }
+  }
+}
