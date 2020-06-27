@@ -29,3 +29,11 @@ class RequireUser(XOrigin):
             return self.exception(e)
 
         return super().dispatch_request(*args, **kwargs)
+
+    def require_kar_admin(self, kar_id):
+        if not self.auth.has_kar_admin_access(kar_id):
+            raise werkzeug.exceptions.Forbidden("You are not admin for this group(kår)")
+
+    def require_kar_access(self, kar_id):
+        if not self.auth.has_kar_access(kar_id):
+            raise werkzeug.exceptions.Forbidden("You don't have access for this group(kår)")

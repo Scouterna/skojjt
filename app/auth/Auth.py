@@ -47,4 +47,43 @@ class Auth:
             raise InvalidTokenError('Payload have bad sub-field')
 
     def is_admin(self):
-        return "roles" in self.payload and "organisation:692:scoutid_admin" in self.payload["roles"]
+        return 'roles' in self.payload and 'organisation:692:scoutid_admin' in self.payload['roles']
+
+    def has_kar_admin_access(self, kar_id):
+        if self.is_admin():
+            return True
+
+        if kar_id not in self.payload.karer:
+            return False
+
+        # group-leader = Kårordförande
+        admin_roller = ['member_registrar', 'it_manager', 'leader', 'treasurer']
+
+        for roll in admin_roller:
+            if 'group:' + kar_id + ':' + roll in self.payload.roles:
+                return True
+
+        return False
+
+    def has_kar_access(self, kar_id):
+        if self.is_admin():
+            return True
+
+        if kar_id not in self.payload.karer:
+            return False
+
+        # TODO load kår config, support different auth models
+        if 'group:' + kar_id + ':*' in self.payload.roles:
+            return True
+
+        if 'troop:*:leader' not in self.payload.roles:
+            return False
+
+        # TODO get troups by kar
+        troops = []
+
+        for troop in troops:
+            if 'troop:' + troop + ':leader' in self.payload.roles:
+                return True
+
+        return False
