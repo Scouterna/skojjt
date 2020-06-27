@@ -1,9 +1,36 @@
 from auth.RequireUser import RequireUser
+from db import db
 
 
 class VerifyToken(RequireUser):
     # fetch("/api/jwt/verify_token", {headers: {Authorization: 'Bearer ' + localStorage.getItem('ScoutID-JWT-Token')}})
     def get(self):
+        if db is not None:
+            if self.auth.user_id:
+                query = {'_id': self.auth.user_id}
+                new_row = {
+                    '_id': self.auth.user_id,
+                    'name': self.auth.payload['name'],
+                    'roles': self.auth.payload['roles']
+                }
+                old_row = db['user_names'].find_one(query)
+                if old_row is None:
+                    db['user_names'].insert(new_row)
+                else:
+                    db['user_names'].update_one(query, {'$set': new_row})
+
+            if self.auth.payload['karer']:
+                for kar_id, kar_name in self.auth.payload['karer'].items():
+                    query = {'_id': kar_id}
+                    new_row = {'_id': kar_id, 'name': kar_name}
+                    same_row = db['kar_names'].find_one(new_row)
+                    if same_row is None:
+                        old_row = db['kar_names'].find_one(query)
+                        if old_row is None:
+                            db['kar_names'].insert(new_row)
+                        else:
+                            db['kar_names'].update_one(query, {'$set': new_row})
+
         return {
             "user": self.auth.user_id,
             "admin": self.auth.is_admin(),

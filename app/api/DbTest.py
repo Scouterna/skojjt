@@ -8,10 +8,10 @@ class DbTest(Resource):
             return {"ok": False, "error": str(db_error)}
         try:
             testdb = db["test"]
-            query = {"id": "test"}
+            query = {"_id": "test"}
             row = testdb.find_one(query)
             if row is None:
-                testdb.insert({"id": "test", "count": 1})
+                testdb.insert({"_id": "test", "count": 1})
             else:
                 testdb.update_one(query, {"$inc": {"count": 1}})
             row = testdb.find_one(query)
