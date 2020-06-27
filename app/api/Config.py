@@ -1,7 +1,7 @@
 import os
-from flask_restful import Resource
+from auth.XOrigin import XOrigin
 
 
-class ConfigResource(Resource):
+class ConfigResource(XOrigin):
     def get(self):
         return {"ok": True, "jwturl": os.getenv("JWT_URL")}

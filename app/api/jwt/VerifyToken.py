@@ -1,11 +1,10 @@
-from flask import request
-from flask_restful import Resource
 import jwt
-
+from flask import request
 from auth.Auth import Auth
+from auth.XOrigin import XOrigin
 
 
-class VerifyToken(Resource):
+class VerifyToken(XOrigin):
     @staticmethod
     def error(msg, data=None):
         return {

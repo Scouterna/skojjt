@@ -1,7 +1,6 @@
+import jwt
 import os
 from urllib.parse import urlparse
-
-import jwt
 from jwt import InvalidTokenError
 
 
