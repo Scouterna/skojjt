@@ -38,7 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Other errors then token expired
         if (response.status !== 498) {
-            throw response;
+            const jsonPromise = response.json();
+            try {
+                await jsonPromise
+            } catch (e) {
+                throw response;
+            }
+            throw await jsonPromise
         }
 
         // if we are not logged in, this was just a token test, then we are done here
@@ -56,7 +62,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const response2 = await fetch(url, fetchOptions);
 
         if (!response2.ok) {
-            throw response2;
+            const jsonPromise = response2.json();
+            try {
+                await jsonPromise
+            } catch (e) {
+                throw response2;
+            }
+            throw await jsonPromise
         }
 
         return await response2.json();
@@ -81,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await verifyPromise;
         } catch (e) {
-            console.error(e);
+            console.error(e.error || e);
             throw e;
         }
 
