@@ -5,22 +5,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const main = document.getElementById('main') as HTMLDivElement;
     const whoamiElement = document.getElementById("whoami") as HTMLInputElement;
     const whoamiErrorTest = 'Inte inloggad';
-    const apiBaseUrl = location.origin + '/api/';
+    const apiBaseUrl = new URL('/api/', location.origin);
 
     let config = null;
     let isLoggedIn = false;
     let isAdmin = false;
 
-    const fetchJson = async (url: string, fetchOptions?: RequestInit) => {
-        const response = await fetch(url, fetchOptions);
+    const fetchJson = async (urlSufix: string|URL, fetchOptions?: RequestInit) => {
+        const url = new URL(urlSufix as string, apiBaseUrl) as URL|string;
+        const response = await fetch(url as string, fetchOptions);
         if (!response.ok) {
             throw response;
         }
         return await response.json();
     };
 
-    const apiFetch = async (urlSufix: string, fetchOptions?: RequestInit, token?: string) => {
-        const url = apiBaseUrl + urlSufix;
+    const apiFetch = async (urlSufix: string|URL, fetchOptions?: RequestInit, token?: string) => {
+        const url = new URL(urlSufix as string, apiBaseUrl) as URL|string;
 
         if (!fetchOptions) {
             fetchOptions = {};
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         fetchOptions.headers["Authorization"] = 'Bearer ' + (token || localStorage.getItem(localStorageTokenKey));
 
-        const response = await fetch(url, fetchOptions);
+        const response = await fetch(url as string, fetchOptions);
 
         if (response.ok) {
             return await response.json();
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Update Authorization-header
         fetchOptions.headers["Authorization"] = 'Bearer ' + localStorage.getItem(localStorageTokenKey);
-        const response2 = await fetch(url, fetchOptions);
+        const response2 = await fetch(url as string, fetchOptions);
 
         if (!response2.ok) {
             const jsonPromise = response2.json();
@@ -310,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error(e);
             }
         }
-        location.hash = '!#/kar/' + karId;
+        location.hash = '#!/kar/' + karId;
     };
 
     (async () => {
