@@ -2,11 +2,14 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     const localStorageTokenKey = 'ScoutID-JWT-Token';
+    const main = document.getElementById('main') as HTMLDivElement;
     const whoamiElement = document.getElementById("whoami") as HTMLInputElement;
     const whoamiErrorTest = 'Inte inloggad';
     const apiBaseUrl = location.origin + '/api/';
+
     let config = null;
     let isLoggedIn = false;
+    let isAdmin = false;
 
     const fetchJson = async (url: string, fetchOptions?: RequestInit) => {
         const response = await fetch(url, fetchOptions);
@@ -58,6 +61,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return await response2.json();
     };
+    const apiPost = async (urlSufix: string, data: any) => {
+        return apiFetch(
+            urlSufix,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }
+        );
+    };
 
     const verifyToken = async (token: string) => {
         isLoggedIn = false;
@@ -86,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         whoamiElement.innerText = "Inloggad som " + response.data.name + (kar ? " från " + kar : "");
         isLoggedIn = true;
+        isAdmin = response.admin;
         return true;
     };
 
@@ -99,11 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         if (!isLoggedIn) {
-            if(!config) {
+            if (!config) {
                 console.error('Loggin failed, as no config was received');
                 return false;
             }
-            if(!config.jwturl) {
+            if (!config.jwturl) {
                 console.error('Loggin failed, as there is no jwturl in the received config');
                 return false;
             }
@@ -152,10 +168,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return isLoggedIn;
     };
-    const showMenu = () => {
+
+    const setSection = (section: string) => {
+        main.setAttribute('data-section', section);
     };
+    const showMenu = () => setSection('mainmenu');
     const reset = () => {
         document.body.classList.toggle('guest', !isLoggedIn);
+        document.body.classList.toggle('admin', isAdmin);
+        setSection('');
     };
     const navigate = async () => {
         reset();
@@ -177,6 +198,10 @@ document.addEventListener("DOMContentLoaded", () => {
             case '':
                 return showMenu();
 
+            case '#!/import':
+                setSection('import');
+                break;
+
             case '#!/logout':
                 localStorage.removeItem(localStorageTokenKey);
                 isLoggedIn = false;
@@ -187,6 +212,95 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     window.addEventListener('hashchange', navigate);
 
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const showAjaxContent = async (contentInfo: any) => {
+        if (!contentInfo.ok) {
+            throw contentInfo;
+        }
+        const contentElement = document.getElementById('ajax-content') as HTMLDivElement;
+        contentElement.innerHTML = contentInfo.html;
+        setSection('ajax-loaded');
+        if (contentInfo.refrechUrl) {
+            let lastInfo = contentInfo;
+            while (lastInfo.refrechUrl) {
+                if(lastInfo.delay) {
+                    await sleep(lastInfo.delay * 1000);
+                }
+                lastInfo = await apiFetch(lastInfo.refrechUrl);
+                if (!lastInfo.ok) {
+                    throw lastInfo;
+                }
+                if (lastInfo.html) {
+                    contentElement.innerHTML = lastInfo.html;
+                } else if (lastInfo.append) {
+                    const appendDiv = document.createElement('div');
+                    appendDiv.innerHTML = lastInfo.append;
+                    contentElement.append(appendDiv);
+                }
+            }
+        }
+    };
+
+    const doImport = async () => {
+        const karIdInput = document.getElementById('import_kar_id') as HTMLInputElement;
+        const apiKeyInput = document.getElementById('import_kar_api_key') as HTMLInputElement;
+        let karId = +karIdInput.value;
+        let apiKey = apiKeyInput.value.trim();
+        if (apiKey.substr(0, 8) === 'https://') {
+            let matches = null;
+            const regexps = [
+                new RegExp('^https://([1-9][0-9]*):([0-9a-f]+)@www\.scoutnet\.se/api/group/memberlist$'),
+                new RegExp('^https://www\.scoutnet\.se/api/group/memberlist\?id=([1-9][0-9]*)&(?:amp;)?key=([0-9a-f]+)(?:&|$)')
+            ];
+            for (const regexp of regexps) {
+                matches = regexp.exec(apiKey);
+                if (matches) {
+                    break;
+                }
+            }
+            if (matches) {
+                if (karId > 0) {
+                    if (karId !== +matches[1]) {
+                        alert('Du angav kar-id: ' + karId + ', men urln innehåll kår-id: ' + matches[1]);
+                        return;
+                    }
+                }
+                karId = +matches[1];
+                apiKey = matches[2];
+            }
+        }
+        if (karId < 1) {
+            alert('Kår-id saknas');
+            return;
+        }
+        if (apiKey.length < 1) {
+            alert('Api-nyckel saknas');
+            return;
+        }
+        setSection('loading');
+        const importPromise = apiPost('import', {karId, apiKey});
+        try {
+            await importPromise
+        } catch (e) {
+            console.error(e);
+            alert(e.error || e);
+            setSection('import');
+        }
+        const importInfo = await importPromise;
+        try {
+            await showAjaxContent(importInfo);
+        } catch (e) {
+            if (e.ok === false && e.error) {
+                console.error(e.error);
+                alert(e.error)
+                setSection('import');
+            } else {
+                console.error(e);
+            }
+        }
+        location.hash = '!#/kar/' + karId;
+    };
+
     (async () => {
         const loginButton = document.getElementById('login-button') as HTMLAnchorElement;
         loginButton.addEventListener('click', (event: Event) => {
@@ -196,9 +310,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        const importKarButton = document.getElementById('import_kar_button') as HTMLInputElement;
+        importKarButton.addEventListener('click', doImport);
+
         /// TODO: replace with live hostname
-        if(location.hostname !== 'skojjt.webservices.scouterna.net') {
-            if(location.hostname === 'skojjt-staging.webservices.scouterna.net') {
+        if (location.hostname !== 'skojjt.webservices.scouterna.net') {
+            if (location.hostname === 'skojjt-staging.webservices.scouterna.net') {
                 document.title += ' Stage';
             } else {
                 document.title += ' Dev';

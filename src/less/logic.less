@@ -14,4 +14,21 @@ body {
       display: none;
     }
   }
+  main {
+    &:not([data-section="mainmenu"]) > section[data-part="mainmenu"] {
+      display: none;
+    }
+    &:not([data-section="loading"]) > section[data-part="loading"] {
+      display: none;
+    }
+    &[data-section="loading"] > section:not([data-part="loading"]) {
+      display: none;
+    }
+    &:not([data-section="ajax-loaded"]) > section[data-part="ajax-loaded"] {
+      display: none;
+    }
+    &:not([data-section="import"]) > section[data-part="import"] {
+      display: none;
+    }
+  }
 }

@@ -8,8 +8,8 @@
         <script defer type="module" src="/es6.js"></script>
     </head>
     <body class="guest">
-        <main>
-            <section>
+        <main id="main" data-section="mainmenu">
+            <section data-part="mainmenu">
                 <header>
                     <h1><a href="/"><img alt="Skojjt" src="/logo.png"/></a></h1>
                 </header>
@@ -18,12 +18,54 @@
                     <nav class="guest_only">
                         <a href="#!/login" id="login-button">Logga in med ScoutID</a>
                     </nav>
+                    <nav class="admin_only">
+                        <a href="#!/import">Kår import</a>
+                    </nav>
                 </article>
                 <article class="user_only">
                     <nav>
                         <a href="#!/logout">Logga ut</a>
                     </nav>
                 </article>
+            </section>
+            <section data-part="loading">
+                <p>Loading...</p>
+            </section>
+            <section data-part="ajax-loaded" id="ajax-content"></section>
+            <section data-part="import">
+                <h3>Importera Kår</h3>
+                <ul>
+                    <li>
+                        <span>Logga in i</span>
+                        <a href="https://www.scoutnet.se/">Scoutnet</a>
+                    </li>
+                    <li>
+                        Navigera till din kår, se "Godkända medlemskap"
+                    </li>
+                    <li>
+                        Gå till fliken "Webbkoppling"
+                    </li>
+                    <li>
+                        <label for="import_kar_id">Ange nummeret från informationsrutan "Kår-ID för webbtjänster:"</label>
+                        <input type="number" id="import_kar_id" />
+                    </li>
+                    <li>
+                        Fäll up sektionen "API-nycklar och endpoints"
+                    </li>
+                    <li>
+                        Scrolla till sektionen "Get a detailed csv/xls/json list of all members"
+                    </li>
+                    <li>
+                        Om det i den sektionen står " Ingen API-nyckel har genererats för denna endpoint", tryck på knappen "Generera API-nyckel".
+                    </li>
+                    <li>
+                        <label for="import_kar_api_key">Ange API-nyckeln</label>
+                        <input type="text" id="import_kar_api_key" />
+                    </li>
+                    <li>
+                        <input type="button" id="import_kar_button" value="Starta Import" />
+                    </li>
+                </ul>
             </section>
         </main>
         <nav class="navbar" role="navigation">

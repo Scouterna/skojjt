@@ -35,33 +35,50 @@ body {
     max-width: 95vw;
     width: 1170px;
 
-    > section > article {
+    > section {
+      > article {
 
-      > nav {
-        margin-bottom: 2em;
+        > nav {
+          margin-bottom: 2em;
 
-        > a {
-          background-color: white;
-          border: solid #ccc 1px;
-          border-radius: .5em;
-          color: black;
-          font-size: 1.25em;
-          line-height: 1.5em;
-          margin-right: .5em;
-          padding: .75em 1em;
-          text-decoration: none;
+          > a {
+            background-color: white;
+            border: solid #ccc 1px;
+            border-radius: .5em;
+            color: black;
+            font-size: 1.25em;
+            line-height: 1.5em;
+            margin-right: .5em;
+            padding: .75em 1em;
+            text-decoration: none;
 
-          &:hover {
-            background-color: #eef;
-            border-color: #aaa;
+            &:hover {
+              background-color: #eef;
+              border-color: #aaa;
+            }
           }
+        }
+
+        + article {
+          padding-top: 2em;
+          border-top: solid #ccc 1px;
         }
       }
 
-      + article {
-        padding-top: 2em;
-        border-top: solid #ccc 1px;
+      &[data-part="import"] {
+        > ul > li {
+          margin-bottom: .75em;
+        }
       }
     }
   }
+}
+
+#import_kar_id {
+  width: 4em;
+}
+
+#import_kar_api_key {
+  width: 50em;
+  max-width: 100%;
 }
