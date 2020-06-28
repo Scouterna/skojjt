@@ -1,12 +1,11 @@
 from flask_restful import Resource
-from db import db, db_error
+from db import dbConnect
 
 
 class DbTest(Resource):
     def get(self):
-        if db is None:
-            return {"ok": False, "error": str(db_error)}
         try:
+            db = dbConnect()
             testdb = db["test"]
             query = {"_id": "test"}
             row = testdb.find_one(query)

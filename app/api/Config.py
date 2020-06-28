@@ -1,12 +1,14 @@
 import os
 from auth.XOrigin import XOrigin
-from db import db
+from db import dbConnect
+
 from datetime import datetime
 
 
 class ConfigResource(XOrigin):
     def get(self):
         karer = {}
+        db = dbConnect()
         for kar in db['kar_names'].find():
             karer[kar['_id']] = kar['name']
         semesters = {}
