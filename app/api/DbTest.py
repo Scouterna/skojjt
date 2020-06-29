@@ -1,5 +1,6 @@
-from flask_restful import Resource
 from db import dbConnect
+from flask_restful import Resource
+from logging import exception as logging_exception
 
 
 class DbTest(Resource):
@@ -18,4 +19,5 @@ class DbTest(Resource):
                 return {"ok": False, "error": "empty database"}
             return {"ok": True, "count": row["count"]}
         except Exception as e:
+            logging_exception('error in db-test')
             return {"ok": False, "error": str(e)}

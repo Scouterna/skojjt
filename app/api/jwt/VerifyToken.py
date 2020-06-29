@@ -1,5 +1,6 @@
 from auth.RequireUser import RequireUser
 from db import dbConnect
+from logging import exception as logging_exception
 
 
 class VerifyToken(RequireUser):
@@ -8,6 +9,7 @@ class VerifyToken(RequireUser):
         try:
             db = dbConnect()
         except Exception as e:
+            logging_exception('db error in VerifyToken')
             return {
                 "user": self.auth.user_id,
                 "admin": self.auth.is_admin(),

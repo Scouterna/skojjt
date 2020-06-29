@@ -1,7 +1,6 @@
-import jwt
-import os
+from jwt import decode as jwt_decode, InvalidTokenError
+from os import getenv
 from urllib.parse import urlparse
-from jwt import InvalidTokenError
 
 
 class Auth:
@@ -19,14 +18,14 @@ class Auth:
 
     def parse_token(self):
         try:
-            public_key = open(os.getenv('JWT_PUBLIC_KEY_FILE')).read()
+            public_key = open(getenv('JWT_PUBLIC_KEY_FILE')).read()
         except Exception:
             raise EnvironmentError('Public key for JWT is missing on server')
 
-        issuer = urlparse(os.getenv('JWT_URL')).hostname
-        audience = os.getenv('HOST_NAME')
+        issuer = urlparse(getenv('JWT_URL')).hostname
+        audience = getenv('HOST_NAME')
 
-        self.payload = jwt.decode(self.token, public_key, algorithms=['RS256'], issuer=issuer, audience=audience)
+        self.payload = jwt_decode(self.token, public_key, algorithms=['RS256'], issuer=issuer, audience=audience)
 
         if 'aud' not in self.payload:
             raise InvalidTokenError('Payload have no aud-field')
@@ -34,7 +33,7 @@ class Auth:
         if 'sub' not in self.payload:
             raise InvalidTokenError('Payload have no sub-field')
 
-        if self.payload['aud'] != os.getenv('HOST_NAME'):
+        if self.payload['aud'] != getenv('HOST_NAME'):
             raise InvalidTokenError('Payload have bad aud-field')
 
         try:
@@ -43,7 +42,7 @@ class Auth:
         except ValueError:
             raise InvalidTokenError('Payload have bad sub-field')
 
-        if user_source != os.getenv('JWT_SOURCE_HOST'):
+        if user_source != getenv('JWT_SOURCE_HOST'):
             raise InvalidTokenError('Payload have bad sub-field')
 
     def is_admin(self):

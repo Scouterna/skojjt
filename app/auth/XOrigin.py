@@ -1,11 +1,12 @@
-import os
-
-import jwt
 from flask import Response, request
-from flask_restful import Resource, unpack
+from flask_restful import Resource
+from flask_restful.utils import unpack
+from init import api
+from jwt import ExpiredSignatureError
+from logging import exception as log_exception
+from os import getenv
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response as ResponseBase
-from init import api
 
 
 class XOrigin(Resource):
@@ -19,9 +20,10 @@ class XOrigin(Resource):
         return self.add_cors_headers(response)
 
     def exception(self, exception):
+        log_exception('request exception in ' + request.path, exc_info=exception)
         try:
             raise exception
-        except jwt.ExpiredSignatureError:
+        except ExpiredSignatureError:
             return self.error("Token Expired", 498)
         except HTTPException as e:
             return self.error(str(type(e)) + " -> " + str(e), e.code)
@@ -37,7 +39,7 @@ class XOrigin(Resource):
         if 'origin' in request.headers:
             response.headers['Access-Control-Allow-Origin'] = request.headers['origin']
         else:
-            response.headers['Access-Control-Allow-Origin'] = 'https://' + os.getenv('HOST_NAME')
+            response.headers['Access-Control-Allow-Origin'] = 'https://' + getenv('HOST_NAME')
 
         return response
 

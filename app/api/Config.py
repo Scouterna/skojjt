@@ -1,8 +1,7 @@
-import os
 from auth.XOrigin import XOrigin
-from db import dbConnect
-
 from datetime import datetime
+from db import dbConnect
+from os import getenv
 
 
 class ConfigResource(XOrigin):
@@ -21,4 +20,4 @@ class ConfigResource(XOrigin):
         semesters[year_str + '01'] = 'VT-' + year_str
         if time.month > 6:
             semesters[year_str + '07'] = 'HT-' + year_str
-        return {'ok': True, 'jwturl': os.getenv('JWT_URL'), 'karer': karer, 'semesters': semesters}
+        return {'ok': True, 'jwturl': getenv('JWT_URL'), 'karer': karer, 'semesters': semesters}

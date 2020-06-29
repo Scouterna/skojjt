@@ -1,8 +1,8 @@
-import pymongo
-import os
+from os import getenv
+from pymongo import MongoClient
 
 
 def dbConnect():
-    authed_uri = os.getenv('MONGO_URI') % (os.getenv('MONGO_USER'), os.getenv('MONGO_PASSWORD'))
-    client = pymongo.MongoClient(authed_uri)
-    return client[os.getenv('MONGO_DATABASE')]
+    authed_uri = getenv('MONGO_URI') % (getenv('MONGO_USER'), getenv('MONGO_PASSWORD'))
+    client = MongoClient(authed_uri)
+    return client[getenv('MONGO_DATABASE')]
