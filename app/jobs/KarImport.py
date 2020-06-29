@@ -9,7 +9,7 @@ from requests import get as get_url
 from time import time
 
 # Typeings
-from models.jsonTypes import MemberListJson, MemberListJsonMember, MemberListJsonMemberKeys
+from models.scoutnetTypes import MemberListJson, MemberListJsonMember, MemberListJsonMemberKeys
 from models.types import Member, MemberKeys, MemberStatus, PendingImport, SemesterTroop, NewMember
 from pymongo.collection import Collection
 from pymongo.database import Database
