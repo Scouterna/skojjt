@@ -20,6 +20,7 @@ declare namespace ScoutId {
     }
 
     interface jwtData {
+        aud: string;
         dob: string;
         email: string;
         exp: number;
@@ -27,7 +28,7 @@ declare namespace ScoutId {
         iss: string;
         karer: stringObject;
         name: string;
-        role: string[];
+        roles: string[];
         sub: string;
     }
     interface whoamiResponse {
