@@ -13,4 +13,4 @@ def child_done():
 while True:
     sleep(60)
     print('start cron')
-    cronjob.run(child_done)
+    cronjob.start(child_done)

@@ -1,5 +1,6 @@
-from signal import signal, SIGCHLD
 from os import fork, waitpid
+from signal import signal, SIGCHLD
+from sys import exit as sys_exit
 
 from jobs.KarImport import KarImportJob
 
@@ -32,9 +33,10 @@ class Cronjobs:
 
         import_job = KarImportJob.find()
         if import_job is None:
-            return
+            sys_exit(0)
 
         import_job.run()
+        sys_exit(0)
 
 
 if __name__ == "__main__":
