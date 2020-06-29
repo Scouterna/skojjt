@@ -1,6 +1,7 @@
 from api.Config import ConfigResource
 from api.DbTest import DbTest
 from api.jwt.VerifyToken import VerifyToken
+from api.KarImport import KarImport
 from flask import redirect
 from init import api, app
 
@@ -12,6 +13,7 @@ api.add_resource(VerifyToken, '/api/jwt/verify_token')
 # User access paths
 
 # Admin access paths
+api.add_resource(KarImport, '/api/import', '/api/import/<string:import_id>')
 
 
 # if we are not logged in, we make a fake saml-session, that end at /saml, so accept and ignore it, and return to /
