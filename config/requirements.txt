@@ -2,3 +2,4 @@ flask
 flask_restful
 pyjwt[crypto]
 pymongo[tls]
+requests
