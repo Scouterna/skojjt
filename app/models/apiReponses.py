@@ -1,10 +1,11 @@
+from models.jwtTypes import JwtPayload
 from typing import Dict, Literal, Tuple, TypedDict, Union
 
 
 class VerifyTokenOkResponse(TypedDict):
     user: int
     admin: bool
-    data: dict  # TODO
+    data: JwtPayload
 
 
 class VerifyTokenErrorResponse(VerifyTokenOkResponse):

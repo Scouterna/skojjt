@@ -1,12 +1,13 @@
 from __future__ import annotations
 from jwt import decode as jwt_decode, InvalidTokenError
+from models.jwtTypes import JwtPayload
 from os import getenv
 from urllib.parse import urlparse
 
 
 class Auth:
     token: str = None
-    payload: dict = None  # Todo: define Payload type
+    payload: JwtPayload = None
     user_id: int = None
 
     @staticmethod
