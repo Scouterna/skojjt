@@ -1,8 +1,9 @@
 from auth.RequireUser import RequireUser
+from werkzeug.wrappers import Response as ResponseBase
 
 
 class RequireAdmin(RequireUser):
-    def dispatch_request(self, *args, **kwargs):
+    def dispatch_request(self, *args, **kwargs) -> ResponseBase:
         try:
             self.require_user()
         except Exception as e:

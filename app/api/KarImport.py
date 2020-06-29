@@ -35,7 +35,7 @@ class KarImport(RequireAdmin):
 
         return {'ok': True, 'refrechUrl': '/api/import/' + import_id, 'html': html}
 
-    def get(self, import_id) -> ImportStatusResponse:
+    def get(self, import_id: str) -> ImportStatusResponse:
         query = {'_id': ObjectId(import_id)}
         db = db_connect()
         row = db['pending_import'].find_one(query)

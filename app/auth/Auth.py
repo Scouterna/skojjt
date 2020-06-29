@@ -1,22 +1,23 @@
+from __future__ import annotations
 from jwt import decode as jwt_decode, InvalidTokenError
 from os import getenv
 from urllib.parse import urlparse
 
 
 class Auth:
-    token = ''
-    payload = None
-    user_id = None
+    token: str = None
+    payload: dict = None  # Todo: define Payload type
+    user_id: int = None
 
     @staticmethod
-    def read_token(token):
+    def read_token(token: str) -> Auth:
         return Auth(token)
 
-    def __init__(self, token):
+    def __init__(self, token: str) -> None:
         self.token = token
         self.parse_token()
 
-    def parse_token(self):
+    def parse_token(self) -> None:
         try:
             public_key = open(getenv('JWT_PUBLIC_KEY_FILE')).read()
         except Exception:
@@ -45,44 +46,47 @@ class Auth:
         if user_source != getenv('JWT_SOURCE_HOST'):
             raise InvalidTokenError('Payload have bad sub-field')
 
-    def is_admin(self):
+    def is_admin(self) -> bool:
         return 'roles' in self.payload and 'organisation:692:scoutid_admin' in self.payload['roles']
 
-    def has_kar_admin_access(self, kar_id):
+    def has_kar_admin_access(self, kar_id: int) -> bool:
         if self.is_admin():
             return True
 
-        if kar_id not in self.payload.karer:
+        if kar_id not in self.payload['karer']:
             return False
 
         # group-leader = Kårordförande
         admin_roller = ['member_registrar', 'it_manager', 'leader', 'treasurer']
 
         for roll in admin_roller:
-            if 'group:' + kar_id + ':' + roll in self.payload.roles:
+            if 'group:' + str(kar_id) + ':' + roll in self.payload['roles']:
                 return True
 
         return False
 
-    def has_kar_access(self, kar_id):
+    def has_kar_access(self, kar_id: int) -> bool:
         if self.is_admin():
             return True
 
-        if kar_id not in self.payload.karer:
+        kar_id_str = str(kar_id)
+
+        # todo is keys in karer str or int?
+        if kar_id not in self.payload['karer'] and kar_id_str not in self.payload['karer']:
             return False
 
         # TODO load kår config, support different auth models
-        if 'group:' + kar_id + ':*' in self.payload.roles:
+        if 'group:' + kar_id_str + ':*' in self.payload['roles']:
             return True
 
-        if 'troop:*:leader' not in self.payload.roles:
+        if 'troop:*:leader' not in self.payload['roles']:
             return False
 
         # TODO get troups by kar
         troops = []
 
         for troop in troops:
-            if 'troop:' + troop + ':leader' in self.payload.roles:
+            if 'troop:' + troop + ':leader' in self.payload['roles']:
                 return True
 
         return False

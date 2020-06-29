@@ -47,7 +47,7 @@ class KarImportJob:
         job.report = row['report']
         return job
 
-    def update(self, set_data) -> None:
+    def update(self, set_data: dict) -> None:
         self.table.update_one(self.query, {'$set': set_data})
 
     def append_report(self, row: str) -> None:
@@ -55,7 +55,7 @@ class KarImportJob:
         self.report += "\n" + row
         self.update({'report': self.report})
 
-    def error(self, error) -> None:
+    def error(self, error: Exception) -> None:
         # self.update({'error_at': time(), 'report': {'$concat': ['$report', "\n", "Error: ", error]}})
         self.report += "\n" + "Error: " + str(error)
         self.update({'error_at': time(), 'report': self.report})
@@ -149,7 +149,7 @@ class KarImportJob:
         })
         return table.find_one(query)
 
-    def get_troop(self, troop_id, name) -> Optional[SemesterTroop]:
+    def get_troop(self, troop_id: int, name: str) -> Optional[SemesterTroop]:
         troop_table = self.db['troops']
         if len(name) == 0:
             return None
@@ -176,7 +176,7 @@ class KarImportJob:
         self.append_report(f"Ny avdelning {name}, ID={troop_id}, semester={self.semester}")
         return troop
 
-    def add_troop_member(self, troop: SemesterTroop, member: Member, leader=False) -> SemesterTroopMember:
+    def add_troop_member(self, troop: SemesterTroop, member: Member, leader: bool = False) -> SemesterTroopMember:
         table = self.db['troop_members']
         query = {'troop': troop['_id'], 'member': member['_id']}
         result = table.find_one(query)
@@ -192,7 +192,7 @@ class KarImportJob:
         return table.find_one(query)
 
     def generate_member(self, scoutnet_member: MemberListJsonMember) -> NewMember:
-        def member_value(key: MemberListJsonMemberKeys, key2: str = 'value'):
+        def member_value(key: MemberListJsonMemberKeys, key2: str = 'value') -> str:
             if key not in scoutnet_member:
                 return ''
             if key2 not in scoutnet_member[key]:

@@ -5,12 +5,13 @@ from init import api
 from jwt import ExpiredSignatureError
 from logging import exception as log_exception
 from os import getenv
+from typing import Optional
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response as ResponseBase
 
 
 class XOrigin(Resource):
-    def error(self, msg, status=500, data=None):
+    def error(self, msg: str, status: int = 500, data: Optional[dict] = None) -> ResponseBase:
         response = api.make_response({
             "user": False,
             "admin": False,
@@ -19,7 +20,7 @@ class XOrigin(Resource):
         }, status)
         return self.add_cors_headers(response)
 
-    def exception(self, exception):
+    def exception(self, exception: Exception) -> ResponseBase:
         log_exception('request exception in ' + request.path, exc_info=exception)
         try:
             raise exception
@@ -30,7 +31,7 @@ class XOrigin(Resource):
         except Exception as e:
             return self.error(str(type(e)) + " -> " + str(e), 403)
 
-    def add_cors_headers(self, response):
+    def add_cors_headers(self, response: ResponseBase) -> ResponseBase:
         # Already added?
         if 'Access-Control-Allow-Origin' in response.headers:
             return response
@@ -43,7 +44,7 @@ class XOrigin(Resource):
 
         return response
 
-    def options(self):
+    def options(self) -> ResponseBase:
         response = Response()
         if hasattr(self, 'post'):
             response.headers['Access-Control-Allow-Methods'] = 'GET, HEAD, POST, OPTIONS'
@@ -51,7 +52,7 @@ class XOrigin(Resource):
             response.headers['Access-Control-Allow-Methods'] = 'GET, HEAD, OPTIONS'
         return response
 
-    def dispatch_request(self, *args, **kwargs):
+    def dispatch_request(self, *args, **kwargs) -> ResponseBase:
         try:
             response = super().dispatch_request(*args, **kwargs)
         except Exception as e:

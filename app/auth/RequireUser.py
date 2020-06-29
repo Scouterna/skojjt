@@ -2,12 +2,13 @@ from auth.Auth import Auth
 from auth.XOrigin import XOrigin
 from flask import request
 from werkzeug.exceptions import Forbidden as ForbiddenException
+from werkzeug.wrappers import Response as ResponseBase
 
 
 class RequireUser(XOrigin):
-    auth = None
+    auth: Auth = None
 
-    def require_user(self):
+    def require_user(self) -> None:
         if "Authorization" not in request.headers:
             raise ForbiddenException("Authorization header is missing")
 
@@ -18,7 +19,7 @@ class RequireUser(XOrigin):
 
         self.auth = Auth(auth_header[7:])
 
-    def dispatch_request(self, *args, **kwargs):
+    def dispatch_request(self, *args, **kwargs) -> ResponseBase:
         try:
             self.require_user()
         except Exception as e:
@@ -26,10 +27,10 @@ class RequireUser(XOrigin):
 
         return super().dispatch_request(*args, **kwargs)
 
-    def require_kar_admin(self, kar_id):
+    def require_kar_admin(self, kar_id: int) -> None:
         if not self.auth.has_kar_admin_access(kar_id):
             raise ForbiddenException("You are not admin for this group(kår)")
 
-    def require_kar_access(self, kar_id):
+    def require_kar_access(self, kar_id: int) -> None:
         if not self.auth.has_kar_access(kar_id):
             raise ForbiddenException("You don't have access for this group(kår)")
