@@ -1,12 +1,12 @@
 declare namespace ScoutId {
     interface loginResponse {
-        user: number | false;
         admin: boolean;
+        user: number | false;
     }
 
     interface jwtBadResponse {
-        ok: false;
         error: string;
+        ok: false;
         url: string;
     }
     interface jwtGoodResponse {
@@ -20,20 +20,20 @@ declare namespace ScoutId {
     }
 
     interface jwtData {
-        iss: string;
-        sub: string;
+        dob: string;
+        email: string;
         exp: number;
         iat: number;
-        name: string;
-        email: string;
-        dob: string;
-        role: string[];
+        iss: string;
         karer: stringObject;
+        name: string;
+        role: string[];
+        sub: string;
     }
     interface whoamiResponse {
-        user: string|false;
         admin: boolean;
         data: jwtData;
         error?: string;
+        user: string|false;
     }
 }
