@@ -11,6 +11,6 @@ def child_done():
 
 
 while True:
-    sleep(60)
+    sleep(300)
     print('start cron')
     cronjob.start(child_done)
