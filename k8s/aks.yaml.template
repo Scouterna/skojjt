@@ -38,6 +38,8 @@ spec:
               value: "/etc/jwtkeys/jwt.live.pub.key"
             - name: JWT_SOURCE_HOST
               value: "www.scoutnet.se"
+            - name: SCOUTNET_IMPORT_HOST
+              value: "www.scoutnet.se"
           ports:
             - containerPort: 80
               protocol: TCP
