@@ -44,6 +44,14 @@ class SemesterTroopMember(TypedDict):
     leader: bool
 
 
+class SemesterKarMember(TypedDict):
+    _id: ObjectId
+    member: ObjectId
+    member_no: int
+    kar_id: int
+    semester: int
+
+
 class NewMember(TypedDict):
     alt_email: str
     dad_email: str

@@ -10,12 +10,13 @@ from time import time
 
 # Typeings
 from models.scoutnetTypes import MemberListJson, MemberListJsonMember, MemberListJsonMemberKeys
-from models.types import Member, MemberKeys, MemberStatus, PendingImport, SemesterTroop, NewMember
+from models.types import Member, MemberKeys, MemberStatus, NewMember, PendingImport, \
+    SemesterKarMember, SemesterTroop, SemesterTroopMember
 from pymongo.collection import Collection
 from pymongo.database import Database
 
 # Internal imports
-from db import dbConnect
+from db import db_connect
 
 
 class KarImportJob:
@@ -31,7 +32,7 @@ class KarImportJob:
     @staticmethod
     def find() -> Optional[KarImportJob]:
         query = {'started_at': 0}
-        db = dbConnect()
+        db = db_connect()
         table = db['pending_import']
         row: Optional[PendingImport] = table.find_one(query)
         if row is None:
@@ -46,20 +47,20 @@ class KarImportJob:
         job.report = row['report']
         return job
 
-    def update(self, set_data):
+    def update(self, set_data) -> None:
         self.table.update_one(self.query, {'$set': set_data})
 
-    def append_report(self, row: str):
+    def append_report(self, row: str) -> None:
         # self.update({'report': {'$concat': ['$report', "\n", row]}})
         self.report += "\n" + row
         self.update({'report': self.report})
 
-    def error(self, error):
+    def error(self, error) -> None:
         # self.update({'error_at': time(), 'report': {'$concat': ['$report', "\n", "Error: ", error]}})
         self.report += "\n" + "Error: " + str(error)
         self.update({'error_at': time(), 'report': self.report})
 
-    def run(self):
+    def run(self) -> None:
         started_at = time()
         self.update({'started_at': started_at})
         date = datetime.now()
@@ -133,7 +134,7 @@ class KarImportJob:
         total_time = done_at - started_at;
         self.append_report(f"Importerat {counter} medelammar, vilket tog {total_time} sekunder.")
 
-    def add_kar_member(self, member: Member):
+    def add_kar_member(self, member: Member) -> SemesterKarMember:
         table = self.db['kar_members']
         kar_id = self.row['kar_id']
         query = {'kar_id': kar_id, 'semester': self.semester, 'member': member['_id']}
@@ -175,7 +176,7 @@ class KarImportJob:
         self.append_report(f"Ny avdelning {name}, ID={troop_id}, semester={self.semester}")
         return troop
 
-    def add_troop_member(self, troop: SemesterTroop, member: Member, leader=False):
+    def add_troop_member(self, troop: SemesterTroop, member: Member, leader=False) -> SemesterTroopMember:
         table = self.db['troop_members']
         query = {'troop': troop['_id'], 'member': member['_id']}
         result = table.find_one(query)
@@ -231,13 +232,13 @@ class KarImportJob:
         }
         return member
 
-    def add_member(self, scoutnet_member: MemberListJsonMember):
+    def add_member(self, scoutnet_member: MemberListJsonMember) -> Member:
         table = self.db['members']
         new_member = self.generate_member(scoutnet_member)
         result = table.insert_one(new_member)
         return table.find_one({'_id': result.inserted_id})
 
-    def update_member(self, skojjt_member: Member, scoutnet_member: MemberListJsonMember):
+    def update_member(self, skojjt_member: Member, scoutnet_member: MemberListJsonMember) -> bool:
         table = self.db['members']
         new_member = self.generate_member(scoutnet_member)
         diff = {}

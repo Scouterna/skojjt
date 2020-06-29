@@ -4,6 +4,8 @@ from api.jwt.VerifyToken import VerifyToken
 from api.KarImport import KarImport
 from flask import redirect
 from init import api, app
+from werkzeug import Response
+
 
 # Guest access paths
 api.add_resource(ConfigResource, '/api/config')
@@ -18,5 +20,5 @@ api.add_resource(KarImport, '/api/import', '/api/import/<string:import_id>')
 
 # if we are not logged in, we make a fake saml-session, that end at /saml, so accept and ignore it, and return to /
 @app.route('/saml', methods=['GET', 'POST'])
-def saml_redirect():
+def saml_redirect() -> Response:
     return redirect('/')

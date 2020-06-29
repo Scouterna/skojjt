@@ -1,13 +1,14 @@
 from auth.RequireUser import RequireUser
-from db import dbConnect
+from db import db_connect
 from logging import exception as logging_exception
+from models.apiReponses import VerifyTokenResponse
 
 
 class VerifyToken(RequireUser):
     # fetch("/api/jwt/verify_token", {headers: {Authorization: 'Bearer ' + localStorage.getItem('ScoutID-JWT-Token')}})
-    def get(self):
+    def get(self) -> VerifyTokenResponse:
         try:
-            db = dbConnect()
+            db = db_connect()
         except Exception as e:
             logging_exception('db error in VerifyToken')
             return {

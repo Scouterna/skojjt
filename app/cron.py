@@ -8,18 +8,18 @@ from jobs.KarImport import KarImportJob
 class Cronjobs:
     jobs = []
 
-    def wait(self):
+    def wait(self) -> None:
         for chhild_pid in self.jobs:
             waitpid(chhild_pid, 0)
 
-    def start(self, signal_func=None):
+    def start(self, signal_func=None) -> None:
         self.karImport(signal_func)
 
-    def run(self, signal_func=None):
+    def run(self, signal_func=None) -> None:
         self.start(signal_func)
         self.wait()
 
-    def fork(self, signal_func=None):
+    def fork(self, signal_func=None) -> int:
         child_pid = fork()
         if child_pid > 0:
             if signal_func is not None:
@@ -27,7 +27,7 @@ class Cronjobs:
             self.jobs.append(child_pid)
         return child_pid
 
-    def karImport(self, signal_func=None):
+    def karImport(self, signal_func=None) -> None:
         if self.fork(signal_func) > 0:
             return
 

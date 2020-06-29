@@ -1,13 +1,14 @@
 from auth.RequireAdmin import RequireAdmin
 from bson.objectid import ObjectId
-from db import dbConnect
+from db import db_connect
 from flask import request
+from models.apiReponses import ImportReponse, ImportStatusResponse
 from time import time
 
 
 class KarImport(RequireAdmin):
-    def post(self):
-        db = dbConnect()
+    def post(self) -> ImportReponse:
+        db = db_connect()
         result = db['pending_import'].insert_one({
             'kar_id': request.json['karId'],
             'api_key': request.json['apiKey'],
@@ -34,19 +35,19 @@ class KarImport(RequireAdmin):
 
         return {'ok': True, 'refrechUrl': '/api/import/' + import_id, 'html': html}
 
-    def get(self, import_id):
+    def get(self, import_id) -> ImportStatusResponse:
         query = {'_id': ObjectId(import_id)}
-        db = dbConnect()
+        db = db_connect()
         row = db['pending_import'].find_one(query)
         if row is None:
             return {'ok': False, 'error': 'Import not found'}, 404
 
         if row['done_at'] > 0:
-            append = "<pre>" + row['report'] + "</pre>";
+            append = "<pre>" + row['report'] + "</pre>"
             return {'ok': True, 'append': append}
 
         if row['error_at'] > 0:
-            append = "<pre>" + row['report'] + "</pre>";
+            append = "<pre>" + row['report'] + "</pre>"
             return {'ok': False, 'append': append}
 
         if row['rows_total'] > 0:

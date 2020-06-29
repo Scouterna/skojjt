@@ -1,12 +1,13 @@
-from db import dbConnect
+from db import db_connect
 from flask_restful import Resource
 from logging import exception as logging_exception
+from models.apiReponses import DbTestResponse
 
 
 class DbTest(Resource):
-    def get(self):
+    def get(self) -> DbTestResponse:
         try:
-            db = dbConnect()
+            db = db_connect()
             testdb = db["test"]
             query = {"_id": "test"}
             row = testdb.find_one(query)
