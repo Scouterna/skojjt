@@ -33,8 +33,7 @@ class KarImportJob:
         query = {'started_at': 0}
         db = dbConnect()
         table = db['pending_import']
-        # row = table.find_one(query)
-        row: Optional[PendingImport] = table.find_one()
+        row: Optional[PendingImport] = table.find_one(query)
         if row is None:
             return None
 
