@@ -255,7 +255,11 @@ class Person(PropertyWriteTracker):
         return self.getyearsoldthisyear(thisdate.year) >= 18
 
     def isBoardMember(self):
-        return self.group_roles != None and len(self.group_roles) > 0
+        if self.group_roles != None:
+            for role in self.group_roles:
+                if role in [u'k\xe5rstyrelseledamot', u'k\xe5rkass\xf6r', u'k\xe5rordf\xf6rande', u'vice k\xe5rordf\xf6rande', u'k\xe5rsekreterare']:
+                    return True
+        return False
 
     def getpatrol(self):
         return self.patrool # TODO: fix spelling error
