@@ -16,7 +16,7 @@ services:
         source: ./src
         target: /static/src
     ports:
-      - "80"
+      - "80:8080"
     environment:
       HOST_NAME: "localhost"
       MONGO_URI: "mongodb://%s:%s@mongo:27017/"
