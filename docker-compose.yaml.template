@@ -15,8 +15,10 @@ services:
       - type: bind
         source: ./src
         target: /static/src
+    container_name: narvaro
+    hostname: narvaro
     ports:
-      - "80:8080"
+      - "8080:80"
     environment:
       HOST_NAME: "localhost"
       MONGO_URI: "mongodb://%s:%s@mongo:27017/"
@@ -30,8 +32,10 @@ services:
 
   narvarodb:
     image: mongo:4
+    container_name: mongo
+    hostname: mongo
     ports:
-      - "27017"
+      - "27017:27017"
     environment:
       MYSQL_DATABASE: narvaro
       MYSQL_PASSWORD: password

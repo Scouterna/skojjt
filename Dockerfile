@@ -20,3 +20,4 @@ COPY src/ts /static/src/ts
 ENV STATIC_INDEX=1 STATIC_PATH=/static/ UWSGI_INI=/etc/uwsgi.ini STATIC_URL=/static
 
 WORKDIR /tmp
+EXPOSE 80
