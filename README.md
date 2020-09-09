@@ -18,6 +18,7 @@ URL Structur:
   * /* -> dynamiskt content enligt /app/app.py
   * (ovan är konfigurerat i /config/nginx.server.conf, se även COPY-raderna i /Dockerfile)
 
+För att utveckla lokalt, börja med att copiera docker-compose.yaml.template till docker-compose.yaml
 
 Använd följande kommando för att bygga och starta servern:
 ```
