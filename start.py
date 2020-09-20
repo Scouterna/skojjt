@@ -314,6 +314,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         return render_template('troops.html',
                                heading=section_title,
                                baselink=baselink,
+                               scoutgroupbadgeslink='/scoutgroupbadges/' + sgroup_url + '/',
                                scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
                                groupsummarylink='/groupsummary/' + sgroup_url + '/',
                                user=user,

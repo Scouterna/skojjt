@@ -1,0 +1,106 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+<div class="table-responsive">
+    <span class="heading">{{heading}}: <input type="text" name="name" id="name"/ value="Nyingen"></span>
+	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="part_id">Del<br/></th>
+			<th class="short_desc">Kort beskrivning</th>
+			<th class="long_desc">Lång beskrivning</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in badge_parts %}
+		<tr><td>{{loop.index}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td></tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="well" style="display:none" id="newpartdata">
+	<div>
+	  <label>Del: <span id="newpart_nr"></span></label>
+	</div>
+	<div>
+		<label>Kort beskrivning: </label>
+		<input type="text" class="form-control" size="15" id="new_short"/>
+	</div>
+	<div>
+		<label>Lång beskrivning: </label>
+		<input type="text" class="form-control" size="45" id="new_long"/>
+	</div>
+	<div>
+		<div class="btn-toolbar">
+			<button id="newpart_ready" name="Klar" class="btn btn-lg btn-primary btn-default">Klar</button>
+			<button id="newpart_cancel" name="Avbryt" class="btn btn-lg btn-warning">Avbryt</button>
+		</div>
+	</div>
+</div>
+<button id="newpart" class="btn btn-g btn-info">Ny del</button>
+<button id="save" class="btn btn-g btn-warning">Spara</button>
+<script>
+$(document).ready(function() {
+	var tbl = $('#maintable').DataTable({
+		searching:false,
+		paging:false,
+		info:false,
+		ordering:false,
+	});
+	$("#newpart").click(function(event) {
+		var newNr = tbl.rows().count()+1;
+		console.log("NEW PART ", newNr);
+		$('#newpart_nr').text(newNr);
+		$('#newpartdata').show();
+		//console.log(tbl.column( 2, {order:'current'} ).data());
+		//tbl.row.add([tbl.rows().count()+1, "", ""]).draw()
+	});
+	$("#newpart_ready").click(function(event) {
+		console.log("NEW PART READY")
+		var nr = $('#newpart_nr').text();
+		var short = $('#new_short').val();
+		var long = $('#new_long').val();
+		console.log("NEW PART ", nr, " ", short, " ", long);
+		tbl.row.add([nr, short, long]).draw()
+		$('#new_short').val("");
+		$('#new_long').val("");
+		$('#newpartdata').hide();
+	});
+	$("#newpart_cancel").click(function(event) {
+		console.log("NEW PART CANCELLED")
+		$('#new_short').val("");
+		$('#new_long').val("");
+		$('#newpartdata').hide();
+	});
+	var clear = function() {
+		$('name').val("")
+		tbl.clear()
+		console.log("Cleared")
+	}
+	$("#save").click(function(event) {
+		// Gather data and fill in a form to submit
+		var name = $('#name').val();
+		parts_str = ''
+		tbl.rows().every( function () {
+			if (parts_str.length > 0) parts_str += '::';
+    		var parts_data= this.data();
+			parts_str += parts_data.join('|')
+		});
+		console.log(parts_str)
+		var fd = new FormData();
+		fd.append('action', 'savebadge');
+		fd.append('name', name);
+		fd.append('parts', parts_str)
+		console.log(tbl.rows())
+		$.ajax({
+			url:'./?action=savebadge',
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) { if (data === "ok") clear();}
+		});
+		console.log("Saving ", name);
+	});
+});
+</script>
+{% endblock %}
