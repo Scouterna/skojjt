@@ -1,0 +1,17 @@
+{
+  "name": "Knivbevis",
+  "description": "Rekommenderad åldersgrupp: Upptäckarscout",
+  "scout_parts": [
+    {"short": "Användande", "long": "Hur en kniv används så att ingen person, du själv eller andra, skadar sig och följa detta när du använder kniven."},
+    {"short": "Ta emot", "long": "Veta hur en kniv tas emot och lämnas på ett säkert sätt och följa detta när du använder kniven"},
+    {"short": "Hantera", "long": "Hantera kniven på ett sätt som gör att den inte skadas eller slits mer än nödvändigt"},
+    {"short": "Knivlagen", "long": "Känna till vad den Svenska knivlagen innebär"},
+    {"short": "Delar", "long": "Veta vad knivens delar kallas"},
+    {"short": "Slipa", "long": "Kunna slipa en kniv"},
+    {"short": "Tälja", "long": "Provat att tälja något användbart på ett säkert sätt som ledaren godkänt"}
+  ],
+  "admin_parts": [
+      {"short": "Märke", "long": "Märke erhållet"},
+      {"short": "Registrerat", "long": "Registrerat märke i Scoutnet"}
+  ]
+}

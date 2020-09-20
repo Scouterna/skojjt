@@ -10,6 +10,22 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Badge
+  properties:
+  - name: scoutgroup
+  - name: name
+
+- kind: BadgePart
+  properties:
+  - name: badge
+  - name: idx
+
+- kind: BadgePartDone
+  properties:
+  - name: badge_key
+  - name: person_key
+  - name: idx
+
 - kind: Meeting
   properties:
   - name: attendingPersons
@@ -101,6 +117,11 @@ indexes:
   properties:
   - name: taskProgressKey
   - name: created
+
+- kind: TroopBadge
+  properties:
+  - name: troop_key
+  - name: idx
 
 - kind: TroopPerson
   properties:

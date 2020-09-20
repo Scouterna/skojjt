@@ -38,15 +38,21 @@ border: 1px solid transparent;
 .btn-lg{
 margin-bottom: 5px;
 }
-.big-checkbox 
+.big-checkbox
 {
 width: 24px; height: 24px;
 }
 .heading
-{ 
+{
     display: block;
 	font-size: 36px;
     font-weight: bold;
+}
+.subheading
+{
+    display: block;
+	font-size: 24px;
+    font-weight: normal;
 }
 .troopnames
 {
@@ -77,4 +83,28 @@ a.hike
 .hike-tgl
 {
     display: inline-block;
+}
+
+.auto-height
+{
+    width: 100%;
+}
+
+.multiline {
+    white-space: pre;
+}
+
+.img1 {
+    width: 32px;
+    height: 32px;
+}
+
+.img2 {
+    width: 48px;
+    height: 48px;
+}
+
+.img3 {
+    width: 64px;
+    height: 64px;
 }

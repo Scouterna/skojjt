@@ -1,0 +1,299 @@
+﻿{% extends "layout.html" %}
+{% block main %}
+
+
+<div class="table-responsive">
+    <span class="heading"><img id="thumbimg" width="48px" height="48px" src="{{img_url}}"/>{{heading}}: {% if action == "show" %} {{name}} {% else %}
+	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><br/>
+	          <textarea class="auto-height" name="description" id="description" oninput="auto_height(this)"
+			  {% if action == "show" %} disabled {% endif %}>{{description}}</textarea><br/>
+	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="part_id">Del</th>
+			<th class="short_desc">Kort beskrivning</th>
+			<th class="long_desc">Lång beskrivning</th>
+		    {% if action != "show" %}<th></th>{% endif %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in parts_scout %}
+		<tr><td>{{loop.index}}</td><td>{{part[0]}}</td><td>{{part[1]}}</td>
+		{% if action != "show" %}<td><Button id="chg{{loop.index}}" class="chgpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="well" style="display:none" id="newpart_data">
+	<div>
+	  <label>Del: <span id="newpart_nr"></span></label>
+	</div>
+	<div>
+		<label>Kort beskrivning: </label>
+		<input type="text" class="form-control" size="15" id="newpart_short"/>
+	</div>
+	<div>
+		<label>Lång beskrivning: </label>
+		<input type="text" class="form-control" size="45" id="newpart_long"/>
+	</div>
+	<div>
+		<div class="btn-toolbar">
+			<button id="newpart_ready" name="Klar" class="btn btn-lg btn-primary btn-default">Klar</button>
+			<button id="newpart_cancel" name="Avbryt" class="btn btn-lg btn-warning">Avbryt</button>
+		</div>
+	</div>
+</div>
+<div class="table-responsive">
+
+	<table id="admintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="part_id">Admin</th>
+			<th class="short_desc">Kort beskrivning</th>
+			<th class="long_desc">Lång beskrivning</th>
+		    {% if action != "show" %}<th></th>{% endif %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in parts_admin %}
+		<tr><td>{{loop.index}}</td><td>{{part[0]}}</td><td>{{part[1]}}</td>
+		{% if action != "show" %}<td><Button id="chgadm{{loop.index}}" class="chgadmpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="well" style="display:none" id="newpartadm_data">
+	<div>
+	  <label>Adm. del: <span id="newpartadm_nr"></span></label>
+	</div>
+	<div>
+		<label>Kort beskrivning: </label>
+		<input type="text" class="form-control" size="15" id="newpartadm_short"/>
+	</div>
+	<div>
+		<label>Lång beskrivning: </label>
+		<input type="text" class="form-control" size="45" id="newpartadm_long"/>
+	</div>
+	<div>
+		<div class="btn-toolbar">
+			<button id="newpartadm_ready" name="Klar" class="btn btn-lg btn-primary btn-default">Klar</button>
+			<button id="newpartadm_cancel" name="Avbryt" class="btn btn-lg btn-warning">Avbryt</button>
+		</div>
+	</div>
+</div>
+{% if action != "show" %}
+<div>
+	<input type="url" class="image-input" name="thumbnail" id="thumbnail" value="{{img_url}}">
+	<button id="imgbutton">Byt bild</button>
+</div>
+<div class="template-file ">
+	<span>Mall i JSON-format</span>
+	<input type="file" class="template-file-input" id="json-template" accept=".json" value="Läs mall">
+</div>
+
+<button id="newpart" class="btn btn-g btn-success">Ny del</button>
+<button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
+<button id="save" class="btn btn-g btn-warning">Spara</button>
+<a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
+{% endif %}
+<script>
+$(document).ready(function() {
+	var other_badge_names="{{other_badge_names}}".split(",");
+	var img_url="{{img_url}}";
+	var tbl = $('#maintable').DataTable({
+		searching:false,
+		paging:false,
+		info:false,
+		ordering:false,
+	});
+	$(".chgpart").click(function(event) {
+		var row_nr = event.target.id.substring(3);
+		var row_data = tbl.row(row_nr-1).data();
+		// console.log(row_nr + " " + row_data);
+		$('#newpart_nr').text(row_data[0]);
+		$('#newpart_short').val(row_data[1]);
+		$('#newpart_long').val(row_data[2]);
+		$('#newpart_data').show();
+	});
+	$("#newpart").click(function(event) {
+		var new_nr = tbl.rows().count()+1;
+		$('#newpart_nr').text(new_nr);
+		$('#newpart_data').show();
+		//console.log(tbl.column( 2, {order:'current'} ).data());
+		//tbl.row.add([tbl.rows().count()+1, "", ""]).draw()
+	});
+	$("#newpart_ready").click(function(event) {
+		var nr = $('#newpart_nr').text();
+		var short = $('#newpart_short').val();
+		var long = $('#newpart_long').val();
+		// console.log("NEW PART ", nr, " ", short, " ", long);
+		if (nr > tbl.rows().count()) {
+			tbl.row.add([nr, short, long, ""]).draw()
+		} else {
+			tbl.cell(nr-1, 1).data(short);
+			tbl.cell(nr-1, 2).data(long);
+			tbl.draw();
+		}
+		$('#newpart_short').val("");
+		$('#newpart_long').val("");
+		$('#newpart_data').hide();
+		setDirty();
+	});
+	$("#newpart_cancel").click(function(event) {
+		$('#newpart_short').val("");
+		$('#newpart_long').val("");
+		$('#newpart_data').hide();
+	});
+	var admtbl = $('#admintable').DataTable({
+		searching:false,
+		paging:false,
+		info:false,
+		ordering:false,
+	});
+	$(".chgadmpart").click(function(event) {
+		var row_nr = event.target.id.substring(6);  // Remove chgadm
+		// console.log(event.target.id + " " + row_nr);
+		var row_data = admtbl.row(row_nr-1).data();
+		// console.log("Adm: " + row_nr);
+		$('#newpartadm_nr').text(row_data[0]);
+		$('#newpartadm_short').val(row_data[1]);
+		$('#newpartadm_long').val(row_data[2]);
+		$('#newpartadm_data').show();
+	});
+	$("#newpartadm-btn").click(function(event) {
+		var new_nr = admtbl.rows().count() + 1;
+		$('#newpartadm_nr').text(new_nr);
+		$('#newpartadm_short').val("");
+		$('#newpartadm_long').val("");
+		$('#newpartadm_data').show();
+	});
+	$("#newpartadm_ready").click(function(event) {
+		var nr = $('#newpartadm_nr').text();
+		var row_nr = nr - 1;
+		var short = $('#newpartadm_short').val();
+		var long = $('#newpartadm_long').val();
+		if (row_nr >= admtbl.rows().count()) {
+			admtbl.row.add([nr, short, long, ""]).draw()
+		} else {
+			admtbl.cell(row_nr, 1).data(short);
+			admtbl.cell(row_nr, 2).data(long);
+			admtbl.draw();
+		}
+		setDirty();
+		$('#newpartadm_data').hide();
+	});
+	$("#newpartadm_cancel").click(function(event) {
+		$('#newpartadm_data').hide();
+	});
+	var clear = function() {
+		$('name').val("")
+		tbl.clear()
+	}
+	$("#save").click(function(event) {
+		var button = event.target;
+		saveOngoing($(button));
+		// Gather data and fill in a form to submit
+		var name = $('#name').val();
+		if (other_badge_names.includes(name)) {
+			alert("Namnet " + name + " används redan. Kan ej spara!");
+			return;
+		}
+		var description = $('#description').val();
+		var parts_scout = ''
+		tbl.rows().every( function () {
+			if (parts_scout.length > 0) parts_scout += '::';
+    		var parts_data = this.data().slice(1,3);  // Skip first and button column
+			parts_scout += parts_data.join('|')
+		});
+		var parts_admin = ''
+		admtbl.rows().every( function () {
+			if (parts_admin.length > 0) parts_admin += '::';
+    		var parts_data = this.data().slice(1,3);  // Skip first and button column
+			parts_admin += parts_data.join('|')
+		});
+		var fd = new FormData();
+		fd.append('action', 'savebadge');
+		fd.append('name', name);
+		fd.append('description', description)
+		fd.append('parts_scout', parts_scout)
+		fd.append('parts_admin', parts_admin)
+		fd.append('img_url', img_url)
+		// console.log(tbl.rows())
+		$.ajax({
+			url:'.',
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) {
+				if (data === "ok") {
+					other_badge_names.push(name)
+					resetDirtyButton($(button));
+					alert("Märket " + name + " sparat")
+				}
+			}
+		});
+	});
+
+	function setDirty() {
+		var saveBtn = $('#save')
+		saveBtn.addClass('data-dirty')
+	}
+
+	function saveOngoing(btn) {
+		btn.addClass('data-dirty data-save-pending');
+	}
+
+    function resetDirtyButton(btn) {
+		btn.removeClass('data-dirty data-save-pending');
+	}
+	function auto_height(elem) {
+    	elem.style.height = "1px";
+    	elem.style.height = (elem.scrollHeight)+"px";
+	}
+	$('#imgbutton').click(e => {
+    	img_url = $("#thumbnail").val()
+		$("#thumbimg").attr("src", img_url);
+	});
+	$('#json-template').on('change', function() {
+    	var file = $(this).get(0).files;
+    	var reader = new FileReader();
+    	reader.readAsText(file[0]);
+    	reader.addEventListener("load", function(e) {
+    		template = JSON.parse(e.target.result);
+			fillinTemplate(template)
+		});
+	});
+	function min(a, b) {
+		if (b < a) {
+			return b;
+		}
+		return a;
+	}
+	function fillinTemplate(template) {
+		$('#name').val(template.name)
+		$('#description').val(template.description)
+		fillInTable(tbl, template.scout_parts)
+		fillInTable(admtbl, template.admin_parts)
+	}
+	function fillInTable(tbl, new_data) {
+	var nr_old_rows = tbl.rows().count();
+	var nr_new_rows = new_data.length;
+		if (nr_new_rows < nr_old_rows) {
+			alert("Färre rader än tidigare. Funkar ej!")
+			// console.log("Would need to delete some rows. Not allowed");
+			return;
+		}
+		for (let i=0; i < min(nr_old_rows, nr_new_rows); i++) {
+			tbl.cell(i, 0).data(i+1);
+			tbl.cell(i, 1).data(new_data[i].short);
+			tbl.cell(i, 2).data(new_data[i].long);
+		}
+		for (let i=nr_old_rows; i < nr_new_rows; i++) {
+			tbl.row.add([i+1, new_data[i].short, new_data[i].long, ""]);
+		}
+		tbl.draw();
+	}
+});
+</script>
+{% endblock %}
