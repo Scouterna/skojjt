@@ -4,7 +4,7 @@ from data import Semester, TaskProgress, UserPrefs
 from dataimport import RunScoutnetImport
 from google.appengine.ext import deferred, ndb
 from flask import Blueprint, render_template, request, make_response, redirect
-
+import traceback
 
 import_page = Blueprint('import_page', __name__, template_folder='templates')
 
@@ -66,7 +66,7 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     """
     taskProgress = TaskProgress(name='Import', return_url=request.url)
     taskProgress.put()
-    deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key)
+    deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key, _queue="import")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
 def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
@@ -77,6 +77,7 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     :type taskProgress_key: google.appengine.ext.ndb.Key
     :type user_key: google.appengine.ext.ndb.Key
     """
+    start_time = time.time()
     semester = semester_key.get()  # type: data.Semester
     user = user_key.get()  # type: data.UserPrefs
     progress = None
@@ -93,5 +94,10 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
         else:
             progress.info("Import klar")
     except Exception as e: # catch all exceptions so that defer stops running it again (automatic retry)
-        progress.info("Importfel: " + str(e))
+        progress.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
+
+    end_time = time.time()
+    time_taken = end_time - start_time
+    progress.info("Tid: %s s" % str(time_taken))
+
     progress.done()

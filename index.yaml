@@ -84,6 +84,11 @@ indexes:
   - name: lastname
   - name: firstname
 
+- kind: TaskProgressMessage
+  properties:
+  - name: taskProgressKey
+  - name: created
+
 - kind: TroopPerson
   properties:
   - name: troop

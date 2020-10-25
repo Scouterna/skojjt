@@ -18,6 +18,30 @@
 			<label for="commit" class="control-label col-sm-3">Spara data</label>
 			<input type="checkbox" class="form-control" name="commit" id="commit" />
 			</div>
+			<div class="form-group row">
+			<label for="move_users" class="control-label col-sm-3">Flytta användare</label>
+			<input type="checkbox" class="form-control" name="move_users" id="move_users" />
+			</div>
+			<div class="form-group row">
+			<label for="move_persons" class="control-label col-sm-3">Flytta personer</label>
+			<input type="checkbox" class="form-control" name="move_persons" id="move_persons" />
+			</div>
+			<div class="form-group row">
+			<label for="move_troops" class="control-label col-sm-3">Flytta avdelningar och möten</label>
+			<input type="checkbox" class="form-control" name="move_troops" id="move_persons" />
+			</div>
+			<div class="form-group row">
+			<label for="semester" class="control-label col-sm-3">Konvertera termin:</label>
+			<select class="form-control form-control-lg" name="semester" id="semester">
+			{% for semester in semesters %}
+				<option>{{semester.getname()}}</option>
+			{% endfor %}
+			</select>
+			</div>
+			<div class="form-group row">
+			<label for="delete_sg" class="control-label col-sm-3">Radera gamla kåren</label>
+			<input type="checkbox" class="form-control" name="delete_sg" id="delete_sg" />
+			</div>
 		   <button type="submit" name="submit" class="btn btn-lg btn-primary">Starta</button>
 		  </div>
 		</form>

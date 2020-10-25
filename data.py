@@ -41,11 +41,15 @@ class Semester(ndb.Model):
         return Semester(id=Semester.getid(year, ht), year=year, ht=ht)
 
     @staticmethod
+    def getbyId(id_string):
+        return Semester.get_by_id(id_string.replace('-',''), use_memcache=True)
+
+    @staticmethod
     def getOrCreateCurrent():
         thisdate = datetime.datetime.now()
         ht = True if thisdate.month>6 else False
         year = thisdate.year
-        semester = Semester.get_by_id(Semester.getid(year, ht))
+        semester = Semester.get_by_id(Semester.getid(year, ht), use_memcache=True)
         if semester == None:
             semester = Semester.create(year, ht)
             semester.put()
@@ -59,7 +63,7 @@ class Semester(ndb.Model):
         if ht:
             year += 1
         ht = not ht
-        semester = Semester.get_by_id(Semester.getid(year, ht))
+        semester = Semester.get_by_id(Semester.getid(year, ht), use_memcache=True)
         if semester == None:
             semester = Semester.create(year, ht)
             semester.put()
@@ -553,32 +557,39 @@ class UserPrefs(ndb.Model):
     def create(user, access=False, hasadminaccess=False):
         return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess, activeSemester=Semester.getOrCreateCurrent().key)
 
+class TaskProgress(ndb.Model):
+    pass
+
+class TaskProgressMessage(ndb.Model):
+    taskProgressKey = ndb.KeyProperty(kind=TaskProgress, required=True)
+    created = ndb.DateTimeProperty(auto_now_add=True, required=True)
+    message = ndb.StringProperty()
 
 class TaskProgress(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True, required=True)
     completed = ndb.DateTimeProperty()
     name = ndb.StringProperty(required=True)
     return_url = ndb.StringProperty(required=True)
-    messages = ndb.StringProperty(repeated=True)
     failed = ndb.BooleanProperty(default=False)
     lastPut = None
 
     def append(self, message):
-        self.messages.append(message)
+        message = TaskProgressMessage(taskProgressKey=self.key, message=message)
+        message.put()
         self._putIfNeeded()
 
     def info(self, message):
-        self.messages.append(message)
+        self.append(message)
         self._putIfNeeded()
 
     def warning(self, message):
-        self.messages.append('Warning:' + message)
+        self.append('Warning:' + message)
         self._putIfNeeded()
 
     def error(self, message):
-        self.messages.append('Error:' + message)
+        self.append('Error:' + message)
         self.failed = True
-        self._putIfNeeded()
+        self.put()
 
     def done(self):
         self.completed = datetime.datetime.now()
@@ -598,14 +609,22 @@ class TaskProgress(ndb.Model):
     @staticmethod
     def cleanup():
         cutoffdate = datetime.datetime.now() - datetime.timedelta(days=30)
-        keys = TaskProgress.query(TaskProgress.created < cutoffdate).fetch(keys_only=True)
+        keys = []
+        taskkeys = TaskProgress.query(TaskProgress.created < cutoffdate).fetch(keys_only=True)
+        for taskkey in taskkeys:
+            keys.extend(TaskProgressMessage.query(TaskProgressMessage.taskProgressKey==taskkey).fetch(keys_only=True))
+
+        keys.extend(taskkeys)
+
         ndb.delete_multi(keys)
 
     def toJson(self):
+        messages = [taskMessage.message for taskMessage in TaskProgressMessage.query(TaskProgressMessage.taskProgressKey==self.key).order(TaskProgressMessage.created).fetch()]
         s = '{"datetime": "' + self.created.strftime("%Y%m%d%H%M")+ '",' + \
             '"name": "' + self.name + '",' + \
             '"return_url": "' + self.return_url + '",' + \
-            '"messages": ' + json.dumps(self.messages) + ',' + \
+            '"messages": ' + json.dumps(messages) + ',' + \
             '"failed": ' + json.dumps(self.failed) + ',' + \
             '"running": ' + json.dumps(self.isRunning()) + '}'
         return s
+

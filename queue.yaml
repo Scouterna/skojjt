@@ -1,0 +1,13 @@
+queue:
+- name: import
+  rate: 1/s
+  max_concurrent_requests: 1
+  retry_parameters:
+    task_retry_limit: 1
+    max_doublings: 0
+- name: admin
+  rate: 1/s
+  max_concurrent_requests: 1
+  retry_parameters:
+    task_retry_limit: 1
+    max_doublings: 0

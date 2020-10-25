@@ -18,6 +18,7 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.unittestEnabled": true,
-    "python.linting.enabled": true
+    "python.testing.unittestEnabled": false,
+    "python.linting.enabled": true,
+    "python.testing.promptToConfigure": false
 }

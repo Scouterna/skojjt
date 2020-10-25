@@ -3,16 +3,20 @@ import datetime
 import logging
 import scoutnet
 import sys
+import time
 from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
 from flask import Flask, make_response, redirect, render_template, request
 from dataimport import dosettroopsemester, GetBackupXML, UpdateSchemas
 from imports import import_page, progress
-from google.appengine.api import mail, users
+from google.appengine.ext import deferred
+from google.appengine.api import users
+from google.appengine.api import mail
 from google.appengine.ext import ndb
 from groupsummary import groupsummary
 from persons import persons
 from scoutgroupinfo import scoutgroupinfo
 from start import start
+import traceback
 
 app = Flask(__name__)
 app.debug = True
@@ -26,7 +30,7 @@ sys.setdefaultencoding('utf8')
 @app.route('/')
 def home():
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
-    user=UserPrefs.current()
+    user = UserPrefs.current()
     user.attemptAutoGroupAccess()
     starturl = '/start/'
     personsurl = '/persons/'
@@ -195,15 +199,67 @@ def adminMergeScoutGroups():
         oldname = request.form.get('oldname').strip()
         newname = request.form.get('newname').strip()
         commit = request.form.get('commit') == 'on'
-        merge_sg(oldname, newname, commit)
+        move_users = request.form.get('move_users') == 'on'
+        move_persons = request.form.get('move_persons') == 'on'
+        move_troops = request.form.get('move_troops') == 'on'
+        delete_sg = request.form.get('delete_sg') == 'on'
+        semester_id =  request.form.get('semester')
+        return startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, move_troops, delete_sg, semester_id)
+    else:
+        return render_template('merge_sg.html',
+            heading=section_title,
+            baselink=baselink,
+            breadcrumbs=breadcrumbs,
+            semesters=Semester.query().fetch())
 
-    return render_template('merge_sg.html',
-        heading=section_title,
-        baselink=baselink,
-        breadcrumbs=breadcrumbs)
+"""
+How to handle tasks 
+List all tasks:
+> gcloud tasks list --queue=default
 
+Delete a task:
+> gcloud tasks delete <task-name> --queue=default
+"""
+def startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, move_troops, delete_sg, semester_id):
+    """
+    :type oldname: str
+    :type newname: str
+    :type commit: Boolean
+    :type user: data.UserPrefs
+    :type move_users Boolean
+    :type move_persons Boolean
+    :type move_troops Boolean
+    :type delete_sg Boolean
+    :type semester_id str
+    """
+    taskProgress = TaskProgress(name='MergeSG', return_url=request.url)
+    taskProgress.put()
+    deferred.defer(merge_sg_deferred, oldname, newname, commit, taskProgress.key, user.key, move_users, move_persons, move_troops, delete_sg, semester_id, _queue="admin")
+    return redirect('/progress/' + taskProgress.key.urlsafe())
 
-def merge_sg(oldname, newname, commit):
+def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move_users, move_persons, move_troops, delete_sg, semester_id):
+    try:
+        user = user_key.get()  # type: data.UserPrefs
+        taskProgress = None
+        for i in range(1, 3):
+            taskProgress = taskProgress_key.get()  # type: data.TaskProgress
+            if taskProgress is not None:
+                break
+            time.sleep(1) # wait for the eventual consistency
+
+        merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, move_persons, move_troops, delete_sg, semester_id)
+
+    except Exception as e:
+        # catch all exceptions so that defer stops running it again (automatic retry)
+        taskProgress.error(str(e) + "CS:" + traceback.format_exc())
+
+    try:
+        taskProgress.done()
+    except Exception as e:
+        pass
+
+def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, move_persons, move_troops, delete_sg, semester_id):
+    start_time = time.time()
     oldsg = ScoutGroup.getbyname(oldname)
     if oldsg is None:
         raise RuntimeError("Old sg name:%s not found" % oldname)
@@ -212,71 +268,103 @@ def merge_sg(oldname, newname, commit):
     if newsg is None:
         raise RuntimeError("New sg name:%s not found" % newname)
 
-    if not commit: logging.info("*** testmode ***")
+    if not commit:
+        taskProgress.info("*** testmode ***")
 
     keys_to_delete = []
     entities_to_put_first = []
     entities_to_put = []
-    semester = Semester.getOrCreateCurrent()
 
-    keys_to_delete.append(oldsg.key)
+    taskProgress.info("termin: %s" % semester_id)
+    
+    convertsemester = Semester.getbyId(semester_id)
+    if convertsemester is None:
+        taskProgress.error("termin: %s does not exist" % semester_id)
 
-    logging.info("Update all users to the new scoutgroup")
-    for u in UserPrefs.query(UserPrefs.groupaccess == oldsg.key).fetch():
-        u.groupaccess = newsg.key
-        u.activeSemester = semester.key
-        entities_to_put.append(u)
+    currentsemester = Semester.getOrCreateCurrent()
 
-    logging.info("Moving all persons to the new ScoutGroup:%s", newsg.getname())
-    for oldp in Person.query(Person.scoutgroup == oldsg.key).fetch():
-        logging.info(" * Moving %s %s", oldp.getname(), oldp.personnr)
-        oldp.scoutgroup = newsg.key
-        entities_to_put.append(oldp)
+    if move_users:
+        taskProgress.info("Update all users to the new scoutgroup")
+        for u in UserPrefs.query(UserPrefs.groupaccess == oldsg.key).fetch():
+            logging.info(" * * moving user for %s" % (u.getname()))
+            u.groupaccess = newsg.key
+            u.activeSemester = currentsemester.key
+            entities_to_put.append(u)
 
-    logging.info("Move all troops to the new ScoutGroup:%s", newsg.getname())
-    for oldt in Troop.query(Troop.scoutgroup == oldsg.key).fetch():
-        logging.info(" * found old troop for %s, semester=%s", str(oldt.key.id()), oldt.semester_key.get().getname())
-        keys_to_delete.append(oldt.key)
-        newt = Troop.get_by_id(Troop.getid(oldt.scoutnetID, newsg.key, oldt.semester_key), use_memcache=True)
-        if newt is None:
-            logging.info(" * * creating new troop for %s, semester=%s", str(oldt.key.id()), oldt.semester_key.get().getname())
-            newt = Troop.create(oldt.name, oldt.scoutnetID, newsg.key, oldt.semester_key)
-            entities_to_put_first.append(newt) # put first to be able to reference it
-        else:
-            logging.info(" * * already has new troop for %s, semester=%s", str(newt.key.id()), newt.semester_key.get().getname())
+    if move_persons:
+        taskProgress.info("Moving all persons to the new ScoutGroup:%s" % newsg.getname())
+        for oldp in Person.query(Person.scoutgroup == oldsg.key).fetch():
+            oldp.scoutgroup = newsg.key
+            entities_to_put.append(oldp)
 
-        logging.info(" * Move all trooppersons to the new group (it they don't already exist there)")
-        for oldtp in TroopPerson.query(TroopPerson.troop == oldt.key).fetch():
-            keys_to_delete.append(oldtp.key)
-            newtp = TroopPerson.get_by_id(TroopPerson.getid(newt.key, oldtp.person), use_memcache=True)
-            if newtp is None:
-                logging.info(" * * creating new TroopPerson for %s:%s", newt.getname(), oldtp.getname())
-                newtp = TroopPerson.create(newt.key, oldtp.person, oldtp.leader)
-                entities_to_put.append(newtp)
+    if move_troops:
+        taskProgress.info("Move all troops to the new ScoutGroup:%s, semester: %s" % (newsg.getname(), convertsemester.getname()))
+        for oldt in Troop.query(Troop.scoutgroup == oldsg.key, Troop.semester_key == convertsemester.key).fetch():
+            taskProgress.info(" * found old troop for %s, semester=%s" % (str(oldt.key.id()), oldt.semester_key.get().getname()))
+            keys_to_delete.append(oldt.key)
+            newt = Troop.get_by_id(Troop.getid(oldt.scoutnetID, newsg.key, oldt.semester_key), use_memcache=True)
+            if newt is None:
+                taskProgress.info(" * * creating new troop for %s, semester=%s" % (str(oldt.key.id()), oldt.semester_key.get().getname()))
+                newt = Troop.create(oldt.name, oldt.scoutnetID, newsg.key, oldt.semester_key)
+                entities_to_put_first.append(newt) # put first to be able to reference it
             else:
-                logging.info(" * * already has TroopPerson for %s:%s", newt.getname(), oldtp.getname())
+                taskProgress.info(" * * already has new troop for %s, semester=%s" % (str(newt.key.id()), newt.semester_key.get().getname()))
 
-        logging.info(" * Move all old meetings to the new troop")
-        for oldm in Meeting.query(Meeting.troop==oldt.key).fetch():
-            keys_to_delete.append(oldm.key)
-            newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key), use_memcache=True)
-            if newm is None:
-                logging.info(" * * creating new Meeting for %s:%s", newt.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M"))
-                newm = Meeting.getOrCreate(newt.key, oldm.name, oldm.datetime, oldm.duration, oldm.ishike)
-                newm.attendingPersons = oldm.attendingPersons
-                entities_to_put.append(newm)
-            else:
-                logging.info(" * * already has Meeting for %s:%s", newt.getname(), newt.datetime.strftime("%Y-%m-%d %H:%M"))
+            taskProgress.info(" * Move all trooppersons to the new group")
+            for oldtp in TroopPerson.query(TroopPerson.troop == oldt.key).fetch():
+                keys_to_delete.append(oldtp.key)
+                newtp = TroopPerson.get_by_id(TroopPerson.getid(newt.key, oldtp.person), use_memcache=True)
+                if newtp is None:
+                    logging.info(" * * creating new TroopPerson for %s:%s" % (newt.getname(), oldtp.getname()))
+                    newtp = TroopPerson.create(newt.key, oldtp.person, oldtp.leader)
+                    entities_to_put.append(newtp)
+                else:
+                    logging.info(" * * already has TroopPerson for %s:%s" % (newt.getname(), oldtp.getname()))
 
-    logging.info("Putting %d entities first", len(entities_to_put_first))
+            taskProgress.info(" * Move all old meetings to the new troop")
+            for oldm in Meeting.query(Meeting.troop==oldt.key).fetch():
+                keys_to_delete.append(oldm.key)
+                newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key), use_memcache=True)
+                if newm is None:
+                    logging.info(" * * creating new Meeting for %s:%s" % (newt.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M")))
+                    newm = Meeting(id=Meeting.getId(oldm.datetime, newt.key),
+                                        datetime=oldm.datetime,
+                                        name=oldm.name,
+                                        troop=newt.key,
+                                        duration=oldm.duration,
+                                        ishike=oldm.ishike)
+                    newm.attendingPersons = oldm.attendingPersons
+                    entities_to_put.append(newm)
+                else:
+                    logging.info(" * * merging Meeting %s->%s :%s" % (oldm.getname(), newm.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M")))
+                    need_to_put = False
+                    if len(oldm.name) > len(newm.name): # take the longer name.
+                        newm.name = oldm.name
+                        need_to_put = True
+                    
+                    for oldattendingpersonkey in oldm.attendingPersons:
+                        if oldattendingpersonkey not in newm.attendingPersons:
+                            newm.attendingPersons.append(oldattendingpersonkey)
+                            need_to_put = True
+                    
+                    if need_to_put:
+                        entities_to_put.append(newm)
+
+        if delete_sg:
+            keys_to_delete.append(oldsg.key)
+
+    taskProgress.info("time before put: %s s" % str(time.time() - start_time))
+
+    logging.info("Putting %d entities first" % len(entities_to_put_first))
     if commit: ndb.put_multi(entities_to_put_first)
-    logging.info("Putting %d entities", len(entities_to_put))
+    logging.info("Putting %d entities" % len(entities_to_put))
     if commit: ndb.put_multi(entities_to_put)
-    logging.info("Deleting %d keys", len(keys_to_delete))
+    logging.info("Deleting %d keys" % len(keys_to_delete))
     if commit: ndb.delete_multi(keys_to_delete)
     logging.info("clear memcache")
     if commit: ndb.get_context().clear_cache()
-    logging.info("Done!")
+
+    taskProgress.info("Done! time: %s s" % str(time.time() - start_time))
 
 
 # cron job:
