@@ -17,6 +17,7 @@ from excelreport_sthlm import ExcelReportSthlm
 from jsonreport import JsonReport
 from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
 from dakdata import DakData, Deltagare, Sammankomst
+from data_badge import TroopBadge
 
 
 def semester_sort(sem_a, sem_b):
@@ -120,7 +121,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                    baselink=baselink,
                                    breadcrumbs=breadcrumbs,
                                    troop_persons=[],
-                                   scoutgroup=scoutgroup)
+                                   scoutgroup=scoutgroup,
+                                   badge_url="")
         elif request.method == "POST":
             pnr = request.form['personnummer'].replace('-', '')
             person = Person.createlocal(
@@ -311,16 +313,21 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         return lagerbidrag.render_lagerbidrag(request, scoutgroup, "group", user=user, sgroup_key=sgroup_key)
     elif troop is None:
         section_title = 'Avdelningar'
+        troops = sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name'))
+        troops_badges = [TroopBadge.get_badges_for_troop(troop) for troop in troops]
+        nr_badge_cols = max(5, *[len(tb) for tb in troops_badges])
         return render_template('troops.html',
                                heading=section_title,
                                baselink=baselink,
-                               scoutgroupbadgeslink='/scoutgroupbadges/' + sgroup_url + '/',
+                               scoutgroupbadgeslink='/badges/' + sgroup_url + '/',
                                scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
                                groupsummarylink='/groupsummary/' + sgroup_url + '/',
                                user=user,
                                semester=semester,
                                semesters=sorted(Semester.query(), semester_sort),
-                               troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
+                               troops=troops,
+                               nr_badge_cols=nr_badge_cols,
+                               troops_badges=troops_badges,
                                lagerplats=scoutgroup.default_lagerplats,
                                breadcrumbs=breadcrumbs)
     elif key_url is not None and key_url not in ("dak", "sensus", "lagerbidrag", "excel", "excel_sthlm", "json"):

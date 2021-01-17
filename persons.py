@@ -15,6 +15,7 @@ persons = Blueprint('persons_page', __name__, template_folder='templates')
 @persons.route('/<sgroup_url>/<person_url>/')
 @persons.route('/<sgroup_url>/<person_url>/<action>')
 def show(sgroup_url=None, person_url=None, action=None):
+    # logging.info("persons.py: sgroup_url=%s, person_url=%s, action=%s", sgroup_url, person_url, action)
     user = UserPrefs.current()
     if not user.hasAccess():
         return "denied", 403
@@ -128,14 +129,16 @@ def show(sgroup_url=None, person_url=None, action=None):
             abort(404)
             return ""
 
-
     # render main pages
+    scoutgroup_url = scoutgroup.key.urlsafe()
+    person_url = person.key.urlsafe()
     return render_template(
         'person.html',
         heading=section_title,
-        baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
+        baselink='/persons/' + scoutgroup_url + '/',
         # TODO: memcache
         trooppersons=TroopPerson.query(TroopPerson.person == person.key).fetch(),
         ep=person,
         scoutgroup=scoutgroup,
-        breadcrumbs=breadcrumbs)
+        breadcrumbs=breadcrumbs,
+        badge_url='/badges/' + scoutgroup_url + '/person/' + person_url + '/')

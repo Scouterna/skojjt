@@ -1,0 +1,22 @@
+{% include "header.html" %}
+<body>
+<!-- Should fetch structure from troops.html which shows Avdelningar -->
+{% include "navigation.html" %}
+    <div class="main">
+        <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            <tbody>
+            {% for badge in badges %}
+            <tr>
+                <th>{{badge.name}}</th>
+                <th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/show" class="btn btn-g btn-info">Visa</a></th>
+                <th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/change" class="btn btn-g btn-warning">Ändra</a></th>
+                <!--th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/remove" class="btn btn-g btn-info">Ta bort</a></th-->
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="divider-vertical well">
+          <a href="{{baselink+'badge/newbadge'}}" class="btn btn-g btn-success">Nytt märke</a>
+        </div>
+    </div>
+</body>
+</html>

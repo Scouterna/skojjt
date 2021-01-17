@@ -7,114 +7,153 @@ from google.appengine.ext import ndb
 
 from data import ScoutGroup, Troop, Person, PropertyWriteTracker
 
+ADMIN_OFFSET = 100  # Offset for administrative badge parts
+
 
 class Badge(ndb.Model):
-    "Märkesdefinition för en scoutkår. Kraven ligger separat som BadgePart."
+    "Badge definition for a scout group (scoutkår). The required parts are separate as BadgePart."
     name = ndb.StringProperty(required=True)
     scoutgroup = ndb.KeyProperty(kind=ScoutGroup, required=True)
     # TODO. Add image = ndb.BlobProperty()
 
     @staticmethod
-    def create(name, scoutgroup_key, badge_parts):
+    def create(name, scoutgroup_key, badge_parts_data):
         badge = Badge(name=name, scoutgroup=scoutgroup_key)
         badge_key = badge.put()
-        for badge_part in badge_parts:
+        for badge_part in badge_parts_data:
             bp = BadgePart(badge=badge_key,
                            idx=int(badge_part[0]),
                            short_desc=badge_part[1],
                            long_desc=badge_part[2])
             bp.put()
-    
-    def update(self, badge_parts):
-        prevs = BadgePart.query(badge==self).order(BadgePart.idx).fetch()
-        # Go through parts, update, add or remove
-        # If remove, also remove all BadgePartDone
 
+    def get_parts(self):
+        return BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
 
-    # get_by_id is there already
+    def update(self, name, badge_parts_data):
+        """Update badge parts for badge. Separate normal series from admin."""
+        if name != self.name:
+            self.name = name
+            self.put()
 
-    
+        def parts_update(olds, news_data):
+            for old, new in zip(olds, news_data):
+                if old.idx != int(new[0]):
+                    logging.warn("Badge part numbers don't match: %d %d" % (old.idx, int(new[0])))
+                    return
+                if old.short_desc != new[1] or old.long_desc != new[2]:
+                    old.short_desc = new[1]
+                    old.long_desc = new[2]
+                    old.put()
+            if len(news_data) > len(olds):
+                for new in news_data[len(olds):]:
+                    bp = BadgePart(badge=self.key,
+                                   idx=int(new[0]),
+                                   short_desc=new[1],
+                                   long_desc=new[2])
+                    bp.put()
+            else:
+                for bp in olds[len(news_data):]:
+                    # TODO. Shall we support delete
+                    logging.warn("Would like to delete part %d" % bp.idx)
+                    # bp.delete()
+
+        old_parts = BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
+        old_normal = [p for p in old_parts if p.idx < ADMIN_OFFSET]
+        old_admin = [p for p in old_parts if p.idx >= ADMIN_OFFSET]
+
+        new_data_normal = [bp for bp in badge_parts_data if int(bp[0]) < ADMIN_OFFSET]
+        new_data_admin = [bp for bp in badge_parts_data if int(bp[0]) >= ADMIN_OFFSET]
+
+        parts_update(old_normal, new_data_normal)
+        parts_update(old_admin, new_data_admin)
 
     @staticmethod
     def get_badges(scoutgroup_key):
         badges = []
-        logging.info("GET_BADGES")
         if scoutgroup_key is not None:
-            badges = Badge.query(Badge.scoutgroup == scoutgroup_key).fetch()
+            badges = Badge.query(Badge.scoutgroup == scoutgroup_key).order(Badge.name).fetch()
         return badges
 
 
 class BadgePart(ndb.Model):
-    "Märkesdel med idx för att sortera"
+    """Badge part with index idx for sorting.
+
+    There are special parts:
+         idx=100, short_desc=Utdelat
+         idx=101, short_desc=Registrerat
+    to keep track of what has been awarded and registrered.
+    """
     badge = ndb.KeyProperty(kind=Badge, required=True)
     idx = ndb.IntegerProperty(required=True)  # For sorting
     short_desc = ndb.StringProperty(required=True)
     long_desc = ndb.StringProperty(required=True)
 
-    @staticmethod
-    def get_or_create(badge_key, idx, short_desc, long_desc):
-        badge_part = BadgePart.get_by_id(badge_key, idx)
-        if badge_part is None:
-            badge_part = BadgePart.create(badge_key, idx, short_desc, long_desc)
-            badge_part.put()
-        if short_desc != badge_part.short_desc or long_desc != badge_part.long_desc:
-            badge_part.short_desc = short_desc
-            badge_part.long_desc = long_desc
-            badge_part.put()
-        # TODO. Check if we should cache something
-
 
 class BadgePartDone(ndb.Model):
-    "Del som är gjord inkl. datum och vem som infört i Skojjt."
+    "Part that has been done including date and who registered in Skojjt."
     badge_key = ndb.KeyProperty(kind=Badge, required=True)
     person_key = ndb.KeyProperty(kind=Person, required=True)
-    idx = ndb.IntegerProperty(required=True)
-    datetime = ndb.DateProperty(required=True)
-    examiner = Person
+    idx = ndb.IntegerProperty(required=True)  # idx for BadgePart
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    examiner_name = ndb.StringProperty(required=True)
+
+    @staticmethod
+    def create(person_key, badge_key, badge_part_idx, examiner_name):
+        bpd = BadgePartDone(person_key=person_key, badge_key=badge_key,
+                            idx=badge_part_idx, examiner_name=examiner_name)
+        bpd.put()
+
+    @staticmethod
+    def progress(person_key, badge_key):
+        "Person progress for specific badge."
+        bpd = BadgePartDone.query(ndb.AND(BadgePartDone.person_key == person_key,
+                                          BadgePartDone.badge_key == badge_key)).order(BadgePartDone.idx).fetch()
+        return bpd
 
 
-class BadgeProgress(ndb.Model):
-    "Märkesprogress för en person."
+class TroopBadge(ndb.Model):
+    "Badge for troop (avdelning + termin)"
+    troop_key = ndb.KeyProperty(kind=Troop)
     badge_key = ndb.KeyProperty(kind=Badge)
-    person_key = ndb.KeyProperty(kind=Person)
-    registered = ndb.BooleanProperty()  # Registrerat i scoutnet
-    awarded = ndb.BooleanProperty()  # Utdelat till scouten
-    # Lista av vilka delar som är godkända inkl. datum (och ledare)
-    # This can be found by quering get_by_
-    #  with passed = ndb.KeyProperty(kind=BadgePartDone, repeated=True)
+    idx = ndb.IntegerProperty(required=True)  # For sorting
 
     @staticmethod
-    def getOrCreate(badge_key, person_id):
-        badge_progress = BadgeProgress.get_by_id(badge_key, person_id)
-        if badge_progress is None:
-            badge_progress = BadgeProgress.create(badge_key, person_id)
-            badge_progress.put()
-        return badge_progress
-        # TODO. Check if we should cache something
+    def get_badges_for_troop(troop):
+        tps = TroopBadge.query(TroopBadge.troop_key == troop.key).order(TroopBadge.idx).fetch()
+        return [Badge.get_by_id(tp.badge_key.id()) for tp in tps]
 
     @staticmethod
-    def create(badge_key, person_id):
-        badge_progress = BadgeProgress(
-            badge_key=badge_key,
-            person_id=person_id,
-            registered=False,
-            awarded=False
-        )
-        return badge_progress
-
-    def get_progress(self):
-        parts_done = BadgePartDone.query(
-            BadgePartDone.Badge_key == self.badge_key,
-            BadgePartDone.person_key == self.person_id)
-        parts_idx = [p.idx for p in parts_done]
-        return {
-            'registered': parts_done.registered,
-            'awarded': parts_done.awarded,
-            'parts_done': parts_idx.sorted()}
-
-
-class TroopBadges(ndb.Model):
-    "Märken för avdelning och termin."
-    troop = ndb.KeyProperty(kind=Troop)
-    badges = ndb.KeyProperty("Badge", repeated=True)
-
+    def update_for_troop(troop, name_list):
+        old_troop_badges = TroopBadge.query(TroopBadge.troop_key == troop.key).order(TroopBadge.idx).fetch()
+        old_badges = [Badge.get_by_id(tp.badge_key.id()) for tp in old_troop_badges]
+        nr_old_troop_badges = len(old_troop_badges)
+        logging.info("New are %d, old were %d" % (len(name_list), nr_old_troop_badges))
+        # First find keys to remove
+        to_remove = []
+        for old in old_badges:
+            if old.name not in name_list:
+                to_remove.append(old.key)
+        # Next remove them from the troop badges
+        for old_key in to_remove:
+            for otb in old_troop_badges:
+                if otb.badge_key == old_key:
+                    otb.key.delete()
+        # Now find really new names
+        really_new = []
+        for name in name_list:
+            for old in old_badges:
+                if old.name == name:
+                    break
+            else:
+                really_new.append(name)
+        if len(really_new) == 0:
+            return
+        logging.info("Really new are %d" % len(really_new))
+        allbadges = Badge.get_badges(troop.scoutgroup)
+        idx = nr_old_troop_badges
+        for badge in allbadges:
+            if badge.name in really_new:
+                tb = TroopBadge(troop_key=troop.key, badge_key=badge.key, idx=idx)
+                tb.put()
+                idx += 1

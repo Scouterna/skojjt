@@ -78,3 +78,8 @@ a.hike
 {
     display: inline-block;
 }
+
+.done
+{
+    font-weight: bold;
+}

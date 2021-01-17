@@ -1,33 +1,37 @@
 ﻿{% extends "layout.html" %}
 {% block main %}
+
 <div class="table-responsive">
-    <span class="heading">{{heading}}: <input type="text" name="name" id="name"/ value="Nyingen"></span>
+    <span class="heading">{{heading}}: {% if action == "show" %} {{name}} {% else %}
+	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span>
 	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
 	  <thead>
 		<tr>
 			<th class="part_id">Del<br/></th>
 			<th class="short_desc">Kort beskrivning</th>
 			<th class="long_desc">Lång beskrivning</th>
+		    {% if action != "show" %}<th></th>{% endif %}
 		</tr>
 	  </thead>
 	  <tbody>
-		{% for part in badge_parts %}
-		<tr><td>{{loop.index}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td></tr>
+		{% for part in badge_parts_nonadmin %}
+		<tr><td>{{part.idx}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td>
+		{% if action != "show" %}<td><Button id="chg{{loop.index}}" class="chgpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
 		{% endfor %}
 	  </tbody>
 	</table>
 </div>
-<div class="well" style="display:none" id="newpartdata">
+<div class="well" style="display:none" id="newpart_data">
 	<div>
 	  <label>Del: <span id="newpart_nr"></span></label>
 	</div>
 	<div>
 		<label>Kort beskrivning: </label>
-		<input type="text" class="form-control" size="15" id="new_short"/>
+		<input type="text" class="form-control" size="15" id="newpart_short"/>
 	</div>
 	<div>
 		<label>Lång beskrivning: </label>
-		<input type="text" class="form-control" size="45" id="new_long"/>
+		<input type="text" class="form-control" size="45" id="newpart_long"/>
 	</div>
 	<div>
 		<div class="btn-toolbar">
@@ -36,8 +40,50 @@
 		</div>
 	</div>
 </div>
-<button id="newpart" class="btn btn-g btn-info">Ny del</button>
+<div class="table-responsive">
+    <span Administrativa delar</span>
+	<table id="admintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="part_id">Adm. del<br/></th>
+			<th class="short_desc">Kort beskrivning</th>
+			<th class="long_desc">Lång beskrivning</th>
+		    {% if action != "show" %}<th></th>{% endif %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in badge_parts_admin %}
+		<tr><td>{{part.idx}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td>
+		{% if action != "show" %}<td><Button id="chgadm{{loop.index}}" class="chgadmpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="well" style="display:none" id="newpartadm_data">
+	<div>
+	  <label>Adm. del: <span id="newpartadm_nr"></span></label>
+	</div>
+	<div>
+		<label>Kort beskrivning: </label>
+		<input type="text" class="form-control" size="15" id="newpartadm_short"/>
+	</div>
+	<div>
+		<label>Lång beskrivning: </label>
+		<input type="text" class="form-control" size="45" id="newpartadm_long"/>
+	</div>
+	<div>
+		<div class="btn-toolbar">
+			<button id="newpartadm_ready" name="Klar" class="btn btn-lg btn-primary btn-default">Klar</button>
+			<button id="newpartadm_cancel" name="Avbryt" class="btn btn-lg btn-warning">Avbryt</button>
+		</div>
+	</div>
+</div>
+{% if action != "show" %}
+<button id="newpart" class="btn btn-g btn-success">Ny del</button>
+<button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
 <button id="save" class="btn btn-g btn-warning">Spara</button>
+<a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
+{% endif %}
 <script>
 $(document).ready(function() {
 	var tbl = $('#maintable').DataTable({
@@ -46,30 +92,88 @@ $(document).ready(function() {
 		info:false,
 		ordering:false,
 	});
+	$(".chgpart").click(function(event) {
+		var row_nr = event.target.id.substring(3);
+		var row_data = tbl.row(row_nr-1).data();
+		console.log(row_nr + " " + row_data);
+		$('#newpart_nr').text(row_data[0]);
+		$('#newpart_short').val(row_data[1]);
+		$('#newpart_long').val(row_data[2]);
+		$('#newpart_data').show();
+	});
 	$("#newpart").click(function(event) {
-		var newNr = tbl.rows().count()+1;
-		console.log("NEW PART ", newNr);
-		$('#newpart_nr').text(newNr);
-		$('#newpartdata').show();
+		var new_nr = tbl.rows().count()+1;
+		console.log("NEW PART ", new_nr);
+		$('#newpart_nr').text(new_nr);
+		$('#newpart_data').show();
 		//console.log(tbl.column( 2, {order:'current'} ).data());
 		//tbl.row.add([tbl.rows().count()+1, "", ""]).draw()
 	});
 	$("#newpart_ready").click(function(event) {
-		console.log("NEW PART READY")
 		var nr = $('#newpart_nr').text();
-		var short = $('#new_short').val();
-		var long = $('#new_long').val();
+		var short = $('#newpart_short').val();
+		var long = $('#newpart_long').val();
 		console.log("NEW PART ", nr, " ", short, " ", long);
-		tbl.row.add([nr, short, long]).draw()
-		$('#new_short').val("");
-		$('#new_long').val("");
-		$('#newpartdata').hide();
+		if (nr > tbl.rows().count()) {
+			tbl.row.add([nr, short, long, ""]).draw()
+		} else {
+			tbl.cell(nr-1, 1).data(short);
+			tbl.cell(nr-1, 2).data(long);
+			tbl.draw();
+		}
+		$('#newpart_short').val("");
+		$('#newpart_long').val("");
+		$('#newpart_data').hide();
 	});
 	$("#newpart_cancel").click(function(event) {
-		console.log("NEW PART CANCELLED")
-		$('#new_short').val("");
-		$('#new_long').val("");
-		$('#newpartdata').hide();
+		$('#newpart_short').val("");
+		$('#newpart_long').val("");
+		$('#newpart_data').hide();
+	});
+	var admtbl = $('#admintable').DataTable({
+		searching:false,
+		paging:false,
+		info:false,
+		ordering:false,
+	});
+	$(".chgadmpart").click(function(event) {
+		var row_nr = event.target.id.substring(6);  // Remove chgadm
+		console.log(event.target.id + " " + row_nr);
+		var row_data = admtbl.row(row_nr-1).data();
+		console.log("Adm: " + row_nr + " " + t);
+		$('#newpartadm_nr').text(row_data[0]);
+		$('#newpartadm_short').val(row_data[1]);
+		$('#newpartadm_long').val(row_data[2]);
+		$('#newpartadm_data').show();
+	});
+	$("#newpartadm-btn").click(function(event) {
+		var new_nr = admtbl.rows().count() + 101;
+		console.log("NEW PART ADMIN ", new_nr);
+		$('#newpartadm_nr').text(new_nr);
+		$('#newpartadm_short').val("");
+		$('#newpartadm_long').val("");
+		$('#newpartadm_data').show();
+	});
+	$("#newpartadm_ready").click(function(event) {
+		var nr = $('#newpartadm_nr').text();
+		var row_nr = nr - 101;
+		var short = $('#newpartadm_short').val();
+		var long = $('#newpartadm_long').val();
+		console.log("NEW PART ADMIN", nr, " ", short, " ", long);
+		console.log("Table: " + admtbl + " Nr rows: " +  admtbl.rows().count())
+		if (row_nr >= admtbl.rows().count()) {
+			console.log("Adding row")
+			admtbl.row.add([nr, short, long, ""]).draw()
+		} else {
+			console.log("Updating row " + row_nr)
+			admtbl.cell(row_nr, 1).data(short);
+			admtbl.cell(row_nr, 2).data(long);
+			admtbl.draw();
+		}
+		$('#newpartadm_data').hide();
+	});
+	$("#newpartadm_cancel").click(function(event) {
+		$('#newpartadm_data').hide();
 	});
 	var clear = function() {
 		$('name').val("")
@@ -77,12 +181,19 @@ $(document).ready(function() {
 		console.log("Cleared")
 	}
 	$("#save").click(function(event) {
+		var button = event.target;
+		$(button).addClass('data-save-pending');
 		// Gather data and fill in a form to submit
 		var name = $('#name').val();
 		parts_str = ''
 		tbl.rows().every( function () {
 			if (parts_str.length > 0) parts_str += '::';
-    		var parts_data= this.data();
+    		var parts_data = this.data().slice(0,3);  // Skip button column
+			parts_str += parts_data.join('|')
+		});
+		admtbl.rows().every( function () {
+			if (parts_str.length > 0) parts_str += '::';
+    		var parts_data = this.data().slice(0,3);  // Skip button column
 			parts_str += parts_data.join('|')
 		});
 		console.log(parts_str)
@@ -91,16 +202,25 @@ $(document).ready(function() {
 		fd.append('name', name);
 		fd.append('parts', parts_str)
 		console.log(tbl.rows())
+		console.log("Saving ", name);
 		$.ajax({
-			url:'./?action=savebadge',
+			url:'.',
 			data: fd,
 			processData: false,
 			contentType: false,
 			type: 'POST',
-			success: function(data) { if (data === "ok") clear();}
+			success: function(data) {
+				if (data === "ok") {
+					resetDirtyButton($(button));
+					location.reload(); // Reload page with stored data
+				}
+			}
 		});
-		console.log("Saving ", name);
 	});
+
+    function resetDirtyButton(btn) {
+		btn.removeClass('data-dirty data-save-pending');
+	}
 });
 </script>
 {% endblock %}
