@@ -81,7 +81,7 @@
 {% if action != "show" %}
 <button id="newpart" class="btn btn-g btn-success">Ny del</button>
 <button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
-<button id="save" class="btn btn-g btn-warning">Spara</button>
+<button id="save" disabled class="btn btn-g btn-warning">Spara</button>
 <a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
 {% endif %}
 <script>
@@ -124,6 +124,7 @@ $(document).ready(function() {
 		$('#newpart_short').val("");
 		$('#newpart_long').val("");
 		$('#newpart_data').hide();
+		setDirty();
 	});
 	$("#newpart_cancel").click(function(event) {
 		$('#newpart_short').val("");
@@ -170,6 +171,7 @@ $(document).ready(function() {
 			admtbl.cell(row_nr, 2).data(long);
 			admtbl.draw();
 		}
+		setDirty();
 		$('#newpartadm_data').hide();
 	});
 	$("#newpartadm_cancel").click(function(event) {
@@ -182,7 +184,7 @@ $(document).ready(function() {
 	}
 	$("#save").click(function(event) {
 		var button = event.target;
-		$(button).addClass('data-save-pending');
+		saveOngoing($(button));
 		// Gather data and fill in a form to submit
 		var name = $('#name').val();
 		parts_str = ''
@@ -202,7 +204,6 @@ $(document).ready(function() {
 		fd.append('name', name);
 		fd.append('parts', parts_str)
 		console.log(tbl.rows())
-		console.log("Saving ", name);
 		$.ajax({
 			url:'.',
 			data: fd,
@@ -212,14 +213,24 @@ $(document).ready(function() {
 			success: function(data) {
 				if (data === "ok") {
 					resetDirtyButton($(button));
-					location.reload(); // Reload page with stored data
 				}
 			}
 		});
 	});
 
+	function setDirty() {
+		console.log("setDirty");
+		var saveBtn = $('#save')
+		saveBtn.prop('disabled', false)
+	}
+
+	function saveOngoing(btn) {
+		btn.addClass('data-dirty data-save-pending');
+	}
+
     function resetDirtyButton(btn) {
 		btn.removeClass('data-dirty data-save-pending');
+		btn.prop('disabled', true)
 	}
 });
 </script>

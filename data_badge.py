@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 """Badge class används för märken och cerifikat och deras olika delar."""
 import logging
+from collections import namedtuple
 
 from google.appengine.api import memcache, users
 from google.appengine.ext import ndb
 
+
 from data import ScoutGroup, Troop, Person, PropertyWriteTracker
 
 ADMIN_OFFSET = 100  # Offset for administrative badge parts
+BadgeStatus = namedtuple('BadgeStatus', 'nr_scout_done, nr_scout_all, nr_adm_done, nr_adm_all')
 
 
 class Badge(ndb.Model):
     "Badge definition for a scout group (scoutkår). The required parts are separate as BadgePart."
     name = ndb.StringProperty(required=True)
     scoutgroup = ndb.KeyProperty(kind=ScoutGroup, required=True)
+    # nr_scout_parts = ndb.IntegerProperty(required=True)
+    # nr_admin_parts = ndb.IntegerProperty(required=True)
     # TODO. Add image = ndb.BlobProperty()
 
     @staticmethod
@@ -31,7 +36,7 @@ class Badge(ndb.Model):
         return BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
 
     def update(self, name, badge_parts_data):
-        """Update badge parts for badge. Separate normal series from admin."""
+        """Update badge parts for badge. Separate scout series from admin."""
         if name != self.name:
             self.name = name
             self.put()
@@ -59,13 +64,13 @@ class Badge(ndb.Model):
                     # bp.delete()
 
         old_parts = BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
-        old_normal = [p for p in old_parts if p.idx < ADMIN_OFFSET]
+        old_scout = [p for p in old_parts if p.idx < ADMIN_OFFSET]
         old_admin = [p for p in old_parts if p.idx >= ADMIN_OFFSET]
 
-        new_data_normal = [bp for bp in badge_parts_data if int(bp[0]) < ADMIN_OFFSET]
+        new_data_scout = [bp for bp in badge_parts_data if int(bp[0]) < ADMIN_OFFSET]
         new_data_admin = [bp for bp in badge_parts_data if int(bp[0]) >= ADMIN_OFFSET]
 
-        parts_update(old_normal, new_data_normal)
+        parts_update(old_scout, new_data_scout)
         parts_update(old_admin, new_data_admin)
 
     @staticmethod
@@ -79,10 +84,8 @@ class Badge(ndb.Model):
 class BadgePart(ndb.Model):
     """Badge part with index idx for sorting.
 
-    There are special parts:
-         idx=100, short_desc=Utdelat
-         idx=101, short_desc=Registrerat
-    to keep track of what has been awarded and registrered.
+    idx = 1, 2, 3, ... are probes
+    idx = 101, 102, 103 are admin parts
     """
     badge = ndb.KeyProperty(kind=Badge, required=True)
     idx = ndb.IntegerProperty(required=True)  # For sorting
@@ -105,11 +108,31 @@ class BadgePartDone(ndb.Model):
         bpd.put()
 
     @staticmethod
-    def progress(person_key, badge_key):
-        "Person progress for specific badge."
+    def parts_done(person_key, badge_key):
+        "What parts a specific person has done."
         bpd = BadgePartDone.query(ndb.AND(BadgePartDone.person_key == person_key,
                                           BadgePartDone.badge_key == badge_key)).order(BadgePartDone.idx).fetch()
         return bpd
+
+    @staticmethod
+    def status(person_key, badge_key):
+        parts_done = BadgePartDone.progress(person_key, badge_key)
+        nr_scout_done = len([pd for pd in parts_done if pd.idx < ADMIN_OFFSET])
+        nr_admin_done = len(parts_done) - nr_scout_done
+        badge = badge_key.get()
+        parts = badge.get_parts()
+        scout_parts = [p for p in parts if p.idx < ADMIN_OFFSET]
+        nr_scout_parts = len(scout_parts)
+        nr_admin_parts = len(parts) - nr_scout_parts
+        return BadgeStatus(nr_scout_done, nr_scout_parts, nr_admin_done, nr_admin_parts)
+
+
+class BadgeCompleted(ndb.Model):
+    "BadgeCompleted is created as all requirements are set for a scout and badge."
+    badge_key = ndb.KeyProperty(kind=Badge, required=True)
+    person_key = ndb.KeyProperty(kind=Person, required=True)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    examiner_name = ndb.StringProperty(required=True)
 
 
 class TroopBadge(ndb.Model):

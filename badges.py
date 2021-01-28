@@ -222,15 +222,18 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
     badge_key = ndb.Key(urlsafe=badge_url)
     badge = badge_key.get()
     if request.method == "POST":
-        idx = int(request.form['idx'])
+        update = request.form['update']
+        logging.info("update: %s" % update)
+        indices = [int(idx) for idx in update.split(",")]
         examiner_name = UserPrefs.current().name
-        logging.info("Setting badge %s idx %s for %s" % (badge.name, idx, person.getname()))
-        BadgePartDone.create(person_key, badge_key, idx, examiner_name)
+        for idx in indices:
+            logging.info("Setting badge %s idx %s for %s" % (badge.name, idx, person.getname()))
+            BadgePartDone.create(person_key, badge_key, idx, examiner_name)
         return "ok"
 
     logging.info("Badge %s for %s" % (badge.name, person.getname()))
     badge_parts = badge.get_parts()
-    parts_done = BadgePartDone.progress(person_key, badge_key)
+    parts_done = BadgePartDone.parts_done(person_key, badge_key)
     d_pos = 0
     done = []
     Done = namedtuple('Done', 'idx date examiner done')
@@ -268,8 +271,10 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
     for troop_person in troop_persons:
         person_key = troop_person.person
         person = troop_person.person.get()
+        if person.removed:
+            continue  # Skip people removed from scoutnet
         persons.append(person)
-        persons_progess.append(BadgePartDone.progress(person_key, badge_key))
+        persons_progess.append(BadgePartDone.parts_done(person_key, badge_key))
         persons_dict[person_key] = person
     badge_parts = badge.get_parts()
     parts_progress = []  # [part][person] boolean matrix
@@ -291,5 +296,4 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
                            badge=badge,
                            badge_parts=badge_parts,
                            persons=persons,
-                           troop_persons=troop_persons,
                            parts_progress=parts_progress)

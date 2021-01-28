@@ -6,6 +6,7 @@
 	  <thead>
 		<tr>
 			<th class="short_desc">Del</th>
+			<th class="approved">Godkänd</th>
 			<th class="date">Datum/Lång beskrivning</th>
 			<th class="examiner">Godkänd av</th>
 		</tr>
@@ -13,31 +14,63 @@
 	  <tbody>
 		{% for part in badge_parts %}{% set idone = loop.index0 %}
 		<tr><td>{{part.idx}}. {{part.short_desc}}</td>
-		{% if change %}
-			{% if done[idone].done %}<td>{{done[idone].date}}</td><td>{{done[idone].examiner}}</td>
-			{% else  %}
-			<td>{{part.long_desc}}</td><td><button class="btn btn-success approve" id="btn{{part.idx}}">Godkänn</button></td>
-			{% endif %}
-		{% else %}
-			{% if done[idone].done %}<td>{{done[idone].date}}</td><td>{{done[idone].examiner}}</td>
-			{% else  %}
-			<td>{{part.long_desc}}</td><td>{{done[idone].examiner}}</td>
-			{% endif %}
-		{% endif %}
+		    <td><input class="attendance-cb checkbox big-checkbox" name="cbpart" type="checkbox" id="cb{{part.idx}}"{% if done[idone].done %} checked="" disabled=""{% endif%} /></td>
+			<td>{% if done[idone].done %}{{done[idone].date}}{% else %}{{part.long_desc}}{% endif%}</td>
+			<td>{{done[idone].examiner}}</td>
 		</tr>
 		{% endfor %}
 	  </tbody>
 	</table>
 </div>
+<div class="divider-vertical well">
+    <button class="btn btn-g btn-warning saveinfo" id="save">Spara</button>
+</div>
 <script>
 $(document).ready(function() {
-	$('.approve').click(function(event) {
-		var button = event.target;
-		var idx = event.target.id.substring(3);
-		console.log("Approve " + idx);
+	function compileCheckedState() {
+        // Get all checked check boxes as [idx]
+        var checkboxes = $('input:checkbox[name="cbpart"]');
+        var checkedParts = [];
+        for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (checkboxes[cb].checked)
+			{
+				var idx = checkboxes[cb].id.substring(2);
+                checkedParts.push(idx);
+			}
+		}
+        checkedParts.sort()
+        return checkedParts;
+    }
+	   function disableCheckedChecks() {
+        // Disable all checked check boxes
+        var checkboxes = $('input:checkbox[name="cbpart"]');
+        for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (checkboxes[cb].checked)
+			{
+                checkboxes[cb].disabled=true;
+			}
+		}
+    }
+	var initChecked = compileCheckedState();
+    console.log("There are " + initChecked.length + " checked boxes");
+
+	$('#save').click(function(event) {
+        var button = event.target;
+        var nowChecked = compileCheckedState();
+        var newChecks = []
+        for (var i=0; i < nowChecked.length; i++)
+		{
+            if (!initChecked.includes(nowChecked[i])) {
+                newChecks.push(nowChecked[i])
+            }
+		}
+        console.log("New: " + newChecks)
+		var update = newChecks.join(",")
         var fd = new FormData();
-		fd.append('action', 'approve');
-		fd.append('idx', idx);
+		fd.append('action', 'saveparts');
+		fd.append('update', update);
 		$(button).addClass('data-save-pending');
 		$.ajax({
 			url:'./',
@@ -46,15 +79,24 @@ $(document).ready(function() {
 			contentType: false,
 			type: 'POST',
 			success: function(data) { if (data === "ok") {
-				resetDirtyButton($(button));
-				location.reload(); // Reload page with stored data
+				updateAfterPost($(button))
 				}
 			}
 		});
 	});
 
+	function updateAfterPost(btn) {
+		console.log("updateAfterPost: " + btn.attr('class'))
+		resetDirtyButton(btn);
+		console.log("updateAfterPost2: " + btn.attr('class'))
+		var checked= compileCheckedState();
+		disableCheckedChecks()
+		console.log("Done refreshing")
+		// disable all checked boxed and update the  figures
+	}
+
     function resetDirtyButton(btn) {
-		btn.removeClass('data-dirty data-save-pending');
+		btn.removeClass('data-save-pending');
 	}
 });
 

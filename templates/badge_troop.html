@@ -11,15 +11,14 @@
 		</tr>
 	  </thead>
 	  <tbody>
-		{% for person in persons %}{% set iperson = loop.index0 %}{% set isleader = troop_persons[iperson].leader %}
+		{% for person in persons %}{% set iperson = loop.index0 %}
 		<tr class="{{person.key.urlsafe()}}">
-		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" data-leader="{% if isleader %}1{% else %}0{% endif %}" title="{{person.getname()}}{% if isleader %} (Ledare){% endif %}{%if person.removed %} borttagen i scoutnet{%endif%}">
-			<a href="{{baselink+person.key.urlsafe()+ '/'}}">
-			{{loop.index}}:{{person.getnameWithStatus()}}{% if isleader %}(L){% endif %}
-			</a>
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getnameWithStatus()}}</a>
+			<span id="status{{person.key.urlsafe()}}" class="badge-status">0, 0</span>
 		</td>
 		{% for part in badge_parts %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
-			<td><input title="{{part.short_desc}}: {{person.getname()}}" 
+			<td><input title="{{part.short_desc}}: {{person.getname()}}"
                  class="attendance-cb checkbox big-checkbox" name="cbpart"
                  id="{{person.key.urlsafe()}}:{{part.idx}}" type="checkbox"
                  {%if parts_progress[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
@@ -55,7 +54,6 @@ $(document).ready(function() {
     function compileCheckedState() {
         // Get all checked check boxes as part_id:person_id
         var checkboxes = $('input:checkbox[name="cbpart"]');
-        console.log(checkboxes)
         var checkedParts = [];
         for (var cb=0; cb < checkboxes.length; cb++)
 		{
@@ -68,9 +66,46 @@ $(document).ready(function() {
         return checkedParts;
     }
 
+    function disableCheckedChecks() {
+        // Disable all checked check boxes
+        var checkboxes = $('input:checkbox[name="cbpart"]');
+        for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (checkboxes[cb].checked)
+			{
+                checkboxes[cb].disabled=true;
+			}
+		}
+    }
+
+	function showProgress(checkedParts) {
+		var persons = {};
+        for (var i=0; i < checkedParts.length; i++) {
+			var parts = checkedParts[i].split(":");
+			var person = parts[0];
+			var idx = parseInt(parts[1]);
+			if (!(person in persons)) {
+				persons[person] = [0, 0]
+			}
+			if (idx < 100) {
+				persons[person][0] += 1
+			} else {
+				persons[person][1] += 1
+			}
+		}
+		for (const p in persons) {
+			var value = persons[p]
+			//console.log('status'+p + " "  + value)
+			$('#status'+p).text(value)
+		}
+	}
+
     var initChecked = compileCheckedState();
     console.log("There are " + initChecked.length + " checked boxes");
+	showProgress(initChecked);
     console.log(initChecked[0])
+
+
 
 	$("#showinfo").click(function(event) {
         // Toggle description
@@ -93,6 +128,7 @@ $(document).ready(function() {
         var fd = new FormData();
 		fd.append('action', 'saveparts');
 		fd.append('update', update);
+		console.log("updateBeforePost: " + $(button).attr('class'))
 		$(button).addClass('data-save-pending');
 		$.ajax({
 			url:'./',
@@ -101,15 +137,25 @@ $(document).ready(function() {
 			contentType: false,
 			type: 'POST',
 			success: function(data) { if (data === "ok") {
-				resetDirtyButton($(button));
-				location.reload(); // Reload page with stored data
+				updateAfterPost($(button));
 				}
 			}
 		});
 	});
 
+	function updateAfterPost(btn) {
+		console.log("updateAfterPost: " + btn.attr('class'))
+		resetDirtyButton(btn);
+		console.log("updateAfterPost2: " + btn.attr('class'))
+		var checked= compileCheckedState();
+		showProgress(checked)
+		disableCheckedChecks()
+		console.log("Done refreshing")
+		// disable all checked boxed and update the  figures
+	}
+
     function resetDirtyButton(btn) {
-		btn.removeClass('data-dirty data-save-pending');
+		btn.removeClass('data-save-pending');
 	}
 
 	var maintable = $('#maintable');
