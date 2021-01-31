@@ -11,6 +11,9 @@
                 <th><a href="{{baselink+badge.key.urlsafe()}}/change/" class="btn btn-g btn-warning">Ändra</a></th>
             </tr>
             {% endfor %}
+            {% if badges|length == 0 %}
+            <span class="heading">Inga märken påbörjade<span>
+            {% endif %}
         </table>
     </div>
 </body>

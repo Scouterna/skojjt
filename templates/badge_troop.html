@@ -5,23 +5,22 @@
 	  <thead>
 		<tr>
 			<th class="troopnames">{{troop.name}}<br/><span class="heading">{{heading}}</span></th>
-			{% for part in badge_parts %}
+			{% for part in badge_parts_scout %}
 			<th class="rotate"><div id="part-{{part.idx}}">{{part.idx}}. {{part.short_desc}}<br/></div></th>
 			{% endfor %}
 		</tr>
 	  </thead>
 	  <tbody>
-		{% for person in persons %}{% set iperson = loop.index0 %}
+		{% for person in persons_scout_part %}{% set iperson = loop.index0 %}
 		<tr class="{{person.key.urlsafe()}}">
 		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
-			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getnameWithStatus()}}</a>
-			<span id="status{{person.key.urlsafe()}}" class="badge-status">0, 0</span>
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
 		</td>
-		{% for part in badge_parts %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
+		{% for part in badge_parts_scout %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
 			<td><input title="{{part.short_desc}}: {{person.getname()}}"
                  class="attendance-cb checkbox big-checkbox" name="cbpart"
                  id="{{person.key.urlsafe()}}:{{part.idx}}" type="checkbox"
-                 {%if parts_progress[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
+                 {%if progress_scout_parts[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
 		{% endfor %}
 		</tr>
 		{% endfor %}
@@ -40,6 +39,51 @@
 	  <tbody>
 		{% for part in badge_parts %}
 		<tr><td>{{part.idx}}. {{part.short_desc}}</td><td>{{part.long_desc}}</td></tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="table-responsive">
+	<table id="scoutpartstable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="troopnames">Admin kvar<br/></th>
+			{% for part in badge_parts_admin %}
+			<th class="rotate"><div id="part-{{part.idx}}">{{part.idx}}. {{part.short_desc}}<br/></div></th>
+			{% endfor %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for person in persons_admin_part %}{% set iperson = loop.index0 %}
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+		</td>
+		{% for part in badge_parts_admin %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
+			<td><input title="{{part.short_desc}}: {{person.getname()}}"
+                 class="attendance-cb checkbox big-checkbox" name="cbpart"
+                 id="{{person.key.urlsafe()}}:{{part.idx}}" type="checkbox"
+                 {%if progress_admin_parts[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
+		{% endfor %}
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="table-responsive">
+	<table id="scoutsdonetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="troopnames">Klara scouter<br/></th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for person in persons_done %}{% set iperson = loop.index0 %}
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+		</td>
+		</tr>
 		{% endfor %}
 	  </tbody>
 	</table>
@@ -87,7 +131,7 @@ $(document).ready(function() {
 			if (!(person in persons)) {
 				persons[person] = [0, 0]
 			}
-			if (idx < 100) {
+			if (idx < {{ADMIN_OFFSET}}) {
 				persons[person][0] += 1
 			} else {
 				persons[person][1] += 1
@@ -102,7 +146,6 @@ $(document).ready(function() {
 
     var initChecked = compileCheckedState();
     console.log("There are " + initChecked.length + " checked boxes");
-	showProgress(initChecked);
     console.log(initChecked[0])
 
 
@@ -151,6 +194,7 @@ $(document).ready(function() {
 		showProgress(checked)
 		disableCheckedChecks()
 		console.log("Done refreshing")
+		initChecked = compileCheckedState();  // To avoid double save
 		// disable all checked boxed and update the  figures
 	}
 

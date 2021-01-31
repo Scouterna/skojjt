@@ -114,25 +114,12 @@ class BadgePartDone(ndb.Model):
                                           BadgePartDone.badge_key == badge_key)).order(BadgePartDone.idx).fetch()
         return bpd
 
-    @staticmethod
-    def status(person_key, badge_key):
-        parts_done = BadgePartDone.progress(person_key, badge_key)
-        nr_scout_done = len([pd for pd in parts_done if pd.idx < ADMIN_OFFSET])
-        nr_admin_done = len(parts_done) - nr_scout_done
-        badge = badge_key.get()
-        parts = badge.get_parts()
-        scout_parts = [p for p in parts if p.idx < ADMIN_OFFSET]
-        nr_scout_parts = len(scout_parts)
-        nr_admin_parts = len(parts) - nr_scout_parts
-        return BadgeStatus(nr_scout_done, nr_scout_parts, nr_admin_done, nr_admin_parts)
-
 
 class BadgeCompleted(ndb.Model):
-    "BadgeCompleted is created as all requirements are set for a scout and badge."
+    "BadgeCompleted should be created as all requirements are set for a scout and badge."
     badge_key = ndb.KeyProperty(kind=Badge, required=True)
     person_key = ndb.KeyProperty(kind=Person, required=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
-    examiner_name = ndb.StringProperty(required=True)
 
 
 class TroopBadge(ndb.Model):

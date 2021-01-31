@@ -7,16 +7,15 @@
 		<tr>
 			<th class="short_desc">Del</th>
 			<th class="approved">Godkänd</th>
-			<th class="date">Datum/Lång beskrivning</th>
-			<th class="examiner">Godkänd av</th>
+			<th class="date">Lång beskrivning</th>
+			<th class="examiner">När och vem</th>
 		</tr>
 	  </thead>
 	  <tbody>
 		{% for part in badge_parts %}{% set idone = loop.index0 %}
 		<tr><td>{{part.idx}}. {{part.short_desc}}</td>
 		    <td><input class="attendance-cb checkbox big-checkbox" name="cbpart" type="checkbox" id="cb{{part.idx}}"{% if done[idone].done %} checked="" disabled=""{% endif%} /></td>
-			<td>{% if done[idone].done %}{{done[idone].date}}{% else %}{{part.long_desc}}{% endif%}</td>
-			<td>{{done[idone].examiner}}</td>
+			<td>{{part.long_desc}}</td><td>{{done[idone].approved}}</td>
 		</tr>
 		{% endfor %}
 	  </tbody>
@@ -42,9 +41,38 @@ $(document).ready(function() {
         checkedParts.sort()
         return checkedParts;
     }
-	   function disableCheckedChecks() {
-        // Disable all checked check boxes
+	function disableChecks() {
+        // Disable all checked check boxes and admin until scout parts done
+		// Return nr_checked
+		console.log("DISABLE " + {{ADMIN_OFFSET}})
         var checkboxes = $('input:checkbox[name="cbpart"]');
+		var all_scout_parts_checked = true;
+		var nr_checkboxes = checkboxes.length;
+		var nr_checked = 0;
+        for (var cb=0; cb < nr_checkboxes; cb++)
+		{
+			var idx = checkboxes[cb].id.substring(2);
+
+			var checked = checkboxes[cb].checked
+			if (checked)
+			{
+                checkboxes[cb].disabled = true;
+				nr_checked++;
+			} else  {
+				if (idx < {{ADMIN_OFFSET}} && !checked) {
+					all_scout_parts_checked = false;
+				}
+			}
+			if (idx >= {{ADMIN_OFFSET}} && !all_scout_parts_checked) {
+				checkboxes[cb].disabled = true;
+			}
+		}
+		if (nr_checked == nr_checkboxes) {
+			$("#save").hide();
+		}
+    }
+	function blockAdminUntilScoutpartsDone() {
+		var checkboxes = $('input:checkbox[name="cbpart"]');
         for (var cb=0; cb < checkboxes.length; cb++)
 		{
 			if (checkboxes[cb].checked)
@@ -52,9 +80,10 @@ $(document).ready(function() {
                 checkboxes[cb].disabled=true;
 			}
 		}
-    }
+	}
 	var initChecked = compileCheckedState();
     console.log("There are " + initChecked.length + " checked boxes");
+	disableChecks();  // Initial disablement of checked boxes
 
 	$('#save').click(function(event) {
         var button = event.target;
@@ -90,7 +119,8 @@ $(document).ready(function() {
 		resetDirtyButton(btn);
 		console.log("updateAfterPost2: " + btn.attr('class'))
 		var checked= compileCheckedState();
-		disableCheckedChecks()
+		disableChecks();
+		initChecked = checked;  // Avoid double entries when saving
 		console.log("Done refreshing")
 		// disable all checked boxed and update the  figures
 	}

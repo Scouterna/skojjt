@@ -63,7 +63,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    baselink=baselink,
                                    badges=badges,
                                    breadcrumbs=breadcrumbs)
-        # Specfic badge or new badge
+        # Specific badge or new badge
         if request.method == "GET":
             if badge_url == "newbadge":  # Get form for or create new
                 section_title = "Nytt märke"
@@ -157,12 +157,21 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             new_progress = update.split(",")
             examiner_name = UserPrefs.current().name
             logging.info("new_progress %s" % new_progress)
+            prev_scout_url = None
+            scout_key = None
+            parts_done_map = None
             for prog in new_progress:
                 scout_url, idx = prog.split(":")
                 badge_part_idx = int(idx)
-                scout_key = ndb.Key(urlsafe=scout_url)
-                logging.info("Update: %s %s %d %s", scout_key, badge_key, badge_part_idx, examiner_name)
-                BadgePartDone.create(scout_key, badge_key, badge_part_idx, examiner_name)
+                if scout_url != prev_scout_url:
+                    scout_key = ndb.Key(urlsafe=scout_url)
+                    parts_done = BadgePartDone.parts_done(scout_key, badge_key)
+                    parts_done_map = {pd.idx: pd for pd in parts_done}
+                if badge_part_idx in parts_done_map:
+                    logging.info("Already existing part done: %s %s %d", scout_key, badge_key, badge_part_idx)
+                else:
+                    logging.info("Update: %s %s %d %s", scout_key, badge_key, badge_part_idx, examiner_name)
+                    BadgePartDone.create(scout_key, badge_key, badge_part_idx, examiner_name)
             return "ok"  # Return ok to Ajax call
         if request.method == "GET":
             logging.info("GET %s %s" % (troop.name, badge.name))
@@ -221,32 +230,33 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
     person = person_key.get()
     badge_key = ndb.Key(urlsafe=badge_url)
     badge = badge_key.get()
+    parts_done = BadgePartDone.parts_done(person_key, badge_key)
+    parts_done_map = {pd.idx: pd for pd in parts_done}
     if request.method == "POST":
         update = request.form['update']
         logging.info("update: %s" % update)
+        if update == "":
+            return "ok"
         indices = [int(idx) for idx in update.split(",")]
         examiner_name = UserPrefs.current().name
         for idx in indices:
-            logging.info("Setting badge %s idx %s for %s" % (badge.name, idx, person.getname()))
-            BadgePartDone.create(person_key, badge_key, idx, examiner_name)
+            if idx in parts_done_map:
+                logging.info("Badge %s idx %s already set for %s" % (badge.name, idx, person.getname()))
+            else:
+                logging.info("Setting badge %s idx %s for %s" % (badge.name, idx, person.getname()))
+                BadgePartDone.create(person_key, badge_key, idx, examiner_name)
         return "ok"
 
     logging.info("Badge %s for %s" % (badge.name, person.getname()))
     badge_parts = badge.get_parts()
-    parts_done = BadgePartDone.parts_done(person_key, badge_key)
-    d_pos = 0
     done = []
-    Done = namedtuple('Done', 'idx date examiner done')
+    Done = namedtuple('Done', 'idx approved done')
     for bp in badge_parts:
-        if d_pos >= len(parts_done):
-            done.append(Done(bp.idx, "- - -", "- - -", False))
-            continue
-        pd = parts_done[d_pos]
-        if pd.idx == bp.idx:
-            done.append(Done(pd.idx, pd.date.strftime("%Y-%m-%d"), pd.examiner_name, True))
-            d_pos += 1
+        if bp.idx in parts_done_map:
+            pd = parts_done_map[bp.idx]
+            done.append(Done(bp.idx, pd.date.strftime("%Y-%m-%d") + " " + pd.examiner_name, True))
         else:
-            done.append(Done(bp.idx, "- - -", "- - -", False))
+            done.append(Done(bp.idx, "- - -", False))
 
     logging.info("DONE: %s" % done)
 
@@ -257,6 +267,7 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
                            badge=badge,
                            badge_parts=badge_parts,
                            done=done,
+                           ADMIN_OFFSET=ADMIN_OFFSET,
                            change=canedit)
 
 
@@ -265,29 +276,44 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
     troop_persons = TroopPerson.getTroopPersonsForTroop(troop_key)
     # Remove leaders since they are not candidates for badges
     troop_persons = [tp for tp in troop_persons if not tp.leader]
+    badge_parts = badge.get_parts()
+    badge_parts_scout = [bp for bp in badge_parts if bp.idx < ADMIN_OFFSET]
+    badge_parts_admin = [bp for bp in badge_parts if bp.idx >= ADMIN_OFFSET]
+    nr_scout_parts = len(badge_parts_scout)
+    nr_admin_parts = len(badge_parts_admin)
+    nr_parts = len(badge_parts)
     persons = []
-    persons_dict = {}
-    persons_progess = []
+    persons_progress = []
+    # Categorize person into scout_part, admin_part, or done depending on
+    # how far they have got
+    persons_scout_part = []
+    persons_admin_part = []
+    persons_done = []
+    persons_scout_progress = []
+    persons_admin_progress = []
+
     for troop_person in troop_persons:
         person_key = troop_person.person
         person = troop_person.person.get()
         if person.removed:
             continue  # Skip people removed from scoutnet
+        parts_done = BadgePartDone.parts_done(person_key, badge_key)
+        if len(parts_done) < nr_scout_parts:
+            persons_scout_part.append(person)
+            persons_scout_progress.append(parts_done)
+        elif len(parts_done) < nr_parts:
+            persons_admin_part.append(person)
+            persons_admin_progress.append([pd for pd in parts_done if pd.idx >= ADMIN_OFFSET])
+        else:
+            persons_done.append(person)
         persons.append(person)
-        persons_progess.append(BadgePartDone.parts_done(person_key, badge_key))
-        persons_dict[person_key] = person
-    badge_parts = badge.get_parts()
-    parts_progress = []  # [part][person] boolean matrix
-    for part in badge_parts:
-        person_done = []
-        for progress in persons_progess:
-            for part_done in progress:
-                if part_done.idx == part.idx:
-                    person_done.append(True)
-                    break
-            else:  # No break
-                person_done.append(False)
-        parts_progress.append(person_done)
+        persons_progress.append(parts_done)
+
+    logging.info("Persons: %d %d %d %d" % (len(persons), len(persons_scout_part), len(persons_admin_part), len(persons_done)))
+
+    progress_scout_parts = compile_progress(persons_scout_part, persons_scout_progress, badge_parts_scout)
+    progress_admin_parts = compile_progress(persons_admin_part, persons_admin_progress, badge_parts_admin)
+
     return render_template('badge_troop.html',
                            heading=badge.name,
                            baselink=baselink,
@@ -296,4 +322,29 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
                            badge=badge,
                            badge_parts=badge_parts,
                            persons=persons,
-                           parts_progress=parts_progress)
+                           parts_progress=[],
+                           badge_parts_scout=badge_parts_scout,
+                           persons_scout_part=persons_scout_part,
+                           progress_scout_parts=progress_scout_parts,
+                           badge_parts_admin=badge_parts_admin,
+                           persons_admin_part=persons_admin_part,
+                           progress_admin_parts=progress_admin_parts,
+                           persons_done=persons_done,
+                           ADMIN_OFFSET=ADMIN_OFFSET,
+                           )
+
+
+def compile_progress(persons, persons_progress, badge_parts):
+    "Return [part][person] boolean matrix."
+    parts_progress = []  # [part][person] boolean matrix
+    for part in badge_parts:
+        person_done = []
+        for progress in persons_progress:
+            for part_done in progress:
+                if part_done.idx == part.idx:
+                    person_done.append(True)
+                    break
+            else:  # No break
+                person_done.append(False)
+        parts_progress.append(person_done)
+    return parts_progress
