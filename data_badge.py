@@ -80,12 +80,34 @@ class Badge(ndb.Model):
             badges = Badge.query(Badge.scoutgroup == scoutgroup_key).order(Badge.name).fetch()
         return badges
 
+    def update_for_person(self, person_key, idx_list, examiner_name):
+        "Add new idx and create BadgeCompleted when all parts done."
+        # person = person_key.get()
+        # logging.info("Badge %s parts %s for %s" % (self.name, idx_list, person.getname()))
+        all_parts = self.get_parts()
+        all_idx = [pd.idx for pd in all_parts]
+        badge_key = self.key
+        parts_done = BadgePartDone.parts_done(person_key, badge_key)
+        prev_idx = [pd.idx for pd in parts_done]
+        nr_idx_added = 0
+        for idx in idx_list:
+            if idx in prev_idx:
+                logging.warn("Trying to set idx %d again", idx)
+            if idx not in all_idx:
+                logging.warn("Trying to set bad idx %d" % idx)
+            BadgePartDone.create(person_key, badge_key, idx, examiner_name)
+            nr_idx_added += 1
+        if nr_idx_added > 0 and nr_idx_added + len(prev_idx) == len(all_idx):
+            bc = BadgeCompleted(badge_key=badge_key, person_key=person_key, examiner=examiner_name)
+            bc.put()
+            logging.info("Badge %s completed by %s" % (self.name, examiner_name))
+
 
 class BadgePart(ndb.Model):
     """Badge part with index idx for sorting.
 
-    idx = 1, 2, 3, ... are probes
-    idx = 101, 102, 103 are admin parts
+    idx = 1, 2, 3, ... are scout parts
+    idx = 101, 102, 103 are admin parts to be done after scout parts
     """
     badge = ndb.KeyProperty(kind=Badge, required=True)
     idx = ndb.IntegerProperty(required=True)  # For sorting
@@ -120,6 +142,7 @@ class BadgeCompleted(ndb.Model):
     badge_key = ndb.KeyProperty(kind=Badge, required=True)
     person_key = ndb.KeyProperty(kind=Person, required=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
+    examiner = ndb.StringProperty()
 
 
 class TroopBadge(ndb.Model):

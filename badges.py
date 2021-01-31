@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, request
 from google.appengine.ext import ndb  # pylint: disable=import-error
 
 from data import ScoutGroup, TroopPerson, UserPrefs
-from data_badge import Badge, BadgePartDone, TroopBadge, ADMIN_OFFSET
+from data_badge import Badge, BadgePartDone, TroopBadge, BadgeCompleted, ADMIN_OFFSET
 
 badges = Blueprint('badges_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
 
@@ -23,7 +23,7 @@ badges = Blueprint('badges_page', __name__, template_folder='templates')  # pyli
 @badges.route('/<sgroup_url>/troop/<troop_url>/<badge_url>/<person_url>/', methods=['POST', 'GET'])
 @badges.route('/<sgroup_url>/person/<person_url>/')  # List of badges for a person
 @badges.route('/<sgroup_url>/person/<person_url>/<badge_url>/', methods=['POST', 'GET'])
-@badges.route('/<sgroup_url>/person/<person_url>/<badge_url>/<action>/', methods=['POST', 'GET'])  # Actions:show/change
+@badges.route('/<sgroup_url>/person/<person_url>/<badge_url>/', methods=['POST', 'GET'])
 def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, action=None):
     logging.info("badges.py: sgroup_url=%s, badge_url=%s, troop_url=%s, person_url=%s, action=%s",
                  sgroup_url, badge_url, troop_url, person_url, action)
@@ -54,14 +54,18 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
 
     if troop_url is None and person_url is None:  # scoutgroup level
         if badge_url is None:
-            logging.info("Render list of all badges for scout_group")
+            # logging.info("Render list of all badges for scout_group")
             section_title = 'Märken för kår'
             badges = Badge.get_badges(sgroup_key)
+            counts = []
+            for badge in badges:
+                counts.append(BadgeCompleted.query(BadgeCompleted.badge_key == badge.key).count())
 
             return render_template('badgelist.html',
                                    heading=section_title,
                                    baselink=baselink,
                                    badges=badges,
+                                   counts=counts,
                                    breadcrumbs=breadcrumbs)
         # Specific badge or new badge
         if request.method == "GET":
@@ -84,6 +88,17 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                 baselink += action + '/'
             breadcrumbs.append({'link': baselink, 'text': name})
 
+            if action == "showcompleted":
+                badgeCompleted = BadgeCompleted.query(BadgeCompleted.badge_key == badge_key).fetch()
+                Compl = namedtuple("Compl", "name date examiner")
+                completed = [Compl(bc.person_key.get().getname(),
+                                   bc.date.strftime("%Y-%m-%d"),
+                                   bc.examiner) for bc in badgeCompleted]
+                # logging.info("Completed: %s" % completed)
+                return render_template('badge_completed_list.html',
+                                       breadcrumbs=breadcrumbs,
+                                       badge=badge,
+                                       badge_completed=completed)
             return render_template('badge.html',
                                    name=name,
                                    heading=section_title,
@@ -110,7 +125,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             return "Unsupported method %s" % request.method, 500
 
     if troop_url is not None and badge_url is None:
-        logging.info("TROOP_URL without BADGE_URL")
+        # logging.info("TROOP_URL without BADGE_URL")
         troop_key = ndb.Key(urlsafe=troop_url)
         troop = troop_key.get()
         if request.method == "GET":
@@ -138,7 +153,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    scoutgroup=scoutgroup)
         # POST
         new_badge_names = request.form['badges'].split("|")
-        logging.info(new_badge_names)
+        # logging.info(new_badge_names)
         TroopBadge.update_for_troop(troop, new_badge_names)
         return "ok"
 
@@ -150,31 +165,33 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         if request.method == "POST":
             if person_url is not None:
                 return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs, True)
-            logging.info("POST %s %s" % (troop.name, badge.name))
+            # logging.info("POST %s %s" % (troop.name, badge.name))
             update = request.form['update']
             if update == "":
                 return "ok"  # Return ok to Ajax call
             new_progress = update.split(",")
             examiner_name = UserPrefs.current().name
-            logging.info("new_progress %s" % new_progress)
+            # logging.info("new_progress %s" % new_progress)
             prev_scout_url = None
-            scout_key = None
-            parts_done_map = None
+            idx_list = []
             for prog in new_progress:
-                scout_url, idx = prog.split(":")
-                badge_part_idx = int(idx)
-                if scout_url != prev_scout_url:
-                    scout_key = ndb.Key(urlsafe=scout_url)
-                    parts_done = BadgePartDone.parts_done(scout_key, badge_key)
-                    parts_done_map = {pd.idx: pd for pd in parts_done}
-                if badge_part_idx in parts_done_map:
-                    logging.info("Already existing part done: %s %s %d", scout_key, badge_key, badge_part_idx)
-                else:
-                    logging.info("Update: %s %s %d %s", scout_key, badge_key, badge_part_idx, examiner_name)
-                    BadgePartDone.create(scout_key, badge_key, badge_part_idx, examiner_name)
+                scout_url, idx_str = prog.split(":")
+                idx = int(idx_str)
+                if prev_scout_url is None:
+                    prev_scout_url = scout_url
+                elif scout_url != prev_scout_url:
+                    if len(idx_list) > 0:
+                        scout_key = ndb.Key(urlsafe=prev_scout_url)
+                        badge.update_for_person(scout_key, idx_list, examiner_name)
+                        idx_list = []
+                        prev_scout_url = scout_url
+                idx_list.append(idx)
+            if len(idx_list) > 0:
+                scout_key = ndb.Key(urlsafe=prev_scout_url)
+                badge.update_for_person(scout_key, idx_list, examiner_name)
             return "ok"  # Return ok to Ajax call
         if request.method == "GET":
-            logging.info("GET %s %s" % (troop.name, badge.name))
+            # logging.info("GET %s %s" % (troop.name, badge.name))
             # Since we come from /start/... instead of /badges/... replace part links
             for bc in breadcrumbs:
                 bc['link'] = bc['link'].replace('badges', 'start')
@@ -195,7 +212,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         baselink = "/badges/" + sgroup_url + '/person/' + person_url + '/'
         breadcrumbs.append({'link': baselink, 'text': "%s" % person.getname()})
         if badge_url is None:
-            logging.info("Badges for %s" % person.getname())
+            # logging.info("Badges for %s" % person.getname())
             badge_parts_done = BadgePartDone.query(BadgePartDone.person_key == person_key).fetch()
             badge_keys = set()
             for part in badge_parts_done:
@@ -214,18 +231,17 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         # badge_url is not none
 
     if person_url is not None and badge_url is not None:
-        canedit = action == 'change'
         baselink += badge_url + "/"
         badge_key = ndb.Key(urlsafe=badge_url)
         badge = badge_key.get()
         breadcrumbs.append({'link': baselink, 'text': "%s" % badge.name})
-        return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs, canedit)
+        return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs)
 
     # note that we set the 404 status explicitly
     return "Page not found", 404
 
 
-def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs, canedit):
+def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs):
     person_key = ndb.Key(urlsafe=person_url)
     person = person_key.get()
     badge_key = ndb.Key(urlsafe=badge_url)
@@ -234,20 +250,15 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
     parts_done_map = {pd.idx: pd for pd in parts_done}
     if request.method == "POST":
         update = request.form['update']
-        logging.info("update: %s" % update)
+        #logging.info("update: %s" % update)
         if update == "":
             return "ok"
         indices = [int(idx) for idx in update.split(",")]
         examiner_name = UserPrefs.current().name
-        for idx in indices:
-            if idx in parts_done_map:
-                logging.info("Badge %s idx %s already set for %s" % (badge.name, idx, person.getname()))
-            else:
-                logging.info("Setting badge %s idx %s for %s" % (badge.name, idx, person.getname()))
-                BadgePartDone.create(person_key, badge_key, idx, examiner_name)
+        badge.update_for_person(person_key, indices, examiner_name)
         return "ok"
 
-    logging.info("Badge %s for %s" % (badge.name, person.getname()))
+    # logging.info("Badge %s for %s" % (badge.name, person.getname()))
     badge_parts = badge.get_parts()
     done = []
     Done = namedtuple('Done', 'idx approved done')
@@ -258,7 +269,7 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
         else:
             done.append(Done(bp.idx, "- - -", False))
 
-    logging.info("DONE: %s" % done)
+    # logging.info("DONE: %s" % done)
 
     return render_template('badgeparts_person.html',
                            person=person,
@@ -267,8 +278,7 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs,
                            badge=badge,
                            badge_parts=badge_parts,
                            done=done,
-                           ADMIN_OFFSET=ADMIN_OFFSET,
-                           change=canedit)
+                           ADMIN_OFFSET=ADMIN_OFFSET)
 
 
 def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, baselink, breadcrumbs):
@@ -280,7 +290,6 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
     badge_parts_scout = [bp for bp in badge_parts if bp.idx < ADMIN_OFFSET]
     badge_parts_admin = [bp for bp in badge_parts if bp.idx >= ADMIN_OFFSET]
     nr_scout_parts = len(badge_parts_scout)
-    nr_admin_parts = len(badge_parts_admin)
     nr_parts = len(badge_parts)
     persons = []
     persons_progress = []
@@ -309,7 +318,7 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
         persons.append(person)
         persons_progress.append(parts_done)
 
-    logging.info("Persons: %d %d %d %d" % (len(persons), len(persons_scout_part), len(persons_admin_part), len(persons_done)))
+    # logging.info("Persons: %d %d %d %d" % (len(persons), len(persons_scout_part), len(persons_admin_part), len(persons_done)))
 
     progress_scout_parts = compile_progress(persons_scout_part, persons_scout_progress, badge_parts_scout)
     progress_admin_parts = compile_progress(persons_admin_part, persons_admin_progress, badge_parts_admin)
