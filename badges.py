@@ -71,17 +71,15 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         if request.method == "GET":
             if badge_url == "newbadge":  # Get form for or create new
                 section_title = "Nytt märke"
+                badge = None
                 name = "Nytt"
-                badge_parts_nonadmin = []
-                badge_parts_admin = []
+                description = ""
             else:
                 section_title = "Märke"
                 badge_key = ndb.Key(urlsafe=badge_url)
                 badge = badge_key.get()
                 name = badge.name
-                badge_parts = badge.get_parts()
-                badge_parts_nonadmin = [bp for bp in badge_parts if bp.idx < ADMIN_OFFSET]
-                badge_parts_admin = [bp for bp in badge_parts if bp.idx >= ADMIN_OFFSET]
+                description = badge.description
 
             baselink += 'badge/' + badge_url + "/"
             if action is not None:
@@ -99,27 +97,38 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                        breadcrumbs=breadcrumbs,
                                        badge=badge,
                                        badge_completed=completed)
+            if badge is not None:
+                parts_scout = zip(badge.parts_scout_short, badge.parts_scout_long)
+                parts_admin = zip(badge.parts_admin_short, badge.parts_admin_long)
+            else:
+                parts_scout = []
+                parts_admin = []
             return render_template('badge.html',
                                    name=name,
                                    heading=section_title,
                                    baselink=baselink,
                                    breadcrumbs=breadcrumbs,
-                                   badge_parts_nonadmin=badge_parts_nonadmin,
-                                   badge_parts_admin=badge_parts_admin,
+                                   description=description,
+                                   parts_scout=parts_scout,
+                                   parts_admin=parts_admin,
                                    action=action,
                                    scoutgroup=scoutgroup)
         if request.method == "POST":
             name = request.form['name']
-            part_strs = request.form['parts'].split("::")
-            parts = [p.split("|") for p in part_strs]
+            description = request.form['description']
+            parts_scout = request.form['parts_scout'].split("::")
+            parts_scout = [p.split("|") for p in parts_scout]
+            parts_admin = request.form['parts_admin'].split("::")
+            parts_admin = [p.split("|") for p in parts_admin]
+            logging.info('description=%s' % description)
             # logging.info("name: %s, parts: %s", name, parts)
             if badge_url == "newbadge":
-                badge = Badge.create(name, sgroup_key, parts)
+                badge = Badge.create(name, sgroup_key, description, parts_scout, parts_admin)
                 return "ok"
             else:  # Update an existing badge
                 badge_key = ndb.Key(urlsafe=badge_url)
                 badge = badge_key.get()
-                badge.update(name, parts)
+                badge.update(name, description, parts_scout, parts_admin)
                 return "ok"
         else:
             return "Unsupported method %s" % request.method, 500
@@ -164,7 +173,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         badge = badge_key.get()
         if request.method == "POST":
             if person_url is not None:
-                return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs, True)
+                return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs)
             # logging.info("POST %s %s" % (troop.name, badge.name))
             update = request.form['update']
             if update == "":
@@ -203,7 +212,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                 person_key = ndb.Key(urlsafe=person_url)
                 person = person_key.get()
                 breadcrumbs.append({'link': baselink, 'text': person.getname()})
-                return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs, True)
+                return render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs)
             return render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, baselink, breadcrumbs)
 
     if person_url is not None:
@@ -259,7 +268,12 @@ def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs)
         return "ok"
 
     # logging.info("Badge %s for %s" % (badge.name, person.getname()))
-    badge_parts = badge.get_parts()
+    BadgePart = namedtuple('BadgePart', 'idx short_desc long_desc')
+    badge_parts = []
+    for i in range(len(badge.parts_scout_short)):
+        badge_parts.append(BadgePart(i, badge.parts_scout_short[i], badge.parts_scout_long[i]))
+    for i in range(len(badge.parts_admin_short)):
+        badge_parts.append(BadgePart(i+ADMIN_OFFSET, badge.parts_admin_short[i], badge.parts_admin_long[i]))
     done = []
     Done = namedtuple('Done', 'idx approved done')
     for bp in badge_parts:
@@ -286,11 +300,10 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
     troop_persons = TroopPerson.getTroopPersonsForTroop(troop_key)
     # Remove leaders since they are not candidates for badges
     troop_persons = [tp for tp in troop_persons if not tp.leader]
-    badge_parts = badge.get_parts()
-    badge_parts_scout = [bp for bp in badge_parts if bp.idx < ADMIN_OFFSET]
-    badge_parts_admin = [bp for bp in badge_parts if bp.idx >= ADMIN_OFFSET]
+    badge_parts_scout = zip(badge.parts_scout_short, badge.parts_scout_long)
+    badge_parts_admin = zip(badge.parts_admin_short, badge.parts_admin_long)
     nr_scout_parts = len(badge_parts_scout)
-    nr_parts = len(badge_parts)
+    nr_parts = nr_scout_parts + len(badge_parts_admin)
     persons = []
     persons_progress = []
     # Categorize person into scout_part, admin_part, or done depending on
@@ -320,8 +333,8 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
 
     # logging.info("Persons: %d %d %d %d" % (len(persons), len(persons_scout_part), len(persons_admin_part), len(persons_done)))
 
-    progress_scout_parts = compile_progress(persons_scout_part, persons_scout_progress, badge_parts_scout)
-    progress_admin_parts = compile_progress(persons_admin_part, persons_admin_progress, badge_parts_admin)
+    progress_scout_parts = compile_progress(persons_scout_part, persons_scout_progress, badge_parts_scout, 0)
+    progress_admin_parts = compile_progress(persons_admin_part, persons_admin_progress, badge_parts_admin, ADMIN_OFFSET)
 
     return render_template('badge_troop.html',
                            heading=badge.name,
@@ -329,7 +342,6 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
                            breadcrumbs=breadcrumbs,
                            troop=troop,
                            badge=badge,
-                           badge_parts=badge_parts,
                            persons=persons,
                            parts_progress=[],
                            badge_parts_scout=badge_parts_scout,
@@ -343,14 +355,14 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
                            )
 
 
-def compile_progress(persons, persons_progress, badge_parts):
+def compile_progress(persons, persons_progress, badge_parts, offset):
     "Return [part][person] boolean matrix."
     parts_progress = []  # [part][person] boolean matrix
-    for part in badge_parts:
+    for idx, part in enumerate(badge_parts):
         person_done = []
         for progress in persons_progress:
             for part_done in progress:
-                if part_done.idx == part.idx:
+                if part_done.idx == idx + offset:
                     person_done.append(True)
                     break
             else:  # No break

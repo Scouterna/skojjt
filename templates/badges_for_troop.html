@@ -7,10 +7,10 @@
         <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
             {% for badge in badges %}
             <tr>
-			    <th><div><input value="{{badge.name}}" class="include-tgl big-checkbox" name="badgeCheck" type="checkbox"
+			    <th><input value="{{badge.name}}" class="include-tgl big-checkbox" name="badgeCheck" type="checkbox"
                                 {% if badge.name in troop_badge_names %}checked=""{% endif %}/>
-                <label>{{badge.name}}</label>
-                </div></th>
+                <label>{{badge.name}}</label></th>
+                <th><div class="multiline auto-height">{{badge.description}}</div></th>
             </tr>
             {% endfor %}
         </table>

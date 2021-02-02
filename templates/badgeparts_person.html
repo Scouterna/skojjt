@@ -13,7 +13,7 @@
 	  </thead>
 	  <tbody>
 		{% for part in badge_parts %}{% set idone = loop.index0 %}
-		<tr><td>{{part.idx}}. {{part.short_desc}}</td>
+		<tr><td>{{part.idx+1}}. {{part.short_desc}}</td>
 		    <td><input class="attendance-cb checkbox big-checkbox" name="cbpart" type="checkbox" id="cb{{part.idx}}"{% if done[idone].done %} checked="" disabled=""{% endif%} /></td>
 			<td>{{part.long_desc}}</td><td>{{done[idone].approved}}</td>
 		</tr>

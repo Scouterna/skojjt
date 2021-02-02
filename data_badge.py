@@ -10,68 +10,87 @@ from google.appengine.ext import ndb
 from data import ScoutGroup, Troop, Person, PropertyWriteTracker
 
 ADMIN_OFFSET = 100  # Offset for administrative badge parts
-BadgeStatus = namedtuple('BadgeStatus', 'nr_scout_done, nr_scout_all, nr_adm_done, nr_adm_all')
 
 
 class Badge(ndb.Model):
     "Badge definition for a scout group (scoutkår). The required parts are separate as BadgePart."
     name = ndb.StringProperty(required=True)
     scoutgroup = ndb.KeyProperty(kind=ScoutGroup, required=True)
-    # nr_scout_parts = ndb.IntegerProperty(required=True)
-    # nr_admin_parts = ndb.IntegerProperty(required=True)
+    description = ndb.StringProperty(required=True)
+    # Short and long descriptions of scout parts (idx = 0, 1, 2, ...99)
+    parts_scout_short = ndb.StringProperty(repeated=True)
+    parts_scout_long = ndb.StringProperty(repeated=True)
+    # Short and long descriptions of admin parts (idx=100, 101, 101, ...)
+    parts_admin_short = ndb.StringProperty(repeated=True)
+    parts_admin_long = ndb.StringProperty(repeated=True)
     # TODO. Add image = ndb.BlobProperty()
 
     @staticmethod
-    def create(name, scoutgroup_key, badge_parts_data):
-        badge = Badge(name=name, scoutgroup=scoutgroup_key)
-        badge_key = badge.put()
-        for badge_part in badge_parts_data:
-            bp = BadgePart(badge=badge_key,
-                           idx=int(badge_part[0]),
-                           short_desc=badge_part[1],
-                           long_desc=badge_part[2])
-            bp.put()
+    def create(name, scoutgroup_key, description, parts_scout, parts_admin):
+        if name == "" or name is None:
+            logging.error("No name set for new badge")
+            return
+        parts_scout_short = [p[0] for p in parts_scout]
+        parts_scout_long = [p[1] for p in parts_scout]
+        parts_admin_short = [p[0] for p in parts_admin]
+        parts_admin_long = [p[1] for p in parts_admin]
+        badge = Badge(name=name,
+                      scoutgroup=scoutgroup_key,
+                      description=description,
+                      parts_scout_short=parts_scout_short,
+                      parts_scout_long=parts_scout_long,
+                      parts_admin_short=parts_admin_short,
+                      parts_admin_long=parts_admin_long)
+        badge.put()
 
-    def get_parts(self):
-        return BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
-
-    def update(self, name, badge_parts_data):
+    def update(self, name, description, parts_scout, parts_admin):
         """Update badge parts for badge. Separate scout series from admin."""
+        changed = False
+        if name == "" or name is None:
+            logging.info("No name set for badge update")
+            return
         if name != self.name:
             self.name = name
+            changed = True
+
+        if description != self.description:
+            self.description = description
+            changed = True
+
+        if len(parts_scout) < len(self.parts_scout_short):
+            # Remove parts not supported yet. Should also remove BadgePartDone
+            logging.error("Removing scout parts in update, not yet supported")
+            return
+
+        if len(parts_admin) < len(self.parts_admin_short):
+            # Remove parts not supported yet. Should also remove BadgePartDone
+            logging.error("Removing admin parts in update, not yet supported")
+            return
+
+        parts_scout_short = [p[0] for p in parts_scout]
+        parts_scout_long = [p[1] for p in parts_scout]
+        parts_admin_short = [p[0] for p in parts_admin]
+        parts_admin_long = [p[1] for p in parts_admin]
+
+        if parts_scout_short != self.parts_scout_short:
+            self.parts_scout_short = parts_scout_short
+            changed = True
+
+        if parts_scout_long != self.parts_scout_long:
+            self.parts_scout_long = parts_scout_long
+            changed = True
+
+        if parts_admin_short != self.parts_admin_short:
+            self.parts_admin_short = parts_admin_short
+            changed = True
+
+        if parts_admin_long != self.parts_admin_long:
+            self.parts_admin_long = parts_admin_long
+            changed = True
+
+        if changed:
+            logging.info("Badge %s updated" % self.name)
             self.put()
-
-        def parts_update(olds, news_data):
-            for old, new in zip(olds, news_data):
-                if old.idx != int(new[0]):
-                    logging.warn("Badge part numbers don't match: %d %d" % (old.idx, int(new[0])))
-                    return
-                if old.short_desc != new[1] or old.long_desc != new[2]:
-                    old.short_desc = new[1]
-                    old.long_desc = new[2]
-                    old.put()
-            if len(news_data) > len(olds):
-                for new in news_data[len(olds):]:
-                    bp = BadgePart(badge=self.key,
-                                   idx=int(new[0]),
-                                   short_desc=new[1],
-                                   long_desc=new[2])
-                    bp.put()
-            else:
-                for bp in olds[len(news_data):]:
-                    # TODO. Shall we support delete
-                    logging.warn("Would like to delete part %d" % bp.idx)
-                    # bp.delete()
-
-        old_parts = BadgePart.query(BadgePart.badge == self.key).order(BadgePart.idx).fetch()
-        old_scout = [p for p in old_parts if p.idx < ADMIN_OFFSET]
-        old_admin = [p for p in old_parts if p.idx >= ADMIN_OFFSET]
-
-        new_data_scout = [bp for bp in badge_parts_data if int(bp[0]) < ADMIN_OFFSET]
-        new_data_admin = [bp for bp in badge_parts_data if int(bp[0]) >= ADMIN_OFFSET]
-
-        parts_update(old_scout, new_data_scout)
-        parts_update(old_admin, new_data_admin)
 
     @staticmethod
     def get_badges(scoutgroup_key):
@@ -82,14 +101,15 @@ class Badge(ndb.Model):
 
     def update_for_person(self, person_key, idx_list, examiner_name):
         "Add new idx and create BadgeCompleted when all parts done."
-        # person = person_key.get()
-        # logging.info("Badge %s parts %s for %s" % (self.name, idx_list, person.getname()))
-        all_parts = self.get_parts()
-        all_idx = [pd.idx for pd in all_parts]
+        person = person_key.get()
+        logging.info("Badge %s parts %s for %s" % (self.name, idx_list, person.getname()))
         badge_key = self.key
         parts_done = BadgePartDone.parts_done(person_key, badge_key)
         prev_idx = [pd.idx for pd in parts_done]
         nr_idx_added = 0
+        all_idx = range(len(self.parts_scout_short))
+        for idx in range(ADMIN_OFFSET, ADMIN_OFFSET+len(self.parts_admin_short)):
+            all_idx.append(idx)
         for idx in idx_list:
             if idx in prev_idx:
                 logging.warn("Trying to set idx %d again", idx)
@@ -101,18 +121,6 @@ class Badge(ndb.Model):
             bc = BadgeCompleted(badge_key=badge_key, person_key=person_key, examiner=examiner_name)
             bc.put()
             logging.info("Badge %s completed by %s" % (self.name, examiner_name))
-
-
-class BadgePart(ndb.Model):
-    """Badge part with index idx for sorting.
-
-    idx = 1, 2, 3, ... are scout parts
-    idx = 101, 102, 103 are admin parts to be done after scout parts
-    """
-    badge = ndb.KeyProperty(kind=Badge, required=True)
-    idx = ndb.IntegerProperty(required=True)  # For sorting
-    short_desc = ndb.StringProperty(required=True)
-    long_desc = ndb.StringProperty(required=True)
 
 
 class BadgePartDone(ndb.Model):
@@ -149,22 +157,23 @@ class TroopBadge(ndb.Model):
     "Badge for troop (avdelning + termin)"
     troop_key = ndb.KeyProperty(kind=Troop)
     badge_key = ndb.KeyProperty(kind=Badge)
-    idx = ndb.IntegerProperty(required=True)  # For sorting
 
     @staticmethod
     def get_badges_for_troop(troop):
-        tps = TroopBadge.query(TroopBadge.troop_key == troop.key).order(TroopBadge.idx).fetch()
-        return [Badge.get_by_id(tp.badge_key.id()) for tp in tps]
+        tps = TroopBadge.query(TroopBadge.troop_key == troop.key).fetch()
+        badges = [Badge.get_by_id(tp.badge_key.id()) for tp in tps]
+        return sorted(badges, lambda x: x.name)
 
     @staticmethod
     def update_for_troop(troop, name_list):
-        old_troop_badges = TroopBadge.query(TroopBadge.troop_key == troop.key).order(TroopBadge.idx).fetch()
-        old_badges = [Badge.get_by_id(tp.badge_key.id()) for tp in old_troop_badges]
+        old_troop_badge_ids = TroopBadge.query(TroopBadge.troop_key == troop.key).fetch()
+        old_troop_badges = [Badge.get_by_id(tp.badge_key.id()) for tp in old_troop_badge_ids]
+        old_troop_badges = sorted(old_troop_badges, lambda x: x.name)
         nr_old_troop_badges = len(old_troop_badges)
         logging.info("New are %d, old were %d" % (len(name_list), nr_old_troop_badges))
         # First find keys to remove
         to_remove = []
-        for old in old_badges:
+        for old in old_troop_badges:
             if old.name not in name_list:
                 to_remove.append(old.key)
         # Next remove them from the troop badges
@@ -175,7 +184,7 @@ class TroopBadge(ndb.Model):
         # Now find really new names
         really_new = []
         for name in name_list:
-            for old in old_badges:
+            for old in old_troop_badges:
                 if old.name == name:
                     break
             else:
@@ -187,6 +196,6 @@ class TroopBadge(ndb.Model):
         idx = nr_old_troop_badges
         for badge in allbadges:
             if badge.name in really_new:
-                tb = TroopBadge(troop_key=troop.key, badge_key=badge.key, idx=idx)
+                tb = TroopBadge(troop_key=troop.key, badge_key=badge.key)
                 tb.put()
                 idx += 1

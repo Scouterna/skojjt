@@ -79,7 +79,11 @@ a.hike
     display: inline-block;
 }
 
-.done
+.auto-height
 {
-    font-weight: bold;
+    width: 100%;
+}
+
+.multiline {
+    white-space: pre;
 }

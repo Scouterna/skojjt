@@ -3,7 +3,9 @@
 
 <div class="table-responsive">
     <span class="heading">{{heading}}: {% if action == "show" %} {{name}} {% else %}
-	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span>
+	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><br/>
+	          <textarea class="auto-height" name="description" id="description" oninput="auto_height(this)"
+			  {% if action == "show" %} disabled {% endif %}>{{description}}</textarea><br/>
 	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
 	  <thead>
 		<tr>
@@ -14,8 +16,8 @@
 		</tr>
 	  </thead>
 	  <tbody>
-		{% for part in badge_parts_nonadmin %}
-		<tr><td>{{part.idx}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td>
+		{% for part in parts_scout %}
+		<tr><td>{{loop.index}}</td><td>{{part[0]}}</td><td>{{part[1]}}</td>
 		{% if action != "show" %}<td><Button id="chg{{loop.index}}" class="chgpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
 		{% endfor %}
 	  </tbody>
@@ -52,8 +54,8 @@
 		</tr>
 	  </thead>
 	  <tbody>
-		{% for part in badge_parts_admin %}
-		<tr><td>{{part.idx}}</td><td>{{part.short_desc}}</td><td>{{part.long_desc}}</td>
+		{% for part in parts_admin %}
+		<tr><td>{{loop.index}}</td><td>{{part[0]}}</td><td>{{part[1]}}</td>
 		{% if action != "show" %}<td><Button id="chgadm{{loop.index}}" class="chgadmpart btn btn-g btn-warning">Ändra</Button></td>{% endif %}</tr>
 		{% endfor %}
 	  </tbody>
@@ -81,7 +83,7 @@
 {% if action != "show" %}
 <button id="newpart" class="btn btn-g btn-success">Ny del</button>
 <button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
-<button id="save" disabled class="btn btn-g btn-warning">Spara</button>
+<button id="save" class="btn btn-g btn-warning">Spara</button>
 <a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
 {% endif %}
 <script>
@@ -141,7 +143,7 @@ $(document).ready(function() {
 		var row_nr = event.target.id.substring(6);  // Remove chgadm
 		console.log(event.target.id + " " + row_nr);
 		var row_data = admtbl.row(row_nr-1).data();
-		console.log("Adm: " + row_nr + " " + t);
+		console.log("Adm: " + row_nr);
 		$('#newpartadm_nr').text(row_data[0]);
 		$('#newpartadm_short').val(row_data[1]);
 		$('#newpartadm_long').val(row_data[2]);
@@ -157,7 +159,7 @@ $(document).ready(function() {
 	});
 	$("#newpartadm_ready").click(function(event) {
 		var nr = $('#newpartadm_nr').text();
-		var row_nr = nr - 101;
+		var row_nr = nr - 1;
 		var short = $('#newpartadm_short').val();
 		var long = $('#newpartadm_long').val();
 		console.log("NEW PART ADMIN", nr, " ", short, " ", long);
@@ -187,22 +189,26 @@ $(document).ready(function() {
 		saveOngoing($(button));
 		// Gather data and fill in a form to submit
 		var name = $('#name').val();
-		parts_str = ''
+		var description = $('#description').val();
+		var parts_scout = ''
 		tbl.rows().every( function () {
-			if (parts_str.length > 0) parts_str += '::';
-    		var parts_data = this.data().slice(0,3);  // Skip button column
-			parts_str += parts_data.join('|')
+			if (parts_scout.length > 0) parts_scout += '::';
+    		var parts_data = this.data().slice(1,3);  // Skip first and button column
+			parts_scout += parts_data.join('|')
 		});
+		var parts_admin = ''
 		admtbl.rows().every( function () {
-			if (parts_str.length > 0) parts_str += '::';
-    		var parts_data = this.data().slice(0,3);  // Skip button column
-			parts_str += parts_data.join('|')
+			if (parts_admin.length > 0) parts_admin += '::';
+    		var parts_data = this.data().slice(1,3);  // Skip first and button column
+			parts_admin += parts_data.join('|')
 		});
-		console.log(parts_str)
+		console.log(parts_scout + " " + parts_admin)
 		var fd = new FormData();
 		fd.append('action', 'savebadge');
 		fd.append('name', name);
-		fd.append('parts', parts_str)
+		fd.append('description', description)
+		fd.append('parts_scout', parts_scout)
+		fd.append('parts_admin', parts_admin)
 		console.log(tbl.rows())
 		$.ajax({
 			url:'.',
@@ -221,7 +227,6 @@ $(document).ready(function() {
 	function setDirty() {
 		console.log("setDirty");
 		var saveBtn = $('#save')
-		saveBtn.prop('disabled', false)
 	}
 
 	function saveOngoing(btn) {
@@ -230,8 +235,11 @@ $(document).ready(function() {
 
     function resetDirtyButton(btn) {
 		btn.removeClass('data-dirty data-save-pending');
-		btn.prop('disabled', true)
 	}
+	function auto_height(elem) {
+    	elem.style.height = "1px";
+    	elem.style.height = (elem.scrollHeight)+"px";
+}
 });
 </script>
 {% endblock %}
