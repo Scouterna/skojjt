@@ -223,19 +223,21 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
         if badge_url is None:
             # logging.info("Badges for %s" % person.getname())
             badge_parts_done = BadgePartDone.query(BadgePartDone.person_key == person_key).fetch()
-            badge_keys = set()
-            for part in badge_parts_done:
-                badge_keys.add(part.badge_key)
-            badges = []
-            for badge_key in badge_keys:
-                badges.append(badge_key.get())
+            badge_keys = {part.badge_key for part in badge_parts_done}
+            badges = [badge_key.get() for badge_key in badge_keys]
             badges.sort(key=lambda x: x.name)
+            badges_completed = BadgeCompleted.query(BadgeCompleted.person_key == person_key).fetch()
+            logging.info(badges_completed)
+            completed_keys = {bc.badge_key for bc in badges_completed}
+            completed = [b.key in completed_keys for b in badges]
+            logging.info("badges %s completed %s" % ([b.name for b in badges], completed))
 
             return render_template('badgelist_person.html',
                                    heading="Märken för %s" % person.getname(),
                                    baselink=baselink,
                                    breadcrumbs=breadcrumbs,
                                    badges=badges,
+                                   completed=completed,
                                    badge_parts_done=badge_parts_done)
         # badge_url is not none
 

@@ -7,7 +7,7 @@
             <tbody>
             {% for badge in badges %}
             <tr>
-                <th><a href="{{baselink+badge.key.urlsafe()}}" class="btn btn-info"><span class="glyphicon glyphicon-education">{{badge.name}}</span></a></th>
+                <th><a href="{{baselink+badge.key.urlsafe()}}" class="btn {% if completed[loop.index0]%}btn-success{% else %}btn-info{% endif %}"><span class="glyphicon glyphicon-education">{{badge.name}}</span></a></th>
             </tr>
             {% endfor %}
             {% if badges|length == 0 %}
