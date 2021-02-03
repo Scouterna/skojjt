@@ -103,6 +103,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             else:
                 parts_scout = []
                 parts_admin = []
+            thumbnail = badge.thumbnail
             return render_template('badge.html',
                                    name=name,
                                    heading=section_title,
@@ -112,6 +113,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    parts_scout=parts_scout,
                                    parts_admin=parts_admin,
                                    action=action,
+                                   thumbnail=thumbnail,
                                    scoutgroup=scoutgroup)
         if request.method == "POST":
             name = request.form['name']
@@ -120,15 +122,16 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             parts_scout = [p.split("|") for p in parts_scout]
             parts_admin = request.form['parts_admin'].split("::")
             parts_admin = [p.split("|") for p in parts_admin]
+            thumbnail = request.form['thumbnail']
             logging.info('description=%s' % description)
             # logging.info("name: %s, parts: %s", name, parts)
             if badge_url == "newbadge":
-                badge = Badge.create(name, sgroup_key, description, parts_scout, parts_admin)
+                badge = Badge.create(name, sgroup_key, description, parts_scout, parts_admin, thumbnail)
                 return "ok"
             else:  # Update an existing badge
                 badge_key = ndb.Key(urlsafe=badge_url)
                 badge = badge_key.get()
-                badge.update(name, description, parts_scout, parts_admin)
+                badge.update(name, description, parts_scout, parts_admin, thumbnail)
                 return "ok"
         else:
             return "Unsupported method %s" % request.method, 500

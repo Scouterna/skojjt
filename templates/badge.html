@@ -3,7 +3,7 @@
 
 <div class="table-responsive">
     <span class="heading">{{heading}}: {% if action == "show" %} {{name}} {% else %}
-	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><br/>
+	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><img id="thumbimg" width="48px" height="48px" src="{{thumbnail}}"/><br/>
 	          <textarea class="auto-height" name="description" id="description" oninput="auto_height(this)"
 			  {% if action == "show" %} disabled {% endif %}>{{description}}</textarea><br/>
 	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
@@ -80,14 +80,22 @@
 		</div>
 	</div>
 </div>
+<div>
+    <div class="custom-file ">
+        <input type="file"  class="custom-file-input" name="thumbnail" id="thumbnail">
+		<label class="custom-file-label" for="thumbnail">Choose file</label>
+	</div>
+</div>
 {% if action != "show" %}
 <button id="newpart" class="btn btn-g btn-success">Ny del</button>
 <button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
 <button id="save" class="btn btn-g btn-warning">Spara</button>
+<button id="image" class="btn btn-g btn-success">Image</button>
 <a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
 {% endif %}
 <script>
 $(document).ready(function() {
+	var thumbnail="";
 	var tbl = $('#maintable').DataTable({
 		searching:false,
 		paging:false,
@@ -209,6 +217,7 @@ $(document).ready(function() {
 		fd.append('description', description)
 		fd.append('parts_scout', parts_scout)
 		fd.append('parts_admin', parts_admin)
+		fd.append('thumbnail', thumbnail)
 		console.log(tbl.rows())
 		$.ajax({
 			url:'.',
@@ -239,7 +248,16 @@ $(document).ready(function() {
 	function auto_height(elem) {
     	elem.style.height = "1px";
     	elem.style.height = (elem.scrollHeight)+"px";
-}
+	}
+	$('#thumbnail').on('change', function() {
+    	var file = $(this).get(0).files;
+    	var reader = new FileReader();
+    	reader.readAsDataURL(file[0]);
+    	reader.addEventListener("load", function(e) {
+    		thumbnail = e.target.result;
+			$('#thumbimg').attr('src', thumbnail);
+		});
+	});
 });
 </script>
 {% endblock %}

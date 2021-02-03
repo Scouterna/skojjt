@@ -23,10 +23,10 @@ class Badge(ndb.Model):
     # Short and long descriptions of admin parts (idx=100, 101, 101, ...)
     parts_admin_short = ndb.StringProperty(repeated=True)
     parts_admin_long = ndb.StringProperty(repeated=True)
-    # TODO. Add image = ndb.BlobProperty()
+    thumbnail = ndb.TextProperty()  # Quadratic png image of size 128x128 pixels or similar
 
     @staticmethod
-    def create(name, scoutgroup_key, description, parts_scout, parts_admin):
+    def create(name, scoutgroup_key, description, parts_scout, parts_admin, thumbnail):
         if name == "" or name is None:
             logging.error("No name set for new badge")
             return
@@ -41,9 +41,11 @@ class Badge(ndb.Model):
                       parts_scout_long=parts_scout_long,
                       parts_admin_short=parts_admin_short,
                       parts_admin_long=parts_admin_long)
+        if thumbnail:
+            badge.thumbnail = thumbnail
         badge.put()
 
-    def update(self, name, description, parts_scout, parts_admin):
+    def update(self, name, description, parts_scout, parts_admin, thumbnail):
         """Update badge parts for badge. Separate scout series from admin."""
         changed = False
         if name == "" or name is None:
@@ -86,6 +88,10 @@ class Badge(ndb.Model):
 
         if parts_admin_long != self.parts_admin_long:
             self.parts_admin_long = parts_admin_long
+            changed = True
+
+        if thumbnail:
+            self.thumbnail = thumbnail
             changed = True
 
         if changed:
