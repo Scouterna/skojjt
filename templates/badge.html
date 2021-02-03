@@ -1,9 +1,10 @@
 ﻿{% extends "layout.html" %}
 {% block main %}
 
+
 <div class="table-responsive">
-    <span class="heading">{{heading}}: {% if action == "show" %} {{name}} {% else %}
-	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><img id="thumbimg" width="48px" height="48px" src="{{thumbnail}}"/><br/>
+    <span class="heading"><img id="thumbimg" width="48px" height="48px" src="{{img_src}}"/>{{heading}}: {% if action == "show" %} {{name}} {% else %}
+	          <input type="text" name="name" id="name"/ value="{{name}}"> {% endif %}</span><br/>
 	          <textarea class="auto-height" name="description" id="description" oninput="auto_height(this)"
 			  {% if action == "show" %} disabled {% endif %}>{{description}}</textarea><br/>
 	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
@@ -82,8 +83,7 @@
 </div>
 <div>
     <div class="custom-file ">
-        <input type="file"  class="custom-file-input" name="thumbnail" id="thumbnail">
-		<label class="custom-file-label" for="thumbnail">Choose file</label>
+    <input type="file" class="custom-file-input" name="thumbnail" id="thumbnail" accept=".jpg,.png" value="Välj ny ikon">
 	</div>
 </div>
 {% if action != "show" %}

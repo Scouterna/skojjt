@@ -12,6 +12,12 @@ from data import ScoutGroup, Troop, Person, PropertyWriteTracker
 ADMIN_OFFSET = 100  # Offset for administrative badge parts
 
 
+class BadgeImage(ndb.Model):
+    "Image/thumbnail for a badge. Stored as data URL."
+    image = ndb.TextProperty(required=True)
+    name = ndb.StringProperty()  # Name of badge
+
+
 class Badge(ndb.Model):
     "Badge definition for a scout group (scoutkår). The required parts are separate as BadgePart."
     name = ndb.StringProperty(required=True)
@@ -23,10 +29,10 @@ class Badge(ndb.Model):
     # Short and long descriptions of admin parts (idx=100, 101, 101, ...)
     parts_admin_short = ndb.StringProperty(repeated=True)
     parts_admin_long = ndb.StringProperty(repeated=True)
-    thumbnail = ndb.TextProperty()  # Quadratic png image of size 128x128 pixels or similar
+    image_key = ndb.KeyProperty(kind=BadgeImage)
 
     @staticmethod
-    def create(name, scoutgroup_key, description, parts_scout, parts_admin, thumbnail):
+    def create(name, scoutgroup_key, description, parts_scout, parts_admin, img_data):
         if name == "" or name is None:
             logging.error("No name set for new badge")
             return
@@ -41,11 +47,12 @@ class Badge(ndb.Model):
                       parts_scout_long=parts_scout_long,
                       parts_admin_short=parts_admin_short,
                       parts_admin_long=parts_admin_long)
-        if thumbnail:
-            badge.thumbnail = thumbnail
+        if img_data:
+            image = BadgeImage(image=img_data, name=name)
+            badge.image_key = image.put()
         badge.put()
 
-    def update(self, name, description, parts_scout, parts_admin, thumbnail):
+    def update(self, name, description, parts_scout, parts_admin, img_data):
         """Update badge parts for badge. Separate scout series from admin."""
         changed = False
         if name == "" or name is None:
@@ -90,8 +97,12 @@ class Badge(ndb.Model):
             self.parts_admin_long = parts_admin_long
             changed = True
 
-        if thumbnail:
-            self.thumbnail = thumbnail
+        if img_data:
+            logging.info("New image data")
+            if self.image_key is not None:
+                self.image_key.delete()
+            image = BadgeImage(image=img_data, name=name)
+            self.image_key = image.put()
             changed = True
 
         if changed:

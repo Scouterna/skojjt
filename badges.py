@@ -103,7 +103,14 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             else:
                 parts_scout = []
                 parts_admin = []
-            thumbnail = badge.thumbnail
+            img_src = ""
+            if badge is not None:
+                image_key = badge.image_key
+                if image_key:
+                    badge_image = badge.image_key.get()
+                    logging.info("BadgeImage %s" % badge_image.name)
+                    img_src = badge_image.image
+            logging.info("img_src=%s" % img_src)
             return render_template('badge.html',
                                    name=name,
                                    heading=section_title,
@@ -112,8 +119,8 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    description=description,
                                    parts_scout=parts_scout,
                                    parts_admin=parts_admin,
+                                   img_src=img_src,
                                    action=action,
-                                   thumbnail=thumbnail,
                                    scoutgroup=scoutgroup)
         if request.method == "POST":
             name = request.form['name']
@@ -123,6 +130,7 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             parts_admin = request.form['parts_admin'].split("::")
             parts_admin = [p.split("|") for p in parts_admin]
             thumbnail = request.form['thumbnail']
+            # logging.info(thumbnail)
             logging.info('description=%s' % description)
             # logging.info("name: %s, parts: %s", name, parts)
             if badge_url == "newbadge":
