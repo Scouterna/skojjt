@@ -81,16 +81,18 @@
 		</div>
 	</div>
 </div>
-<div>
-    <div class="custom-file ">
-    <input type="file" class="custom-file-input" name="thumbnail" id="thumbnail" accept=".jpg,.png" value="Välj ny ikon">
-	</div>
+<div class="image-file ">
+    <span>Bild (64x64pixels)</span>
+	<input type="file" class="image-file-input" name="thumbnail" id="thumbnail" accept=".jpg,.png" value="Välj ny ikon">
+</div>
+<div class="template-file ">
+	<span>Mall</span>
+	<input type="file" class="template-file-input" id="json-template" accept=".json" value="Läs mall">
 </div>
 {% if action != "show" %}
 <button id="newpart" class="btn btn-g btn-success">Ny del</button>
 <button id="newpartadm-btn" class="btn btn-g btn-success">Ny adm. del</button>
 <button id="save" class="btn btn-g btn-warning">Spara</button>
-<button id="image" class="btn btn-g btn-success">Image</button>
 <a href="{{breadcrumbs[-2]['link']}}"><button id="abort" class="btn btn-g btn-danger">Avbryt</button></href>
 {% endif %}
 <script>
@@ -258,6 +260,48 @@ $(document).ready(function() {
 			$('#thumbimg').attr('src', thumbnail);
 		});
 	});
+	$('#json-template').on('change', function() {
+    	var file = $(this).get(0).files;
+    	var reader = new FileReader();
+    	reader.readAsText(file[0]);
+    	reader.addEventListener("load", function(e) {
+    		template = JSON.parse(e.target.result);
+			fillinTemplate(template)
+		});
+	});
+	function min(a, b) {
+		if (b < a) {
+			return b;
+		}
+		return a;
+	}
+	function fillinTemplate(template) {
+		console.log(template)
+		$('#name').val(template.name)
+		$('#description').val(template.description)
+		fillInTable(tbl, template.scout_parts)
+		fillInTable(admtbl, template.admin_parts)
+	}
+	function fillInTable(tbl, new_data) {
+	var nr_old_rows = tbl.rows().count();
+	var nr_new_rows = new_data.length;
+		if (nr_new_rows < nr_old_rows) {
+			alert("Färre rader än tidigare. Funkar ej!")
+			console.log("Would need to delete some rows. Not allowed");
+			return;
+		}
+		for (let i=0; i < min(nr_old_rows, nr_new_rows); i++) {
+			tbl.cell(i, 0).data(i+1);
+			tbl.cell(i, 1).data(new_data[i].short);
+			tbl.cell(i, 2).data(new_data[i].long);
+			console.log(i);
+		}
+		for (let i=nr_old_rows; i < nr_new_rows; i++) {
+			console.log(i);
+			tbl.row.add([i+1, new_data[i].short, new_data[i].long, ""]);
+		}
+		tbl.draw();
+	}
 });
 </script>
 {% endblock %}
