@@ -1,0 +1,9 @@
+steps:
+  # Install dependencies
+  - name: python
+    entrypoint: pip
+    args: ["install", "-r", "requirements.txt", "--user"]
+  # Run tests
+  - name: python
+    entrypoint: python
+    args: ["tests/dak_test.py"]
