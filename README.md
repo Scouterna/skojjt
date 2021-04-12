@@ -76,3 +76,8 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
   + `gcloud app deploy index.yaml --project skojjt-X`
   + `gcloud app deploy app.yaml --project skojjt-X`
 * Testa appen `gcloud app browse`
+
+### Continuous deployment
+
+Senaste versionen från grenen `GAE/master` finns tillgänglig på
+https://skojjt.appengine-staging.scouterna.net för testning.
