@@ -59,7 +59,6 @@ def show(sgroup_url=None, person_url=None, action=None):
             'persons.html',
             heading=section_title,
             baselink=baselink,
-            # TODO: memcache
             persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(),
             breadcrumbs=breadcrumbs,
             username=user.getname())
@@ -77,7 +76,7 @@ def show(sgroup_url=None, person_url=None, action=None):
             if person.removed:
                 tps = TroopPerson.query(TroopPerson.person == person.key).fetch()
                 for tp in tps:
-                    tp.delete()
+                    tp.key.delete()
             return redirect(breadcrumbs[-1]['link'])
         elif action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
             troop_key = ndb.Key(urlsafe=request.args["troop"])
@@ -85,7 +84,7 @@ def show(sgroup_url=None, person_url=None, action=None):
             if len(tps) == 1:
                 tp = tps[0]
                 if action == "removefromtroop":
-                    tp.delete()
+                    tp.key.delete()
                 else:
                     tp.leader = (action == "setasleader")
                     tp.put()
@@ -98,7 +97,7 @@ def show(sgroup_url=None, person_url=None, action=None):
             scoutgroup = person.scoutgroup.get()
             if scoutgroup.canAddToWaitinglist():
                 try:
-                    if scoutnet.AddPersonToWaitinglist(
+                    member_no = scoutnet.AddPersonToWaitinglist(
                             scoutgroup,
                             person.firstname,
                             person.lastname,
@@ -117,10 +116,9 @@ def show(sgroup_url=None, person_url=None, action=None):
                             "",
                             "",
                             "",
-                            ""
-                    ):
-                        person.notInScoutnet = False
-                        person.put()
+                            "")
+                    person.notInScoutnet = False
+                    person.put()
                 except scoutnet.ScoutnetException as e:
                     return render_template('error.html', error=str(e))
         else:
@@ -128,14 +126,16 @@ def show(sgroup_url=None, person_url=None, action=None):
             abort(404)
             return ""
 
-
     # render main pages
+    scoutgroup_url = scoutgroup.key.urlsafe()
+    person_url = person.key.urlsafe()
     return render_template(
         'person.html',
         heading=section_title,
-        baselink='/persons/' + scoutgroup.key.urlsafe() + '/',
+        baselink='/persons/' + scoutgroup_url + '/',
         # TODO: memcache
         trooppersons=TroopPerson.query(TroopPerson.person == person.key).fetch(),
         ep=person,
         scoutgroup=scoutgroup,
-        breadcrumbs=breadcrumbs)
+        breadcrumbs=breadcrumbs,
+        badge_url='/badges/' + scoutgroup_url + '/person/' + person_url + '/')

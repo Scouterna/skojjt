@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from data import Meeting, Person, ScoutGroup, Semester, TaskProgress, Troop, TroopPerson, UserPrefs
-from datetime import datetime
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
+from progress import TaskProgress
 from google.appengine.ext import ndb
-from google.appengine.ext.ndb import metadata
 import logging
 import scoutnet
 import urllib2
+
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
     """
@@ -24,7 +24,6 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
     try:
         data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
     except urllib2.HTTPError as e:
-        logging.error('Scoutnet http error=%s' % str(e))
         result.error(u"Kunde inte läsa medlemmar från scoutnet, fel:%s" % (str(e)))
         if e.code == 401:
             result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
@@ -54,29 +53,6 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
     if user.groupadmin:
         result.append(u"Du är kåradmin och kan dela ut tillgång till din kår för andra användare")
     return True
-
-
-def GetBackupXML():
-    thisdate = datetime.now()
-    xml = '<?xml version="1.0" encoding="utf-8"?>\r\n<data date="' + thisdate.isoformat() + '">\r\n'
-    kinds = metadata.get_kinds()
-    for kind in kinds:
-        if kind.startswith('_'):
-            pass  # Ignore kinds that begin with _, they are internal to GAE
-        else:
-            q = ndb.Query(kind=kind)
-            all = q.fetch()
-            for e in all:
-                xml += '<' + kind + '>\r\n'
-                for n, v in e._properties.items():
-                    xml += '  <' + n + '>'
-                    xml += str(getattr(e, n))
-                    xml += '</' + n + '>\r\n'
-                xml += '</' + kind + '>\r\n'
-
-    xml += '</data>'
-    return xml
-
 
 class ScoutnetImporter:
     commit = True
@@ -158,20 +134,21 @@ class ScoutnetImporter:
 
         personsToSave = []
         troopPersonsToSave = []
-        activePersons = set() # person.ids that was seen in this import
+        activePersonIds = set() # person.ids that was seen in this import
 
         for p in list:
-            id = int(p["id"])
-            person = Person.get_by_id(id, use_memcache=True) # need to be an integer due to backwards compatibility with imported data
+            person_id = int(p["id"]) # type: int
             personnr = p["personnr"].replace('-', '')
+            person = Person.getByMemberNo(person_id)
             if len(personnr) < 12:
-                self.result.warning(u"%s %s har inte korrekt personnummer: '%s', hoppar över personen" % (p["firstname"], p["lastname"], personnr))
+                self.result.warning(u"%d %s %s har inte korrekt personnummer: '%s', hoppar över personen" % (person_id, p["firstname"], p["lastname"], personnr))
                 continue
+
             if person == None:
-                id = personnr
-                person = Person.get_by_id(id, use_memcache=True) # attempt to find using personnr, created as a local person
+                person = Person.getByPersonNr(personnr) # fallback lookup, these records will be converted to member_no.
 
             if person != None:
+                person_id = person.key.id()
                 person.firstname = p["firstname"]
                 person.lastname = p["lastname"]
                 person.setpersonnr(personnr)
@@ -179,14 +156,13 @@ class ScoutnetImporter:
                     person.notInScoutnet = False
             else:
                 person = Person.create(
-                    id,
+                    person_id,
                     p["firstname"],
                     p["lastname"],
-                    p["personnr"])
-                self.result.append("Ny person:%s %s %s" % (id, p["firstname"], p["lastname"]))
+                    personnr)
+                self.result.append("Ny person:%s %s %s" % (str(person_id), p["firstname"], p["lastname"]))
 
-            activePersons.add(id)
-
+            activePersonIds.add(person.key.id())
             person.removed = False
             person.patrool = p["patrool"]
             person.email = p["email"]
@@ -212,33 +188,32 @@ class ScoutnetImporter:
             scoutgroup = self.GetOrCreateGroup(p["group"], p["group_id"])
             person.scoutgroup = scoutgroup.key
             if len(p["troop"]) == 0:
-                self.result.warning(u"Ingen avdelning vald för %s %s %s" % (id, p["firstname"], p["lastname"]))
+                self.result.warning(u"Ingen avdelning vald för %s %s %s" % (str(person.member_no), p["firstname"], p["lastname"]))
 
             troop = self.GetOrCreateTroop(p["troop"], p["troop_id"], scoutgroup.key, semester.key)
             troop_key = troop.key if troop != None else None
-            person.troop = troop_key
 
             if person._dirty:
-                self.result.append(u"Sparar ändringar:%s %s %s" % (id, p["firstname"], p["lastname"]))
+                self.result.append(u"Sparar ändringar:%s %s %s" % (str(person.member_no), p["firstname"], p["lastname"]))
                 if self.commit:
                     personsToSave.append(person)
 
             if troop_key != None:
                 if self.commit:
-                    tp = TroopPerson.get_by_id(TroopPerson.getid(person.troop, person.key), use_memcache=True)
-                    if tp == None:
-                        tp = TroopPerson.create(troop_key, person.key, False)
+                    tps = TroopPerson.query(TroopPerson.troop == troop_key, TroopPerson.person == person.key).fetch(1)
+                    if len(tps) == 0:
+                        tp = TroopPerson.create_or_update(troop_key, person.key, False)
                         troopPersonsToSave.append(tp)
                         self.result.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
 
-        # check if old persons are still members, mark persons not imported in the pass as removed
-        if len(personsToSave) > 0: # protect agains a failed import, with no persons maring everyone as removed
+        # check if old persons are still members, mark persons not imported in this import session as removed
+        if len(personsToSave) > 0: # protect agains a failed import, with no persons marking everyone as removed
             previousPersons = Person.query(Person.scoutgroup == scoutgroup.key, Person.removed != True)
             for previousPersonKey in previousPersons.iter(keys_only=True):
-                if previousPersonKey.id() not in activePersons:
+                if previousPersonKey.id() not in activePersonIds:
                     personToMarkAsRemoved = previousPersonKey.get()
                     personToMarkAsRemoved.removed = True
-                    self.result.append(u"%s finns inte i scoutnet, markeras som borttagen" % (personToMarkAsRemoved.getname()))
+                    self.result.append(u"%s finns inte i scoutnet, markeras som borttagen. id:%s" % (personToMarkAsRemoved.getname(), str(previousPersonKey.id())))
                     if personToMarkAsRemoved in personsToSave:
                         raise Exception('A removed person cannot be in that list')
                     personsToSave.append(personToMarkAsRemoved)
@@ -249,36 +224,3 @@ class ScoutnetImporter:
 
         return True
 
-
-def DeleteAllData():
-    entries = []
-    entries.extend(Person.query().fetch(keys_only=True))
-    entries.extend(Troop.query().fetch(keys_only=True))
-    entries.extend(ScoutGroup.query().fetch(keys_only=True))
-    entries.extend(Meeting.query().fetch(keys_only=True))
-    entries.extend(TroopPerson.query().fetch(keys_only=True))
-    entries.extend(Semester.query().fetch(keys_only=True))
-    entries.extend(TaskProgress.query().fetch(keys_only=True))
-    entries.extend(UserPrefs.query().fetch(keys_only=True))
-    ndb.delete_multi(entries)
-    ndb.get_context().clear_cache() # clear memcache
-
-
-def dosettroopsemester():
-    semester_key = Semester.getOrCreateCurrent().key
-    troops = Troop.query().fetch()
-    for troop in troops:
-        #if troop.semester_key != semester_key:
-        troop.semester_key = semester_key
-        logging.info("updating semester for: %s", troop.getname())
-        troop.put()
-
-
-def UpdateSchemaTroopPerson():
-    entries = TroopPerson().query().fetch()
-    for e in entries:
-        e.put()
-
-
-def UpdateSchemas():
-    UpdateSchemaTroopPerson()

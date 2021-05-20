@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from google.appengine.api import memcache, users
+from google.appengine.api import memcache
+from google.appengine.api import users
 from google.appengine.ext import ndb
 import datetime
-import json
 import logging
 
 
@@ -168,13 +168,16 @@ class Troop(ndb.Model):
         self.key.delete()
 
 
+class PendingPersonKeyChange(PropertyWriteTracker):
+    pass # forward declaration see below
+
+
 class Person(PropertyWriteTracker):
     firstname = ndb.StringProperty(required=True)
     lastname = ndb.StringProperty(required=True)
     birthdate = ndb.DateProperty(required=True) # could be a computed property from personnr
     personnr = ndb.StringProperty()
     member_no = ndb.IntegerProperty()
-    troop = ndb.KeyProperty(kind=Troop) # assigned default troop in scoutnet, can be member of multiple troops
     patrool = ndb.StringProperty()
     scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
     notInScoutnet = ndb.BooleanProperty()
@@ -195,25 +198,14 @@ class Person(PropertyWriteTracker):
     troop_roles = ndb.StringProperty(repeated=True)
     group_roles = ndb.StringProperty(repeated=True)
     member_years = ndb.IntegerProperty(repeated=True) # a list of years this person have been imported, used for membership reporting
+    version = ndb.IntegerProperty() # data version, to keep track of updates
 
     @staticmethod
-    def create(id, firstname, lastname, personnr):
-        person = Person(id=id,
+    def create(member_no, firstname, lastname, personnr):
+        person = Person(id=member_no,
+            member_no=member_no,
             firstname=firstname,
             lastname=lastname)
-        person.setpersonnr(personnr)
-        return person
-
-    @staticmethod
-    def createlocal(firstname, lastname, personnr, mobile, phone, email):
-        person = Person(
-            id=personnr.replace('-', ''), # using personnr as id for local persons
-            firstname=firstname,
-            lastname=lastname,
-            mobile=mobile,
-            phone=phone,
-            email=email,
-            notInScoutnet=True)
         person.setpersonnr(personnr)
         return person
 
@@ -224,6 +216,65 @@ class Person(PropertyWriteTracker):
     @staticmethod
     def getIsFemale(personnummer):
         return False if int(personnummer[-2])&1 == 1 else True
+
+    @staticmethod
+    def getByMemberNo(member_no):
+        return Person.get_by_id(member_no, use_memcache=True)
+
+    #deprecated 
+    @staticmethod
+    def getByPersonNr(personnr):
+        return Person.get_by_id(personnr, use_memcache=True)
+
+    def getMemberNo(self):
+        return self.key.id()
+
+    """
+    # updateKey
+    # If the person is not using member_no as id
+    # create a new person with member_no as id
+    # copy all fields to the new person
+    # update all TroopPerson's person
+    # update all Meeting's attending persons
+    # create update record, old_id -> new_id
+    # do after calls to this method:
+    #   remove the old persons
+    #   commit changes
+    #   clear memcache
+    #
+    # returns: newPerson, pendingKeyChange (to be committed)
+    """
+    def updateKey(self): 
+        if self.member_no is not None and self.key.id() != self.member_no:
+            newPerson = Person.create(self.member_no, self.firstname, self.lastname, self.personnr)
+            newPerson.patrool = self.patrool
+            newPerson.scoutgroup = self.scoutgroup
+            newPerson.notInScoutnet = self.notInScoutnet
+            newPerson.removed = self.removed
+            newPerson.email = self.email
+            newPerson.phone = self.phone
+            newPerson.mobile = self.mobile
+            newPerson.alt_email = self.alt_email
+            newPerson.mum_name = self.mum_name
+            newPerson.mum_email = self.mum_email
+            newPerson.mum_mobile = self.mum_mobile
+            newPerson.dad_name = self.dad_name
+            newPerson.dad_email = self.dad_email
+            newPerson.dad_mobile = self.dad_mobile
+            newPerson.street = self.street
+            newPerson.zip_code = self.zip_code
+            newPerson.zip_name = self.zip_name
+            newPerson.troop_roles = self.troop_roles
+            newPerson.group_roles = self.group_roles
+            newPerson.member_years = self.member_years
+            # set a version number to allow us to work incrementally, the records with version 1 will not be checked again
+            self.version = 1 # this means that we have processed this record (it still has the wrong id, but will be deleted)
+            newPerson.version = 2
+            pendingKeyChange = PendingPersonKeyChange.create_or_update(self.key, newPerson.key)
+            return (newPerson, pendingKeyChange)
+        else:
+            return (None, None)
+
 
     def isFemale(self):
         return Person.getIsFemale(self.personnr)
@@ -289,6 +340,24 @@ class Person(PropertyWriteTracker):
         return self.zip_code + ' ' + self.zip_name
 
 
+# used for key person key update
+class PendingPersonKeyChange(PropertyWriteTracker):
+    old_key = ndb.KeyProperty(kind=Person)
+    new_key = ndb.KeyProperty(kind=Person)
+
+    @staticmethod
+    def create_or_update(old_key, new_key):
+        person_id = old_key.id()
+        ppkc = PendingPersonKeyChange.get_by_id(person_id, use_memcache=True)
+        if ppkc is not None:
+            ppkc.old_key = old_key
+            ppkc.new_key = new_key
+        else:
+            ppkc = PendingPersonKeyChange(id=person_id, old_key=old_key, new_key=new_key)
+            ppkc._dirty = True
+        return ppkc
+
+
 class Meeting(ndb.Model):
     datetime = ndb.DateTimeProperty(auto_now_add=True, required=True)
     name = ndb.StringProperty(required=True)
@@ -350,9 +419,6 @@ class Meeting(ndb.Model):
             troopmeeting_keys.remove(self.key)
             memcache.replace(Meeting.__getMemcacheKeyString(self.troop), troopmeeting_keys)
 
-    def commit(self):
-        self.put()
-
     def getdate(self):
         return self.datetime.strftime("%Y-%m-%d")
     def gettime(self):
@@ -366,8 +432,16 @@ class Meeting(ndb.Model):
             endtime = maxEndTime # limit to the current day (to keep Stop time after Start time)
         return endtime.strftime('%H:%M')
     def getishike(self):
-        result = self.ishike
-        return result
+        return self.ishike
+    
+    def uppdateOldPersonKeys(self, oldToNewDict):
+        was_updated = False
+        for i in range(0, len(self.attendingPersons)):
+            if self.attendingPersons[i] in oldToNewDict:
+                self.attendingPersons[i] = oldToNewDict[self.attendingPersons[i]]
+                was_updated = True
+
+        return was_updated
 
 
 class TroopPerson(ndb.Model):
@@ -377,51 +451,28 @@ class TroopPerson(ndb.Model):
     sortname = ndb.ComputedProperty(lambda self: self.getname())
 
     @staticmethod
-    def getid(troop_key, person_key):
-        return str(troop_key.id())+str(person_key.id())
+    def create_or_update(troop_key, person_key, isLeader):
+        tps = TroopPerson.query(TroopPerson.troop==troop_key, TroopPerson.person==person_key).fetch(1)
+        if len(tps) == 0:
+            tp = TroopPerson(
+                troop=troop_key,
+                person=person_key,
+                leader=isLeader)
+        else:
+            tp = tps[0]
+            tp.leader=isLeader
 
-    @staticmethod
-    def __getMemcacheKeyString(troop_key):
-        return 'tps:' + str(troop_key)
+        return tp
 
     def delete(self):
         self.key.delete()
-        troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(self.troop))
-        if troopperson_keys is not None:
-            troopperson_keys.remove(self.key)
-            memcache.replace(TroopPerson.__getMemcacheKeyString(self.troop), troopperson_keys)
-
-    @staticmethod
-    def create(troop_key, person_key, isLeader):
-        tp = TroopPerson(id=TroopPerson.getid(troop_key, person_key),
-            troop=troop_key,
-            person=person_key,
-            leader=isLeader)
-        troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(troop_key))
-        if troopperson_keys is not None and tp.key not in troopperson_keys:
-            troopperson_keys.append(tp.key)
-            memcache.replace(TroopPerson.__getMemcacheKeyString(troop_key), troopperson_keys)
-        return tp
 
     def put(self):
         super(TroopPerson, self).put()
 
     @staticmethod
     def getTroopPersonsForTroop(troop_key):
-        trooppersons = []
-        troopperson_keys = memcache.get(TroopPerson.__getMemcacheKeyString(troop_key))
-        if troopperson_keys is None:
-            troopperson_keys = TroopPerson.query(TroopPerson.troop==troop_key).fetch(keys_only=True)
-            memcache.add(TroopPerson.__getMemcacheKeyString(troop_key), troopperson_keys)
-        for tp_key in troopperson_keys:
-            tp = tp_key.get()
-            if tp != None:
-                trooppersons.append(tp)
-        trooppersons.sort(key=lambda x: (-x.leader, x.sortname))
-        return trooppersons
-
-    def commit(self):
-        self.put()
+        return TroopPerson.query(TroopPerson.troop==troop_key).order(-TroopPerson.leader, TroopPerson.sortname).fetch()
 
     def getname(self):
         person = self.person.get()
@@ -556,75 +607,4 @@ class UserPrefs(ndb.Model):
     @staticmethod
     def create(user, access=False, hasadminaccess=False):
         return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess, activeSemester=Semester.getOrCreateCurrent().key)
-
-class TaskProgress(ndb.Model):
-    pass
-
-class TaskProgressMessage(ndb.Model):
-    taskProgressKey = ndb.KeyProperty(kind=TaskProgress, required=True)
-    created = ndb.DateTimeProperty(auto_now_add=True, required=True)
-    message = ndb.StringProperty()
-
-class TaskProgress(ndb.Model):
-    created = ndb.DateTimeProperty(auto_now_add=True, required=True)
-    completed = ndb.DateTimeProperty()
-    name = ndb.StringProperty(required=True)
-    return_url = ndb.StringProperty(required=True)
-    failed = ndb.BooleanProperty(default=False)
-    lastPut = None
-
-    def append(self, message):
-        message = TaskProgressMessage(taskProgressKey=self.key, message=message)
-        message.put()
-        self._putIfNeeded()
-
-    def info(self, message):
-        self.append(message)
-        self._putIfNeeded()
-
-    def warning(self, message):
-        self.append('Warning:' + message)
-        self._putIfNeeded()
-
-    def error(self, message):
-        self.append('Error:' + message)
-        self.failed = True
-        self.put()
-
-    def done(self):
-        self.completed = datetime.datetime.now()
-        self.put()
-
-    def isRunning(self):
-        return self.completed is None
-
-    def put(self):
-        super(TaskProgress, self).put()
-        self.lastPut = datetime.datetime.now()
-
-    def _putIfNeeded(self):
-        if self.lastPut is None or (datetime.datetime.now() - self.lastPut).total_seconds > 5:
-            self.put()
-
-    @staticmethod
-    def cleanup():
-        cutoffdate = datetime.datetime.now() - datetime.timedelta(days=30)
-        keys = []
-        taskkeys = TaskProgress.query(TaskProgress.created < cutoffdate).fetch(keys_only=True)
-        for taskkey in taskkeys:
-            keys.extend(TaskProgressMessage.query(TaskProgressMessage.taskProgressKey==taskkey).fetch(keys_only=True))
-
-        keys.extend(taskkeys)
-
-        ndb.delete_multi(keys)
-
-    def toJson(self):
-        messages = [taskMessage.message for taskMessage in TaskProgressMessage.query(TaskProgressMessage.taskProgressKey==self.key).order(TaskProgressMessage.created).fetch()]
-        s = '{"datetime": "' + self.created.strftime("%Y%m%d%H%M")+ '",' + \
-            '"name": "' + self.name + '",' + \
-            '"return_url": "' + self.return_url + '",' + \
-            '"messages": ' + json.dumps(messages) + ',' + \
-            '"failed": ' + json.dumps(self.failed) + ',' + \
-            '"running": ' + json.dumps(self.isRunning()) + '}'
-        return s
 
