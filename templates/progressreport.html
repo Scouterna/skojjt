@@ -1,7 +1,7 @@
 ﻿{% extends "layout.html" %}
 {% block main %}
-<h1>Importresultat</h1>
-<img id="animation" alt="" width="137" height="122"></img>
+<h1>{{tabletitle}}</h1>
+<img id="animation" alt="" width="137" height="122" />
 <div id="topinfo"></div>
 <div class="table-responsive">
 	<table class="table table-striped" id="resulttable">
@@ -9,14 +9,16 @@
     </tbody>
     </table>
 </div>
+<a href="{{return_url}}">Tillbaka</a>
 {% endblock %}
 {% block script %}
 <script>
-window.maxUpdates = 600;
+window.maxUpdates = 6000;
+window.updateCursor = '';
 function updateProgress(){
     $("#animation").attr("src","/img/working.gif");
     $.ajax({
-        url: './update/',
+        url: './update/?cursor=' + window.updateCursor,
         dataType: "json",
         error: function(msg){
             $("#topinfo").html(msg);
@@ -33,7 +35,7 @@ function updateProgress(){
             {
                 if (!taskProgress.running)
                 {
-                    $("#animation").attr("src","");
+                    $("#animation").attr("src","/img/success.gif");
                     window.maxUpdates = 0;
                 }
                 else
@@ -41,8 +43,11 @@ function updateProgress(){
                     $("#animation").attr("src","/img/working.gif");
                 }
             }
-            var rowCount = $("#resulttable tbody tr").length;
-            for(var i=rowCount; i < taskProgress.messages.length; i++)
+            if (taskProgress.cursor){
+                window.updateCursor = taskProgress.cursor;
+            }
+            //var rowCount = $("#resulttable tbody tr").length;
+            for(var i=0; i < taskProgress.messages.length; i++)
             {
                 var message = taskProgress.messages[i];
                 var cls = "info";
@@ -60,6 +65,7 @@ function updateProgress(){
                 }
                 $("#resulttable tbody").append("<tr><td class='" + cls + "'>" + message + "</td></tr>");
             }
+            $("#resulttable tr:last")[0].scrollIntoView(false);
             if (window.maxUpdates > 0)
             {
                 setTimeout(updateProgress, 5000);

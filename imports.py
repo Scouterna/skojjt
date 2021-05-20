@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import time
-from data import Semester, TaskProgress, UserPrefs
+from data import Semester, UserPrefs
 from dataimport import RunScoutnetImport
 from google.appengine.ext import deferred, ndb
 from flask import Blueprint, render_template, request, make_response, redirect
+from progress import TaskProgress
 import traceback
 
 import_page = Blueprint('import_page', __name__, template_folder='templates')
@@ -28,32 +29,6 @@ def import_():
     semester_key=ndb.Key(urlsafe=request.form.get('semester'))
     return startAsyncImport(api_key, groupid, semester_key, user, request)
 
-progress = Blueprint('progress_page', 'progress', template_folder='templates')
-
-@progress.route('/<progress_url>')
-@progress.route('/<progress_url>/')
-@progress.route('/<progress_url>/<update>')
-@progress.route('/<progress_url>/<update>/')
-def importProgress(progress_url, update=None):
-    if update is not None:
-        taskProgress = None
-        for i in range(1, 2):
-            taskProgress = ndb.Key(urlsafe=progress_url).get()
-            if taskProgress is not None:
-                break
-            time.sleep(1)
-
-        if taskProgress is not None:
-            s = taskProgress.toJson()
-        else:
-            s = '{"messages": ["Error: Hittar inte uppgiften"], "failed": "true", "running": "false"}'
-
-        response = make_response(s)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    breadcrumbs = [{'link':'/', 'text':'Hem'}, {'link':'/import', 'text':'Import'}]
-    return render_template('importresult.html', tabletitle="Importresultat", rowtitle='Result', breadcrumbs=breadcrumbs)
 
 def startAsyncImport(api_key, groupid, semester_key, user, request):
     """
@@ -80,12 +55,7 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     start_time = time.time()
     semester = semester_key.get()  # type: data.Semester
     user = user_key.get()  # type: data.UserPrefs
-    progress = None
-    for i in range(1, 3):
-        progress = taskProgress_key.get()  # type: data.TaskProgress
-        if progress is not None:
-            break
-        time.sleep(1) # wait for the eventual consistency
+    progress = TaskProgress.getTaskProgress(taskProgress_key)
     try:
         success = RunScoutnetImport(groupid, api_key, user, semester, progress)
         if not success:
@@ -93,6 +63,8 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
             progress.failed = True
         else:
             progress.info("Import klar")
+            if user.groupaccess is not None:
+                progress.info('<a href="/start/%s/">Gå till scoutkåren</a>' % (user.groupaccess.urlsafe()))
     except Exception as e: # catch all exceptions so that defer stops running it again (automatic retry)
         progress.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
 

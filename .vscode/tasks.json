@@ -1,13 +1,27 @@
 {
-    "version": "0.1.0",
+    "version": "2.0.0",
     "command": "python",
-    "isShellCommand": true,
-    "showOutput": "always",
     "args": [
         "C:\\Program Files (x86)\\Google\\google_appengine\\dev_appserver.py",
         "--python_startup_script=${workspaceRoot}/pydev_startup.py",
         "--automatic_restart=no",
         "--max_module_instances=default:1",
         "${workspaceRoot}/app.yaml"
+    ],
+    "tasks": [
+        {
+            "label": "python",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "C:\\Program Files (x86)\\Google\\google_appengine\\dev_appserver.py",
+                "--python_startup_script=${workspaceRoot}/pydev_startup.py",
+                "--automatic_restart=no",
+                "--max_module_instances=default:1",
+                "${workspaceRoot}/app.yaml"
+            ],
+            "problemMatcher": [],
+            "group": "build"
+        }
     ]
 }
