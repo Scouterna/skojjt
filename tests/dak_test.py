@@ -23,14 +23,19 @@ from openpyxl import load_workbook
 from flask import Flask, render_template
 from jsonreport import JsonReport
 from dakdata import DakData, Deltagare, Sammankomst
+
 if platform.system() == 'Windows':
     # Add app engine paths on windows.
     sys.path.append("C:/Program Files (x86)/Google/google_appengine")
     sys.path.append("C:/Program Files (x86)/Google/google_appengine/lib")
     sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine/api")
     sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine")
+
 elif platform.system() == 'Darwin':  # i.e. MacOS
     BASE = "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/"
+elif platform.system() == 'Linux':
+    BASE = "/usr/lib64/google-cloud-sdk/"
+if platform.system() == 'Darwin' or platform.system() == 'Linux':
     sys.path.append(BASE + "platform/google_appengine/lib/fancy_urllib")
     sys.path.append(BASE + "platform/google_appengine/lib")
     sys.path.append(BASE + "platform/google_appengine/api")
