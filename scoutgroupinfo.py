@@ -7,21 +7,22 @@ import logging
 
 scoutgroupinfo = Blueprint('scoutgroupinfo_page', __name__, template_folder='templates')
 
+
 @scoutgroupinfo.route('/<sgroup_url>')
-@scoutgroupinfo.route('/<sgroup_url>/', methods = ['POST', 'GET'])
+@scoutgroupinfo.route('/<sgroup_url>/', methods=['POST', 'GET'])
 def show(sgroup_url):
     user = UserPrefs.current()
     if not user.canImport():
         return "denied", 403
-    breadcrumbs = [{'link':'/', 'text':'Hem'}]
+    breadcrumbs = [{'link': '/', 'text': 'Hem'}]
     baselink = "/scoutgroupinfo/"
     section_title = "Kårinformation"
     scoutgroup = None
-    if sgroup_url!=None:
+    if sgroup_url is not None:
         sgroup_key = ndb.Key(urlsafe=sgroup_url)
         scoutgroup = sgroup_key.get()
         baselink += sgroup_url+"/"
-        breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
+        breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
     if request.method == "POST":
         logging.info("POST, %s" % str(request.form))
         scoutgroup.organisationsnummer = request.form['organisationsnummer'].strip()
@@ -38,6 +39,7 @@ def show(sgroup_url):
         scoutgroup.default_lagerplats = request.form['lagerplats'].strip()
         scoutgroup.firmatecknare = request.form['firmatecknare'].strip()
         scoutgroup.firmatecknartelefon = request.form['firmatecknartelefon'].strip()
+        scoutgroup.firmatecknaremail = request.form['firmatecknaremail'].strip()
         scoutgroup.attendance_min_year = request.form.get('attendance_min_year', type=int)
         scoutgroup.attendance_incl_hike = request.form.get('attendance_incl_hike') == 'on'
         scoutgroup.put()
