@@ -317,9 +317,6 @@ def startAsyncUpdatePersonIds(commit, sgroup_key):
         taskProgress.error("Missing sgroup_key")
         return redirect('/progress/' + taskProgress.key.urlsafe())
 
-    memcache.delete("oldToNewDict")
-    memcache.delete("oldToNewDict_is_up_todate")
-
     deferred.defer(update_person_ids_deferred, commit, sgroup_key, None, 0, taskProgress.key, _queue="admin")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
@@ -349,11 +346,7 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
     start_time = time.time()
     time_is_out = False
     there_is_more = True
-
-    oldToNewDict = memcache.get("oldToNewDict")
-    if oldToNewDict == None:
-        oldToNewDict = {}
-        memcache.add("oldToNewDict", oldToNewDict)
+    oldToNewDict = {}
 
     # --- Stage 0 ---
     if stage == 0:
@@ -388,11 +381,8 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
                 if commit and person._dirty:
                     person.put()
                 if pendingKeyChange is not None:
-                    oldToNewDict[pendingKeyChange.old_key] = pendingKeyChange.new_key
                     if pendingKeyChange._dirty:
                         pendingKeyChange.put() # safe to put, to be able to test the rest of the method
-
-        memcache.replace("oldToNewDict", oldToNewDict)
 
         if there_is_more:
             return start_cursor, there_is_more, stage
@@ -404,16 +394,15 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
             return start_cursor, there_is_more, stage # restart to start fresh and let datastore catch up
 
 
-    if memcache.get("oldToNewDict_is_up_todate") is None:
-        flushPendingDatabaseOperations()
-        # load all PendingPersonKeyChange to construct a map from old to new id
-        for ppkc in PendingPersonKeyChange.query().fetch():
-            if ppkc.old_key not in oldToNewDict:
-                oldToNewDict[ppkc.old_key] = ppkc.new_key
-
-        memcache.replace("oldToNewDict", oldToNewDict)
-        memcache.replace("oldToNewDict_is_up_todate", True)
-
+    taskProgress.info("Loading PendingPersonKeyChange records")
+    ppkc_more = True
+    ppkc_start_cursor = None
+    while ppkc_more:
+        ppkcs, ppkc_start_cursor, ppkc_more = PendingPersonKeyChange.query().fetch_page(page_size=1000, start_cursor=ppkc_start_cursor)
+        for ppkc in ppkcs:
+            oldToNewDict[ppkc.old_key] = ppkc.new_key
+        
+        taskProgress.info("Loaded persons to convert %d" % (len(oldToNewDict)))
 
     taskProgress.info("Number of persons to convert %d" % (len(oldToNewDict)))
 
@@ -452,6 +441,7 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
 
     # --- Stage 2 ---
     if stage == 2:
+        update_counter = 0
         if start_cursor == None:
             start_cursor = 0
 
@@ -462,11 +452,11 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
 
             for troopPerson in TroopPerson.query(TroopPerson.person==old_person_key).fetch():
                 troopPerson.person = new_person_key
+                update_counter += 1
                 if commit:
                     troopPerson.put()
-
-            if index % 10 == 0:
-                taskProgress.info("Updated %d TroopPersons" % (index))
+                if update_counter % 10 == 0:
+                    taskProgress.info("Updated %d TroopPersons" % (update_counter))
 
             if time.time() - start_time > max_time_seconds:
                 start_cursor = index
