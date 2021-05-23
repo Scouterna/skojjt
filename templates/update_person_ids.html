@@ -1,0 +1,28 @@
+﻿{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+	<div class="main">
+		<div class="container">
+		<form id="update_person_ids" class="form-horizontal" role="form" name="person" method="POST">
+		  <h1>Updatera Person IDn</h1>
+			<p>Byt personer med id=personnummer till id=medlemsnr</p>
+			<div class="form-group row">
+				<div class="form-group row">
+					<label for="groupaccess" class="control-label col-sm-3">Kår:</label>
+					<select class="form-control form-control-lg" name="groupaccess" id="groupaccess">
+						<option value=""></option>
+						{% for scoutgroup in scoutgroups %}
+						<option value="{{scoutgroup.key.urlsafe()}}">{{scoutgroup.getname()}}</option>
+						{% endfor %}
+					</select><br/>
+				</div>
+				<label for="commit" class="control-label col-sm-3">Spara data</label>
+				<input type="checkbox" class="form-control" name="commit" id="commit" />
+			</div>
+			<button type="submit" name="submit" class="btn btn-lg btn-primary">Starta</button>
+		  </div>
+		</form>
+		</div>
+	</div>
+</body>
+</html>

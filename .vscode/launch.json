@@ -2,148 +2,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python",
-            "type": "python",
+            "name": "Google App Engine (py2.7)",
             "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${file}",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Integrated Terminal/Console",
             "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
-            ]
-        },
-        {
-            "name": "External Terminal/Console",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${file}",
-            "console": "externalTerminal",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit"
-            ]
-        },
-        {
-            "name": "Django",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${workspaceRoot}/manage.py",
-            "args": [
-                "runserver",
-                "--noreload"
-            ],
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput",
-                "DjangoDebugging"
-            ]
-        },
-        {
-            "name": "Flask",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-            "env": {
-                "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload"
-            ],
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Google App Engine",
-            "type": "python",
-            "request": "attach",
             "host": "localhost",
-            "secret": "gae",
-            "port": 3000,
-            "remoteRoot": "${workspaceRoot}",
-            "localRoot": "${workspaceRoot}",
-            "preLaunchTask": "python",
-            "stopOnEntry": false,
-            "pythonPath": "${command:python.interpreterPath}"
-        },
-        {
-            "name": "Attach",
-            "type": "python",
-            "request": "attach",
-            "host": "localhost",
-            "secret": "gae",
-            "port": 3000,
-            "remoteRoot": "${workspaceRoot}",
-            "localRoot": "${workspaceRoot}",
-            "preLaunchTask": "python"
-        },
-        {
-            "name": "Flask (old)",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${workspaceRoot}/run.py",
-            "args": [],
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "Watson",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${command:python.interpreterPath}",
-            "program": "${workspaceRoot}/console.py",
+            "cwd": "${workspaceFolder}",
+            "python": "${command:python.interpreterPath}",
+            "program": "${env:ProgramFiles(x86)}/google/google_appengine/dev_appserver.py",
             "args": [
-                "dev",
-                "runserver",
-                "--noreload=True"
-            ],
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
+                "app.yaml",
+                "-A", "skojjt",
+                "--port", "8080",
+                "--admin_port", "8000",
+                "--api_port", "56035",
+                "--enable_console"
             ]
-        },
-        {
-            "name": "Attach (Remote Debug)",
-            "type": "python",
-            "request": "attach",
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": "${workspaceRoot}",
-            "port": 3000,
-            "secret": "my_secret",
-            "host": "localhost"
         }
     ]
 }

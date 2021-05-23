@@ -123,35 +123,18 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                    scoutgroup=scoutgroup)
         elif request.method == "POST":
             pnr = request.form['personnummer'].replace('-', '')
-            person = Person.createlocal(
-                request.form['firstname'],
-                request.form['lastname'],
-                pnr,
-                request.form['mobile'],
-                request.form['phone'],
-                request.form['email'])
-            person.street = request.form["street"]
-            person.zip_code = request.form["zip_code"]
-            person.zip_name = request.form["zip_name"]
-            if "patrol" in request.form:
-                person.setpatrol(request.form["patrol"])
-            person.scoutgroup = sgroup_key
-            logging.info("created local person %s", person.getname())
-            person.put()
-            troop_person = TroopPerson.create(troop_key, person.key, False)
-            troop_person.commit()
             if scoutgroup.canAddToWaitinglist():
                 try:
-                    if scoutnet.AddPersonToWaitinglist(scoutgroup,
-                                                       person.firstname,
-                                                       person.lastname,
-                                                       person.personnr,
-                                                       person.email,
-                                                       person.street,
-                                                       person.zip_code,
-                                                       person.zip_name,
-                                                       person.phone,
-                                                       person.mobile,
+                    member_no = scoutnet.AddPersonToWaitinglist(scoutgroup,
+                                                       request.form['firstname'],
+                                                       request.form['lastname'],
+                                                       pnr,
+                                                       request.form['email'],
+                                                       request.form["street"],
+                                                       request.form["zip_code"],
+                                                       request.form["zip_name"],
+                                                       request.form['phone'],
+                                                       request.form['mobile'],
                                                        troop,
                                                        request.form['anhorig1_name'],
                                                        request.form['anhorig1_email'],
@@ -160,9 +143,28 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                                        request.form['anhorig2_name'],
                                                        request.form['anhorig2_email'],
                                                        request.form['anhorig2_mobile'],
-                                                       request.form['anhorig2_phone']):
+                                                       request.form['anhorig2_phone'])
+                    if member_no != 0:
+                        person = Person.create(
+                            member_no,
+                            request.form['firstname'],
+                            request.form['lastname'],
+                            pnr)
+                        person.mobile = request.form['mobile']
+                        person.phone = request.form['phone']
+                        person.email = request.form['email']
+                        person.street = request.form["street"]
+                        person.zip_code = request.form["zip_code"]
+                        person.zip_name = request.form["zip_name"]
+                        if "patrol" in request.form:
+                            person.setpatrol(request.form["patrol"])
+                        person.scoutgroup = sgroup_key
                         person.notInScoutnet = False
                         person.put()
+                        logging.info("created person %s, id=%d", person.getname(), person.getmembernumber())
+                        troop_person = TroopPerson.create_or_update(troop_key, person.key, False)
+                        troop_person.put()
+
                 except scoutnet.ScoutnetException as exp:
                     return render_template('error.html', error=str(exp))
             return redirect(breadcrumbs[-2]['link'])
@@ -195,8 +197,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             person_key = ndb.Key(urlsafe=key_url)
             person = person_key.get()
             logging.info("adding person=%s to troop=%d", person.getname(), troop.getname())
-            troop_person = TroopPerson.create(troop_key, person_key, person.isLeader())
-            troop_person.commit()
+            troop_person = TroopPerson.create_or_update(troop_key, person_key, person.isLeader())
+            troop_person.put()
             return redirect(breadcrumbs[-1]['link'])
         elif action == "setsemester":
             if user is None or "semester" not in request.args:
@@ -257,7 +259,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             meeting.datetime = date_str
             meeting.duration = int(mduration)
             meeting.ishike = mishike
-            meeting.commit()
+            meeting.put()
             return redirect(breadcrumbs[-1]['link'])
         elif action == "deletemeeting":
             meeting = ndb.Key(urlsafe=key_url).get()
@@ -276,7 +278,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                               day_time,
                                               duration=1440,  # 24h (needs some value)
                                               ishike=True)
-                meeting.commit()
+                meeting.put()
             return redirect(breadcrumbs[-1]['link'])
 
         elif action == "savepatrol":

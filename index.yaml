@@ -92,4 +92,11 @@ indexes:
 - kind: TroopPerson
   properties:
   - name: troop
+  - name: leader
+    direction: desc
+  - name: sortname
+
+- kind: TroopPerson
+  properties:
+  - name: troop
   - name: sortname
