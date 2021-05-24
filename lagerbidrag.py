@@ -8,7 +8,6 @@ Stocholm has 2-7 days, age 7-20, and does not include older people.
 Stockholm also needs postal address for each scout.
 """
 from collections import namedtuple
-from datetime import date
 from data import Meeting, Troop
 from datetime import datetime, date
 from flask import render_template, make_response
@@ -42,10 +41,12 @@ def render_lagerbidrag(request, scoutgroup, context, sgroup_key=None, user=None,
 
     region = request.args.get('region')
     limits = LIMITS[region]
-    bidrag=LagerBidrag(scoutgroup.getname())
+    bidrag = LagerBidrag(scoutgroup.getname())
     bidrag.foreningsID = scoutgroup.foreningsID
     bidrag.firmatecknare = scoutgroup.firmatecknare
     bidrag.firmatecknartelefon = scoutgroup.firmatecknartelefon
+    bidrag.firmatecknaremail = scoutgroup.firmatecknaremail
+    bidrag.organisationsnummer = scoutgroup.organisationsnummer
     bidrag.email = scoutgroup.epost
     bidrag.phone = scoutgroup.telefon
     bidrag.address = scoutgroup.adress
@@ -86,6 +87,8 @@ def response_gbg(bidragcontainer):
 
 
 def response_sthlm(bidragcontainer):
+    per_diem = 35  # Amount per scout per day 2021
+    h1_end = datetime(2021, 5, 31, 23, 59)
 
     bidrag = bidragcontainer.bidrag
     persons = bidragcontainer.persons
@@ -97,9 +100,18 @@ def response_sthlm(bidragcontainer):
     end = datetime.strptime(bidrag.dateTo, DATE_FORMAT)
     nr_days = (end - start).days + 1
 
+    if bidrag.zipCode != "":
+        zcParts = bidrag.zipCode.split()
+        postnr = "".join(zcParts[:-1])  # remove possible space in zip code
+        postort = zcParts[-1]
+
+    today = date.today()
     data = {
+        'organisationsnummer': bidrag.organisationsnummer,
+        'kontonummer': bidrag.kontonummer,
         'kundnummer': bidrag.foreningsID,
         'foreningsnamn': bidrag.kar,
+        'epost': bidrag.email,
         'ledare': bidrag.contact,
         'ledartelefon': bidrag.contactphone,
         'ledaremail': bidrag.contactemail,
@@ -108,18 +120,27 @@ def response_sthlm(bidragcontainer):
         'lagerplats': bidrag.site,
         'startdatum': bidrag.dateFrom,
         'slutdatum': bidrag.dateTo,
-        'datum': date.today().strftime(DATE_FORMAT),
-        'firmatecknare': bidrag.firmatecknare,
-        'firmatecknartelefon': bidrag.firmatecknartelefon,
+        'datum': today.strftime(DATE_FORMAT),
+        'dag': str(today.day),
+        'manad': str(today.month),
+        'ordforande': bidrag.firmatecknare,
+        'ordforandetelefon': bidrag.firmatecknartelefon,
+        'ordforandeemail': bidrag.firmatecknaremail,
+        'adress': bidrag.address,
+        'postnr': postnr,
+        'postort': postort,
+        'bankkonto': bidrag.account,
         'antalmedlemmar': str(bidragcontainer.nr_young_persons),
-        'antaldagar': str(bidrag.days)  # Should be total number of days
+        'antaldagar': str(nr_days),  # Should be total number of days
+        'summa': str(bidrag.days * per_diem) + ",00",
+        'H1': u'\u2610' if h1_end <= end else u'X',
+        'H2': u'\u2610' if h1_end > end else u'X'
     }
 
-    today = date.today()
     period_data = generate_sthlm_period_data(today.year, today.month, today.day)
     data.update(period_data)
 
-    persons_per_page = 16
+    persons_per_page = 25
     nr_pages, rest = divmod(nr_persons, persons_per_page)
     if rest > 0:
         nr_pages += 1
@@ -132,9 +153,11 @@ def response_sthlm(bidragcontainer):
             page_data['namn%d' % nr] = person.name
             page_data['pa%d' % nr] = person.postal_address
             page_data['ar%d' % nr] = str(person.year)
+            if person.days != nr_days:
+                page_data['ad%d' % nr] = str(person.days)
         pages.append(page_data)
 
-    document = MailMerge('templates/lagerbidragsmall_sthlm.docx')
+    document = MailMerge('templates/lagerbidragsmall_sthlm_2021.docx')
     document.merge_pages(pages)
 
     bytesIO = io.BytesIO()
@@ -152,7 +175,7 @@ def response_sthlm(bidragcontainer):
 
 def generate_sthlm_period_data(year, month, day):
     """Generate dictionary with period data for right period.
-    
+
     Dec 16 - Jun 30, the period is Dec 1 to May 31.
     Jul 1 - Dec 15, the period is Jun 1 to Nov. 30
 
@@ -169,7 +192,7 @@ def generate_sthlm_period_data(year, month, day):
             'periodstart': '1 december %d' % (y - 1),
             'periodslut': '31 maj %d' % y
         }
-    else: # Period 2
+    else:  # Period 2
         pd = {
             'ansokningsar': str(year),
             'sistaansokan': '15 december %d' % year,
@@ -223,6 +246,8 @@ class LagerBidrag():
     account = ""
     firmatecknare = ""
     firmatecknartelefon = ""
+    organisationsnummer = ""
+    kontonummer = ""
     dateFrom = ""
     dateTo = ""
     hikeduringbreak = None
@@ -265,7 +290,7 @@ def createLagerbidragGroup(limits, scoutgroup, troops, bidrag):
         # Count number of days participating
         for meeting in Meeting.query(Meeting.datetime >= from_date_time, Meeting.datetime <= to_date_time, Meeting.troop == troop.key).fetch():
             for person in meeting.attendingPersons:
-                if not person in person_days:
+                if person not in person_days:
                     person_days[person] = 1
                 else:
                     person_days[person] += 1

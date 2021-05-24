@@ -93,7 +93,7 @@ class ScoutGroup(ndb.Model):
     scoutnetID = ndb.StringProperty(required=False, default="")
     kommunID = ndb.StringProperty(default="1480")
     apikey_waitinglist = ndb.StringProperty(required=False, default="")
-    apikey_all_members  = ndb.StringProperty(required=False, default="")
+    apikey_all_members = ndb.StringProperty(required=False, default="")
     bankkonto = ndb.StringProperty(required=False, default="")
     adress = ndb.StringProperty(required=False, default="")
     postadress = ndb.StringProperty(required=False, default="")
@@ -102,6 +102,7 @@ class ScoutGroup(ndb.Model):
     default_lagerplats = ndb.StringProperty(required=False, default="")
     firmatecknare = ndb.StringProperty(required=False, default="")
     firmatecknartelefon = ndb.StringProperty(required=False, default="")
+    firmatecknaremail = ndb.StringProperty(required=False, default="")
     attendance_min_year = ndb.IntegerProperty(required=False, default=10)
     attendance_incl_hike = ndb.BooleanProperty(required=False, default=True)
 
