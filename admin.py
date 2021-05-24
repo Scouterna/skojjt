@@ -491,14 +491,6 @@ def flushPendingDatabaseOperations():
         pass
 
 
-# cron job:
-@admin.route('/cleanup')
-@admin.route('/cleanup/')
-def tasksCleanup():
-    TaskProgress.cleanup()
-    return "", 200
-
-
 @admin.route('/deleteall/')
 def dodelete():
     user = UserPrefs.current()
