@@ -56,18 +56,14 @@ class Semester(ndb.Model):
         return semester
 
     @staticmethod
-    def getOrCreateNext():
-        thisdate = datetime.datetime.now()
-        ht = True if thisdate.month>6 else False
-        year = thisdate.year
-        if ht:
-            year += 1
-        ht = not ht
-        semester = Semester.get_by_id(Semester.getid(year, ht), use_memcache=True)
-        if semester == None:
-            semester = Semester.create(year, ht)
-            semester.put()
-        return semester
+    def getAllSemestersSorted(ascending=False):
+        semesters=[]
+        semesters.extend(Semester.query().order(-Semester.year, -Semester.ht).fetch())
+        if len(semesters) == 0:
+            semesters = [Semester.getOrCreateCurrent()]
+        if ascending:
+            semesters.reverse()
+        return semesters
 
     def getname(self):
         return "%04d-%s" % (self.year, "ht" if self.ht else "vt")

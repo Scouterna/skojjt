@@ -84,6 +84,19 @@ indexes:
   - name: lastname
   - name: firstname
 
+- kind: Semester
+  properties:
+  - name: year
+    direction: desc
+  - name: ht
+
+- kind: Semester
+  properties:
+  - name: year
+    direction: desc
+  - name: ht
+    direction: desc
+
 - kind: TaskProgressMessage
   properties:
   - name: taskProgressKey

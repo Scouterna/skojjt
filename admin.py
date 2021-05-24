@@ -113,7 +113,7 @@ def adminMergeScoutGroups():
             heading=section_title,
             baselink=baselink,
             breadcrumbs=breadcrumbs,
-            semesters=Semester.query().fetch())
+            semesters=Semester.getAllSemestersSorted())
 
 """
 How to handle tasks 

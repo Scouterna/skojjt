@@ -19,21 +19,6 @@ from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, User
 from dakdata import DakData, Deltagare, Sammankomst
 
 
-def semester_sort(sem_a, sem_b):
-    "Return 1 if sem_a later than sem_b, -1 otherwise."
-    a_name = sem_a.getname()
-    b_name = sem_b.getname()
-
-    a_year = a_name[:4]
-    b_year = b_name[:4]
-
-    if a_year == b_year:
-        result = 1 if a_name[-2:] == "ht" else -1
-    else:
-        result = 1 if  a_year > b_year else -1
-    return result
-
-
 start = Blueprint('start_page', __name__, template_folder='templates') # pylint : disable=invalid-name
 
 
@@ -320,7 +305,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                groupsummarylink='/groupsummary/' + sgroup_url + '/',
                                user=user,
                                semester=semester,
-                               semesters=sorted(Semester.query(), semester_sort),
+                               semesters=Semester.getAllSemestersSorted(),
                                troops=sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name')),
                                lagerplats=scoutgroup.default_lagerplats,
                                breadcrumbs=breadcrumbs)
