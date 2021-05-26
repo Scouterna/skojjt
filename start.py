@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import random
 import urllib
 import logging
 import datetime
@@ -420,9 +419,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             dak.organisationsnummer = scoutgroup.organisationsnummer
             dak.kommun_id = scoutgroup.kommunID
             dak.kort.namn_paa_kort = troop.getname()
-            # hack generate an "unique" id, if there is none
             if troop.rapportID is None or troop.rapportID == 0:
-                troop.rapportID = random.randint(1000, 1000000)
+                troop.rapportID = troop.scoutnetID
                 troop.put()
 
             dak.kort.naervarokort_nummer = str(troop.rapportID)
