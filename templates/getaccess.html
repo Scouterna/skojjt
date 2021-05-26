@@ -1,12 +1,30 @@
 ﻿{% extends "layout.html" %}
 {% block main %}
-<form role="form" name="getaccess" method="POST" action="./">
-	<div class="form-group">
-	<label for="sg">Scoutkår</label>
-	<input type="text" class="form-control" size='50' required="1" name="sg" id="sg"/>
+<div class="container"><div class="jumbotron">
+	<h2>Access till din scoutkår</h2>
+	<p>
+	Du har inte access till någon scoutkår. 
+	Du kan begära access från administratörer i din scoutkår.
+	</p>
+	<form role="form" name="getaccess" method="POST" action="./">
+	<div class="form-group row">
+		<label for="groupaccess" class="control-label">Välj scoutkår:</label>
+		<select class="form-control" name="scoutgroup" id="scoutgroup">
+			<option value=""></option>
+			{% for scoutgroup in scoutgroups %}
+			<option value="{{scoutgroup.key.urlsafe()}}">{{scoutgroup.getname()}}</option>
+			{% endfor %}
+		</select>
 	</div>
 	<div class="btn-toolbar">
-	<input type="submit" class="btn btn-lg" name="import" value="Ge mig access"></input>
+	<input type="submit" class="btn btn-lg btn-default" name="import" value="Fråga efter access" />
 	</div>
 </form>
+<hr />
+<p><i>
+	Om din scoutkår inte finns i listan kan det vara så att den inte finns i Skojjt ännu.
+	Då behöver den läggas till med en <a href="/import/">import</a>.</i>
+	</p>
+</div>
+</div>
 {% endblock %}

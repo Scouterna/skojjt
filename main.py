@@ -63,18 +63,22 @@ def getaccess():
     section_title = "Access"
     breadcrumbs.append({'link':baselink, 'text':section_title})
     if request.method == "POST":
-        adminEmails = [u.email for u in UserPrefs.query(UserPrefs.hasadminaccess==True).fetch()]
+        sgroup_key = None
+        if len(request.form.get('scoutgroup')) != 0:
+            sgroup_key = ndb.Key(urlsafe=request.form.get('scoutgroup'))
+
+        adminEmails = [u.getemail() for u in UserPrefs.query(UserPrefs.groupaccess==sgroup_key, UserPrefs.groupadmin==True).fetch()]
         if len(adminEmails) > 0:
-            scoutgroup_name = request.form.get('sg').strip()
             mail.send_mail(sender=user.email,
-            to=','.join(adminEmails),
-            subject="Användren: " + user.getname() + " vill ha access.\nKår: " + scoutgroup_name,
-            body="""""")
+                to=','.join(adminEmails),
+                subject="Användren: " + user.getname() + " vill ha access till närvaroregistrering i Skojjt.\n",
+                body="""Gå till {} för att lägga till {}""".format(request.host_url + "/groupaccess/", user.getname()))
         return redirect('/')
     else:
         return render_template('getaccess.html',
             baselink=baselink,
-            breadcrumbs=breadcrumbs)
+            breadcrumbs=breadcrumbs,
+            scoutgroups=ScoutGroup.query().fetch())
 
 
 
