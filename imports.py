@@ -18,14 +18,27 @@ def import_():
     breadcrumbs = [{'link':'/', 'text':'Hem'},
                    {'link':'/import', 'text':'Import'}]
 
-    semesters = Semester.getAllSemestersSorted()
-    if request.method != 'POST':
-        return render_template('updatefromscoutnetform.html', heading="Import", breadcrumbs=breadcrumbs, user=user, semesters=semesters)
+    groupid = ""
+    apikey = ""
+    if user.groupaccess is not None:
+        scoutgroup = user.groupaccess.get()
+        apikey = scoutgroup.apikey_all_members
+        groupid = scoutgroup.scoutnetID
 
-    api_key = request.form.get('apikey').strip()
-    groupid = request.form.get('groupid').strip()
-    semester_key=ndb.Key(urlsafe=request.form.get('semester'))
-    return startAsyncImport(api_key, groupid, semester_key, user, request)
+    semesters = Semester.getAllSemestersSorted()
+    if request.method == 'POST':
+        apikey = request.form.get('apikey').strip()
+        groupid = request.form.get('groupid').strip()
+        semester_key=ndb.Key(urlsafe=request.form.get('semester'))
+        return startAsyncImport(apikey, groupid, semester_key, user, request)
+
+    return render_template('updatefromscoutnetform.html',
+                            heading="Import",
+                            breadcrumbs=breadcrumbs,
+                            user=user,
+                            semesters=semesters,
+                            groupid=groupid,
+                            apikey=apikey)
 
 
 def startAsyncImport(api_key, groupid, semester_key, user, request):
