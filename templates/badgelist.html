@@ -10,15 +10,19 @@
             <tr>
                 <th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/showcompleted"> <img src="{{badge.img_url}}" class="img2"/> {{badge.name}} ({{counts[loop.index0]}})</a></th>
                 <th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/show" class="btn btn-g btn-info">Visa</a></th>
+                {% if user.isGroupAdmin() %}
                 <th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/change" class="btn btn-g btn-warning">Ändra</a></th>
+                {% endif %}
                 <!--th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/remove" class="btn btn-g btn-info">Ta bort</a></th-->
             </tr>
             {% endfor %}
         </table>
+        {% if user.isGroupAdmin() %}
         <div class="divider-vertical well">
           <a href="{{baselink+'badge/newbadge/'}}" class="btn btn-g btn-success">Nytt märke</a>
           <a href="{{baselink+'templates/'}}" class="btn btn-g btn-success">Nytt märke från mall</a>
         </div>
+        {% endif %}
     </div>
 </body>
 </html>

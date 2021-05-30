@@ -67,7 +67,8 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    baselink=baselink,
                                    badges=badges,
                                    counts=counts,
-                                   breadcrumbs=breadcrumbs)
+                                   breadcrumbs=breadcrumbs,
+                                   user=user)
         # Specific badge or new badge
         if request.method == "GET":
             if template_url is not None:
@@ -437,6 +438,7 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
     breadcrumbs = [{'link': '/', 'text': 'Hem'}]
     if badge_url is None:
         # logging.info("Render list of all badges for scout_group")
+        user = UserPrefs.current()
         section_title = 'Märkesmallar'
         templates = BadgeTemplate.get_templates()
         if sgroup_url is None:
@@ -444,7 +446,8 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
                                    heading=section_title,
                                    baselink=baselink,
                                    badges=templates,
-                                   breadcrumbs=breadcrumbs)
+                                   breadcrumbs=breadcrumbs,
+                                   user=user)
         else:
             breadcrumbs.append({'link': '/badges/', 'text': 'Märken'})
             sgroup_key = ndb.Key(urlsafe=sgroup_url)
@@ -455,7 +458,8 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
                                    heading=section_title,
                                    baselink=baselink,
                                    badges=templates,
-                                   breadcrumbs=breadcrumbs)
+                                   breadcrumbs=breadcrumbs,
+                                   user=user)
     # Specific badge or new badge
     if request.method == "GET":
         if badge_url == "newbadge":  # Get form for or create new
