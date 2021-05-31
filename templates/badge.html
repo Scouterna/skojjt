@@ -252,8 +252,8 @@ $(document).ready(function() {
     	elem.style.height = (elem.scrollHeight)+"px";
 	}
 	$('#imgbutton').click(e => {
-    	img_url = $("#thumbnail").val()
-		$("#thumbimg").attr("src", img_url);
+    	img_url = $("#thumbnail").val();
+		fillInThumbnail(img_url);
 	});
 	$('#json-template').on('change', function() {
     	var file = $(this).get(0).files;
@@ -275,6 +275,7 @@ $(document).ready(function() {
 		$('#description').val(template.description)
 		fillInTable(tbl, template.scout_parts)
 		fillInTable(admtbl, template.admin_parts)
+		fillInThumbnail(template.img_url)
 	}
 	function fillInTable(tbl, new_data) {
 	var nr_old_rows = tbl.rows().count();
@@ -293,6 +294,13 @@ $(document).ready(function() {
 			tbl.row.add([i+1, new_data[i].short, new_data[i].long, ""]);
 		}
 		tbl.draw();
+	}
+	function fillInThumbnail(img_url) {
+		if (img_url != undefined && img_url !== "") {
+			$("#thumbnail").val(img_url);
+			$("#thumbimg").attr("src", img_url);
+			setDirty();
+		}
 	}
 });
 </script>

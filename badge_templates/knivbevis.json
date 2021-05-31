@@ -13,5 +13,6 @@
   "admin_parts": [
       {"short": "Märke", "long": "Märke erhållet"},
       {"short": "Registrerat", "long": "Registrerat märke i Scoutnet"}
-  ]
+  ],
+  "img_url": "https://scoutnet.se/achievement/211/graphic/drawing/8e438b0.svg"
 }
