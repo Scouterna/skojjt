@@ -55,6 +55,7 @@ def home():
                            logouturl=users.create_logout_url('/')
                            )
 
+
 @app.route('/getaccess/', methods = ['POST', 'GET'])
 def getaccess():
     user = UserPrefs.current()
@@ -71,8 +72,8 @@ def getaccess():
         if len(adminEmails) > 0:
             mail.send_mail(sender=user.email,
                 to=','.join(adminEmails),
-                subject="Användren: " + user.getname() + " vill ha access till närvaroregistrering i Skojjt.\n",
-                body="""Gå till {} för att lägga till {}""".format(request.host_url + "/groupaccess/", user.getname()))
+                subject=u"Användren: " + user.getname() + " vill ha access till närvaroregistrering i Skojjt.\n",
+                body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/", user.getname()))
         return redirect('/')
     else:
         return render_template('getaccess.html',
