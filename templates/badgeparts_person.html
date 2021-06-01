@@ -96,8 +96,12 @@ $(document).ready(function() {
 		}
 		return newChecks;
 	}
-
+	var saving = false;  // To prevent double click
 	$('#save').click(function(event) {
+		if (saving) {
+			console.log("Already saving");
+			return;
+		}
         var button = event.target;
 		var newChecksScout = newChecks("scout");
 		var newChecksAdmin = newChecks("admin");
@@ -131,7 +135,8 @@ $(document).ready(function() {
 		initChecked['scout'] = compileCheckedState('scout');  // To avoid double save
 		initChecked['admin'] = compileCheckedState('admin');  // To avoid double save
 		disableChecks(initChecked['scout']);
-		alert("Avklare moment sparade. Ladda om sidan för att se uppdateringar")
+		alert("Avklarade moment sparade. Ladda om sidan för att se uppdateringar");
+		saving = false;
 	}
 });
 

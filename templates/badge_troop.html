@@ -192,7 +192,13 @@ $(document).ready(function() {
         $("#badgetable").toggle()
     });
 
+	var saving = false;  // To prevent double click
 	$("#saveall").click(function(event) {
+		if (saving) {
+			console.log("Already saving");
+			return;
+		}
+		saving = true;
         var button = event.target;
 		var newChecksScout = newChecks("scout");
 		var newChecksAdmin = newChecks("admin");
@@ -222,7 +228,8 @@ $(document).ready(function() {
 		disableCheckedChecks();
 		initChecked['scout'] = compileCheckedState('scout');  // To avoid double save
 		initChecked['admin'] = compileCheckedState('admin');  // To avoid double save
-		alert("Avklare moment sparade. Ladda om sidan för att se flytt till annan kategori")
+		alert("Avklarade moment sparade. Ladda om sidan för att se flytt till annan kategori")
+		saving = false;
 	}
 });
 </script>
