@@ -1,0 +1,27 @@
+{% include "header.html" %}
+<body>
+<!-- Should fetch structure from troops.html which shows Avdelningar -->
+{% include "navigation.html" %}
+    <div class="main">
+        <span class="heading">{{heading}}</span>
+        <p>Det här är mallar som kan användas för att göra märken för kårer. På kårnivå kan man ändra på
+           kriterierna och lägga till fler. Du behöver vara åtminstone kåradmin för att kunna lägga till mallar.</p>
+        <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            <tbody>
+            {% for badge in badges %}
+            <tr>
+                <th><img id="thumbimg" class="img2" src="{{badge.img_url}}"/>{{badge.name}}</th>
+                <th><a href="{{baselink+badge.key.urlsafe()}}/show" class="btn btn-g btn-info">Visa</a></th>
+                <th><a href="{{baselink+badge.key.urlsafe()}}/change" class="btn btn-g btn-warning">Ändra</a></th>
+                <!--th><a href="{{baselink+'badge/'+badge.key.urlsafe()}}/remove" class="btn btn-g btn-info">Ta bort</a></th-->
+            </tr>
+            {% endfor %}
+        </table>
+        {% if user.isGroupAdmin() or user.isAdmin() %}
+        <div class="divider-vertical well">
+          <a href="{{baselink+'newbadge'}}" class="btn btn-g btn-success">Ny mall</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

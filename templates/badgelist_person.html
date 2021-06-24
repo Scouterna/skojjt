@@ -1,0 +1,36 @@
+{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+    <div class="main">
+        <span class="heading">{{heading}}</span>
+        {% if badges|length == 0 %}
+             <span class="subheading">Inga märken varken påbörjade eller avslutade</span>
+        {% else %}
+        <span class="subheading">Helt avklarade märken</span>
+        <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            <tbody>
+            {% for badge in badges %}
+            {% if completed[loop.index0]%}
+            <tr>
+                <th><a href="{{baselink+badge.key.urlsafe()}}" class="btn btn-success"><span class="glyphicon glyphicon-education">{{badge.name}}</span></a></th>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+
+        <span class="subheading">Påbörjade märken</span>
+
+        <table id="badgetable2" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            <tbody>
+            {% for badge in badges %}
+            {% if not completed[loop.index0]%}
+            <tr>
+                <th><a href="{{baselink+badge.key.urlsafe()}}" class="btn btn-info"><span class="glyphicon glyphicon-education">{{badge.name}}</span></a></th>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

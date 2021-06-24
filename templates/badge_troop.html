@@ -1,0 +1,236 @@
+{% extends "layout.html" %}
+{% block main %}
+<div class="table-responsive">
+	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="troopnames">{{troop.name}} <img src="{{badge.img_url}}" class="img2"/><br/><span class="heading">{{heading}}</span></th>
+			{% for part in badge_parts_scout %}
+			<th class="rotate"><div id="part-{{loop.index0}}">{{loop.index}}. {{part[0]}}<br/></div></th>
+			{% endfor %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for person in persons_scout_part %}{% set iperson = loop.index0 %}
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+		</td>
+		{% for part in badge_parts_scout %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
+			<td><input title="{{part[0]}}: {{person.getname()}}"
+                 class="attendance-cb checkbox big-checkbox" name="cbpart_scout"
+                 id="{{person.key.urlsafe()}}:{{loop.index0}}" type="checkbox"
+                 {%if progress_scout_parts[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
+		{% endfor %}
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<!-- Full table of badge for reference. Normally hidden -->
+<div class="table-responsive" id="badgetable" hidden>
+	<table class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="short_desc">Del</th>
+			<th class="long_desc">Beskrivning</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in badge_parts_scout %}
+		<tr><td>S{{loop.index}}. {{part[0]}}</td><td>{{part[1]}}</td></tr>
+		{% endfor %}
+		{% for part in badge_parts_admin %}
+		<tr><td>A{{loop.index}}. {{part[0]}}</td><td>{{part[1]}}</td></tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="table-responsive">
+	<table id="scoutpartstable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="troopnames">Admin kvar<br/></th>
+			{% for part in badge_parts_admin %}
+			<th class="rotate"><div id="part-{{loop.index0}}">{{loop.index}}. {{part[0]}}<br/></div></th>
+			{% endfor %}
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for person in persons_admin_part %}{% set iperson = loop.index0 %}
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+		</td>
+		{% for part in badge_parts_admin %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
+			<td><input title="{{part[0]}}: {{person.getname()}}"
+                 class="attendance-cb checkbox big-checkbox" name="cbpart_admin"
+                 id="{{person.key.urlsafe()}}:{{loop.index0}}" type="checkbox"
+                 {%if progress_admin_parts[ipart][iperson]%}checked="" disabled=""{% endif %}/></td>
+		{% endfor %}
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="table-responsive">
+	<table id="admtable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="troopnames">Helt klara<br/></th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for person in persons_done %}{% set iperson = loop.index0 %}
+		<tr class="{{person.key.urlsafe()}}">
+		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
+			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+		</td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="divider-vertical well">
+    <button class="btn btn-g btn-warning" id="saveall">Spara</button>
+    <button class="btn btn-g btn-info " id="showinfo">Märkesinfo</button>
+</div>
+
+<script>
+$(document).ready(function() {
+
+	var maintable = $('#maintable');
+		maintable.dataTable({
+		scrollX:true,
+		scrollY:true,
+		paging:false,
+		ordering:false,
+		info:false,
+		fixedColumns:true,
+		fixedHeader:false, // doesn't work with scrolling
+		searching:false,
+		bScrollCollapse:true,
+		bScrollAutoCss:true,
+		bAutoWidth:true
+		//responsive:true
+    });
+	var admtable = $('#admtable');
+		admtable.dataTable({
+		scrollX:true,
+		scrollY:true,
+		paging:false,
+		ordering:false,
+		info:false,
+		fixedColumns:true,
+		fixedHeader:false, // doesn't work with scrolling
+		searching:false,
+		bScrollCollapse:true,
+		bScrollAutoCss:true,
+		bAutoWidth:true
+		//responsive:true
+    });
+		setTimeout(function (){
+		// hack/fix for webkit to match sizes after css has been applied
+		maintable.fnAdjustColumnSizing();
+		admtable.fnAdjustColumnSizing();
+	}, 10);
+
+	var initChecked = [];
+    initChecked["scout"] = compileCheckedState("scout");
+	initChecked["admin"] = compileCheckedState("admin");
+
+    function compileCheckedState(part_type) {
+        // Get all checked check boxes as part_id:person_id
+		var checkboxes
+		if (part_type == "scout") {
+        	checkboxes = $('input:checkbox[name="cbpart_scout"]');
+		} else {
+			checkboxes = $('input:checkbox[name="cbpart_admin"]');
+		}
+        var checkedParts = [];
+        for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (checkboxes[cb].checked)
+			{
+                checkedParts.push(checkboxes[cb].id);
+			}
+		}
+        checkedParts.sort()
+        return checkedParts;
+    }
+
+	function newChecks(part_type) {
+		var nowChecked = compileCheckedState(part_type);
+		var newChecks = [];
+		for (var i=0; i < nowChecked.length; i++)
+		{
+            if (!initChecked[part_type].includes(nowChecked[i])) {
+                newChecks.push(nowChecked[i]);
+            }
+		}
+		return newChecks;
+	}
+
+    function disableCheckedChecks() {
+        // Disable all checked check boxes
+		var disable = function(cb_list) {
+			for (var cb=0; cb < cb_list.length; cb++)
+			{
+				if (cb_list[cb].checked)
+				{
+					cb_list[cb].disabled=true;
+				}
+			}
+		}
+		disable($('input:checkbox[name="cbpart_scout"]'));
+		disable($('input:checkbox[name="cbpart_admin"]'));
+    }
+
+	$("#showinfo").click(function(event) {
+        // Toggle description
+        console.log("Toggle badge explanation via showinfo")
+        $("#badgetable").toggle()
+    });
+
+	var saving = false;  // To prevent double click
+	$("#saveall").click(function(event) {
+		if (saving) {
+			console.log("Already saving");
+			return;
+		}
+		saving = true;
+        var button = event.target;
+		var newChecksScout = newChecks("scout");
+		var newChecksAdmin = newChecks("admin");
+        var update_scout = newChecksScout.join(",")
+		var update_admin = newChecksAdmin.join(",")
+        var fd = new FormData();
+		fd.append('action', 'saveparts');
+		fd.append('update_scout', update_scout);
+		fd.append('update_admin', update_admin);
+		// console.log("updateBeforePost: " + $(button).attr('class'))
+		$(button).addClass('data-save-pending');
+		$.ajax({
+			url:'./',
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) { if (data === "ok") {
+				updateAfterPost($(button));
+				}
+			}
+		});
+	});
+
+	function updateAfterPost(btn) {
+		btn.removeClass('data-save-pending');
+		disableCheckedChecks();
+		initChecked['scout'] = compileCheckedState('scout');  // To avoid double save
+		initChecked['admin'] = compileCheckedState('admin');  // To avoid double save
+		alert("Avklarade moment sparade. Ladda om sidan för att se flytt till annan kategori")
+		saving = false;
+	}
+});
+</script>
+{% endblock %}

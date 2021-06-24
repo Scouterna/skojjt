@@ -15,6 +15,7 @@ persons = Blueprint('persons_page', __name__, template_folder='templates')
 @persons.route('/<sgroup_url>/<person_url>/')
 @persons.route('/<sgroup_url>/<person_url>/<action>')
 def show(sgroup_url=None, person_url=None, action=None):
+    # logging.info("persons.py: sgroup_url=%s, person_url=%s, action=%s", sgroup_url, person_url, action)
     user = UserPrefs.current()
     if not user.hasAccess():
         return "denied", 403

@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block main %}
+<div class="table-responsive">
+    <span class="heading">{{badge.name}}: {{person.getname()}}</span>
+	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="short_desc">Del</th>
+			<th class="approved">Godkänd</th>
+			<th class="date">Lång beskrivning</th>
+			<th class="examiner">När och vem</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in scout_parts %}{% set idone = loop.index0 %}
+		<tr><td>{{part.idx+1}}. {{part.short_desc}}</td>
+		    <td><input class="attendance-cb checkbox big-checkbox" name="cbpart_scout" type="checkbox" id="cbs{{part.idx}}"{% if scout_done[idone].done %} checked="" disabled=""{% endif%} /></td>
+			<td>{{part.long_desc}}</td><td>{{scout_done[idone].approved}}</td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+	<table id="admtable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr>
+			<th class="short_desc">Adm. Del</th>
+			<th class="approved">Godkänd</th>
+			<th class="date">Lång beskrivning</th>
+			<th class="examiner">När och vem</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		{% for part in admin_parts %}{% set idone = loop.index0 %}
+		<tr><td>{{part.idx+1}}. {{part.short_desc}}</td>
+		    <td><input class="attendance-cb checkbox big-checkbox" name="cbpart_admin" type="checkbox" id="cba{{part.idx}}"{% if admin_done[idone].done %} checked="" disabled=""{% endif%} /></td>
+			<td>{{part.long_desc}}</td><td>{{admin_done[idone].approved}}</td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
+</div>
+<div class="divider-vertical well">
+    <button class="btn btn-g btn-warning saveinfo" id="save">Spara</button>
+</div>
+<script>
+$(document).ready(function() {
+    function compileCheckedState(part_type) {
+        // Get all checked check boxes as part_id:person_id
+		var checkboxes
+		if (part_type == "scout") {
+        	checkboxes = $('input:checkbox[name="cbpart_scout"]');
+		} else {
+			checkboxes = $('input:checkbox[name="cbpart_admin"]');
+		}
+        var checkedParts = [];
+        for (var cb=0; cb < checkboxes.length; cb++)
+		{
+			if (checkboxes[cb].checked)
+			{
+				// Get idx by skipping cbs/cba from id
+                checkedParts.push(checkboxes[cb].id.substring(3));
+			}
+		}
+        checkedParts.sort()
+        return checkedParts;
+    }
+
+	function disableChecks(checked_scout_parts) {
+        // Disable all checked check boxes and admin until scout parts done
+		// Return nr_checked
+		var disable = function(cb_list, all) {
+			for (var cb=0; cb < cb_list.length; cb++) {
+				if (cb_list[cb].checked || all) {
+					cb_list[cb].disabled=true;
+				}
+			}
+		}
+        var cb_scout = $('input:checkbox[name="cbpart_scout"]');
+		disable(cb_scout, false)
+		var disable_all_admin = checked_scout_parts.length < cb_scout.length;
+		disable($('input:checkbox[name="cbpart_admin"]'), disable_all_admin);
+	}
+	var initChecked = [];
+    initChecked["scout"] = compileCheckedState("scout");
+	initChecked["admin"] = compileCheckedState("admin");
+	disableChecks(initChecked["scout"]);  // Initial disablement of checked boxes
+
+	function newChecks(part_type) {
+		var nowChecked = compileCheckedState(part_type);
+		var newChecks = [];
+		for (var i=0; i < nowChecked.length; i++)
+		{
+            if (!initChecked[part_type].includes(nowChecked[i])) {
+                newChecks.push(nowChecked[i]);
+            }
+		}
+		return newChecks;
+	}
+	var saving = false;  // To prevent double click
+	$('#save').click(function(event) {
+		if (saving) {
+			console.log("Already saving");
+			return;
+		}
+        var button = event.target;
+		var newChecksScout = newChecks("scout");
+		var newChecksAdmin = newChecks("admin");
+		var nrNew = newChecksScout.length + newChecksAdmin.length;
+		if (nrNew == 0) {
+			alert("Nothing to save");
+			return;
+		}
+        var update_scout = newChecksScout.join(",")
+		var update_admin = newChecksAdmin.join(",")
+        var fd = new FormData();
+		fd.append('action', 'saveparts');
+		fd.append('update_scout', update_scout);
+		fd.append('update_admin', update_admin);
+		$(button).addClass('data-save-pending');
+		$.ajax({
+			url:'./',
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) { if (data === "ok") {
+				updateAfterPost($(button))
+				}
+			}
+		});
+	});
+
+	function updateAfterPost(btn) {
+		btn.removeClass('data-save-pending');
+		initChecked['scout'] = compileCheckedState('scout');  // To avoid double save
+		initChecked['admin'] = compileCheckedState('admin');  // To avoid double save
+		disableChecks(initChecked['scout']);
+		alert("Avklarade moment sparade. Ladda om sidan för att se uppdateringar");
+		saving = false;
+	}
+});
+
+</script>
+{% endblock %}

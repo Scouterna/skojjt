@@ -9,11 +9,18 @@
 </select><br/>
 <div class="table-responsive">
 	<table id="maintable" class="table table-striped">
-	  <thead><tr><th class="col-xs-4 col-sm-2 col-lg-1">Namn</th></tr></thead>
+	  <thead><tr><th class="col-xs-2">Namn</th><th class="col-xs-1">Märken</th>
+	  {% for i in range(nr_badge_cols) %} <th class="col-xs-1"></th> {% endfor %} </tr></thead>
 	  <tbody>
-		{% for troop in troops %}
-		<tr><td><a href="{{baselink+troop.key.urlsafe()}}/">{{ troop.getname() }}</a></td></tr>
+	  {% for troop in troops %}
+	  <tr><td><a href="{{baselink+troop.key.urlsafe()}}/">{{ troop.getname() }}</a></td>
+	    {% for badge in troops_badges[loop.index-1] %}
+		  <td><a href="{{scoutgroupbadgeslink+'troop/'+troop.key.urlsafe()+'/'+badge.key.urlsafe()+'/'}}"><button><span class="glyphicon glyphicon-education">{{ badge.name }}</span></button></a></td>
 		{% endfor %}
+		<td><a href="{{scoutgroupbadgeslink+'troop/'+troop.key.urlsafe()}}"><button><span class="glyphicon glyphicon-education">Ändra</span></a></button></td>
+		{% for i in range(nr_badge_cols-troops_badges[loop.index-1]|count) %} <td></td> {% endfor %}
+	  </tr>
+	  {% endfor %}
 	  </tbody>
 	</table>
 </div>
@@ -35,8 +42,13 @@
 	</div>
 </div>
 
+<div class="well">
+	<a href="{{scoutgroupbadgeslink}}" class="btn btn-info glyphicon glyphicon-education">Märken</a>
+</div>
+
 {% if user.canImport() %}
 <hr/>
+
 <div class="well">
 	<a href="{{scoutgroupinfolink}}"><span class="glyphicon glyphicon-cog"></span> Kårinformation</a>
 </div>

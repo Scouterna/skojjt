@@ -7,6 +7,8 @@ from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.ext import ndb
 
+from badges import badges
+
 app = Flask(__name__)
 app.debug = True
 # Note: We don't need to call run() since our application is embedded within
@@ -33,6 +35,7 @@ app.register_blueprint(import_page, url_prefix='/import')
 app.register_blueprint(progress, url_prefix='/progress')
 app.register_blueprint(admin, url_prefix='/admin')
 app.register_blueprint(tasks, url_prefix='/tasks')
+app.register_blueprint(badges, url_prefix='/badges')
 
 
 @app.route('/')
@@ -42,9 +45,11 @@ def home():
     user.attemptAutoGroupAccess()
     starturl = '/start/'
     personsurl = '/persons/'
+    badgesurl = '/badges/'
     if user.groupaccess != None:
         starturl += user.groupaccess.urlsafe() + '/'
         personsurl += user.groupaccess.urlsafe() + '/'
+        badgesurl += user.groupaccess.urlsafe() + '/'
     return render_template('start.html',
                            heading='Hem',
                            items=[],
@@ -52,6 +57,7 @@ def home():
                            user=user,
                            starturl=starturl,
                            personsurl=personsurl,
+                           badgesurl=badgesurl,
                            logouturl=users.create_logout_url('/')
                            )
 

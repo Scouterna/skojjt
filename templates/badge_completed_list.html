@@ -1,0 +1,39 @@
+{% include "header.html" %}
+<body>
+<div class="table-responsive">
+   <span class="heading">Klarat {{badge.name}}: </span>
+	<table id="maintable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+	  <thead>
+		<tr><th>Namn</th><th>Datum</th><th>Godkänd av</th></tr>
+	  </thead>
+	  <tbody>
+        {% if badge_completed|count != 0 %}
+		  {% for cmpl in badge_completed %}
+		  <tr><td>{{cmpl.name}}</td><td>{{cmpl.date}}</td><td>{{cmpl.examiner}}</td></tr>
+		  {% endfor %}
+        {% else %}
+        <tr><td></td><td></td><td></td></tr>
+        {% endif %}
+	  </tbody>
+	</table>
+</div>
+</body>
+<script>
+$(document).ready(function() {
+	var maintable = $('#maintable');
+	maintable.dataTable({
+		scrollX:true,
+		scrollY:true,
+		paging:false,
+		ordering:true,
+		info:false,
+		fixedColumns:true,
+		fixedHeader:false, // doesn't work with scrolling
+		searching:false,
+		bScrollCollapse:true,
+		bScrollAutoCss:true,
+		bAutoWidth:true
+		//responsive:true
+    });
+});
+</script>

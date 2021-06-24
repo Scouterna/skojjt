@@ -1,0 +1,47 @@
+{% include "header.html" %}
+<body>
+<!-- Should fetch structure from troops.html which shows Avdelningar -->
+{% include "navigation.html" %}
+    <h1 class="page-header">{{heading}}</h1>
+    <div class="main">
+        <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            {% for badge in badges %}
+            <tr>
+			    <th><input value="{{badge.name}}" class="include-tgl big-checkbox" name="badgeCheck" type="checkbox"
+                                {% if badge.name in troop_badge_names %}checked=""{% endif %}/>
+                <label><img src="{{badge.img_url}}" class="img2" /> {{badge.name}}</label></th>
+                <th><div class="multiline auto-height">{{badge.description}}</div></th>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="divider-vertical well">
+        <button id="save" class="btn btn-g btn-warning">Spara</button>
+        <button id="abort" class="btn btn-g btn-info" onClick="location.href='{{breadcrumbs[-2].link}}'">Avbryt</button>
+    </div>
+</body>
+<script>
+$(document).ready(function() {
+	$("#save").click(function(event) {
+        var checkedBadges =[];
+        $('[name="badgeCheck"]:checked').each(
+            function() {
+                checkedBadges.push($(this).val());
+            });
+        var joinedBadges = checkedBadges.join('|')
+        // console.log(joinedBadges)
+        var fd = new FormData();
+		fd.append('action', 'savetroopbadges');
+		fd.append('badges', joinedBadges)
+		$.ajax({
+			url:'./',
+			data: fd,
+			processData: false,
+			contentType: false,
+			type: 'POST',
+			success: function(data) { if (data === "ok") location.href='{{breadcrumbs[-2].link}}';}
+		});
+    });
+});
+</script>
+

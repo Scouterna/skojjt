@@ -1,0 +1,17 @@
+{% include "header.html" %}
+<body>
+{% include "navigation.html" %}
+    <div class="main">
+        <span class="heading">{{heading}}</span>
+        <table id="badgetable" class="table table-striped display nowrap" style="position: relative; z-index: 0;">
+            <tbody>
+            {% for badge in badges %}
+            <tr>
+                <th><img id="thumbimg" class="img3" src="{{badge.img_url}}"/>{{badge.name}}</th>
+                <th>{{badge.description}}</th>
+                <th><a href="{{baselink+'badge/newbadge/use/'+badge.key.urlsafe()+'/'}}" class="btn btn-g btn-info">Använd</a></th>            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
