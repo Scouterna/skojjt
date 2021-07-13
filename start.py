@@ -182,7 +182,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 raise ValueError('Missing troop or person')
             person_key = ndb.Key(urlsafe=key_url)
             person = person_key.get()
-            logging.info("adding person=%s to troop=%d", person.getname(), troop.getname())
+            logging.info("adding person=%s to troop=%s", person.getname(), troop.getname())
             troop_person = TroopPerson.create_or_update(troop_key, person_key, person.isLeader())
             troop_person.put()
             return redirect(breadcrumbs[-1]['link'])
@@ -506,6 +506,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 sensuslista = sensus.SensusLista()
                 sensuslista.NamnPaaKort = troop.getname() + "/" + patrol
 
+                fill_in_leader = 1 # make sure there is space to manually fill in minimum number of ledare.
+                fill_in_deltagare = 2 # make sure there is space to manually fill in minimum number of deltagare.
                 for troop_person in troop_persons:
                     p = persons_dict[troop_person.person]
                     if p.getpatrol() != patrol:
@@ -513,8 +515,15 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     if troop_person.leader:
                         sensuslista.ledare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(),
                                                                    True, p.email, p.mobile))
+                        fill_in_leader -= 1
                     else:
                         sensuslista.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False))
+                        fill_in_deltagare -= 1
+                
+                for _ in range(0, fill_in_leader):
+                    sensuslista.ledare.append(sensus.Deltagare('', '', '', '', True, '', ''))
+                for _ in range(0, fill_in_deltagare):
+                    sensuslista.deltagare.append(sensus.Deltagare('', '', '', '', False, '', ''))
 
                 for m in meetings:
                     sammankomst = sensus.Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
@@ -530,6 +539,12 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                         else:
                             sammankomst.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(),
                                                                           False, p.email, p.mobile, is_attending))
+
+                    for _ in range(0, fill_in_leader):
+                        sammankomst.ledare.append(sensus.Deltagare('', '', '', '', True, '', '', False))
+
+                    for _ in range(0, fill_in_deltagare):
+                        sammankomst.deltagare.append(sensus.Deltagare('', '', '', '', False, '', '', False))
 
                     sensuslista.Sammankomster.append(sammankomst)
 
