@@ -1,0 +1,41 @@
+{
+    "name": "Yx och Sågbevis",
+    "description": "Rekommenderad åldersgrupp: Upptäckarscout",
+    "scout_parts": [
+        {
+            "short": "Användande",
+            "long": "Kunna hugga och såga säkert så att ingen person, du själv eller andra, skadar sig och följa detta när du använder yxan och sågen"
+        },
+        {
+            "short": "Transportera",
+            "long": "Veta hur en såg och en yxa skyddas när man ska ta dem med sig och följa detta när ni ska någonstans"
+        },
+        {
+            "short": "Förvaring",
+            "long": "Veta hur en såg och en yxa förvaras när den inte används, både utomhus och inne (på övernattning och i förråd) och följa detta"
+        },
+        {
+            "short": "Kvista",
+            "long": "Kunna använda yxan till att kvista en slana eller stock för att kunna använda den till någo"
+        },
+        {
+            "short": "Delar",
+            "long": "Kunna namnge yxans och sågens olika delar"
+        },
+        {
+            "short": "Slipa",
+            "long": "Kunna slipa en yxa och byta sågblad på en såg"
+        }
+    ],
+    "admin_parts": [
+        {
+            "short": "Märke",
+            "long": "Märke erhållet"
+        },
+        {
+            "short": "Registrerat",
+            "long": "Registrerat märke i Scoutnet"
+        }
+    ],
+    "img_url": "https://scoutnet.se/achievement/213/graphic/drawing/96769fb.svg"
+}

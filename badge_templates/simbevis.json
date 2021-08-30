@@ -1,0 +1,29 @@
+{
+    "name": "Simma - bevismärke",
+    "description": "Rekommenderad åldersgrupp: Spårarscout",
+    "scout_parts": [
+        {
+            "short": "Simma 200m",
+            "long": "Kunna simma 200m"
+        },
+        {
+            "short": "Hoppa i",
+            "long": "Dyka eller hoppa i vattnet från en brygga eller bassängkant"
+        },
+        {
+            "short": "Badregler",
+            "long": "Att du känner till och följer de viktigaste badreglerna:\nBada alltid tillsammans med minst en kompis\nKnuffa aldrig i någon annan\nSimma inte under hoppställningar\nDyk aldrig i vattnet om du inte vet hur det ser ut under ytan\nRopa aldrig på hjälp på skoj"
+        }
+    ],
+    "admin_parts": [
+        {
+            "short": "Märke",
+            "long": "Märke erhållet"
+        },
+        {
+            "short": "Registrerat",
+            "long": "Registrerat märke i Scoutnet"
+        }
+    ],
+    "img_url": "https://scoutnet.se/achievement/212/graphic/drawing/c5862cb.svg"
+}
