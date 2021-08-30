@@ -301,7 +301,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         section_title = 'Avdelningar'
         troops = sorted(Troop.getTroopsForUser(sgroup_key, user), key=attrgetter('name'))
         troops_badges = [TroopBadge.get_badges_for_troop(trp) for trp in troops]
-        nr_badge_cols = max(5, *[len(tb) for tb in troops_badges])
+        nr_badge_cols = 5
+        if len(troops_badges) > 0:
+            nr_badge_cols = max(5, *[len(tb) for tb in troops_badges])
         return render_template('troops.html',
                                heading=section_title,
                                baselink=baselink,
@@ -320,7 +322,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         meeting = ndb.Key(urlsafe=key_url).get()
         section_title = meeting.getname()
         baselink += key_url + "/"
-        breadcrumbs.append({'link':baselink, 'text':section_title})
+        breadcrumbs.append({'link': baselink, 'text': section_title})
 
         return render_template('meeting.html',
                                heading=section_title,
