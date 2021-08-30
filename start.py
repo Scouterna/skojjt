@@ -5,7 +5,7 @@ import datetime
 from operator import attrgetter
 from flask import Blueprint, make_response, redirect, render_template, request
 
-from google.appengine.ext import ndb # pylint: disable=import-error
+from google.appengine.ext import ndb  # pylint: disable=import-error
 
 import htmlform
 import lagerbidrag
@@ -19,7 +19,7 @@ from dakdata import DakData, Deltagare, Sammankomst
 from data_badge import TroopBadge
 
 
-start = Blueprint('start_page', __name__, template_folder='templates') # pylint : disable=invalid-name
+start = Blueprint('start_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
 
 
 @start.route('/')
@@ -34,9 +34,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
     if not user.hasAccess():
         return "denied", 403
 
-    breadcrumbs = [{'link':'/', 'text':'Hem'}]
+    breadcrumbs = [{'link': '/', 'text': 'Hem'}]
     section_title = u'Kårer'
-    breadcrumbs.append({'link':'/start', 'text':section_title})
+    breadcrumbs.append({'link': '/start', 'text': section_title})
     baselink = '/start/'
 
     scoutgroup = None
@@ -44,7 +44,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         sgroup_key = ndb.Key(urlsafe=sgroup_url)
         scoutgroup = sgroup_key.get()
         baselink += sgroup_url+"/"
-        breadcrumbs.append({'link':baselink, 'text':scoutgroup.getname()})
+        breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
 
     troop = None
     semester = user.activeSemester.get()
@@ -52,13 +52,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         baselink += troop_url + "/"
         troop_key = ndb.Key(urlsafe=troop_url)
         troop = troop_key.get()
-        breadcrumbs.append({'link':baselink, 'text':troop.getname()})
+        breadcrumbs.append({'link': baselink, 'text': troop.getname()})
         semester = troop.semester_key.get()
 
     if key_url == "settings":
         section_title = u'Inställningar'
         baselink += "settings/"
-        breadcrumbs.append({'link':baselink, 'text':section_title})
+        breadcrumbs.append({'link': baselink, 'text': section_title})
         if request.method == "POST":
             troop.defaultstarttime = request.form['defaultstarttime']
             troop.defaultduration = int(request.form['defaultduration'])
@@ -98,7 +98,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
     if key_url == "newperson":
         section_title = "Ny person"
         baselink += key_url + "/"
-        breadcrumbs.append({'link':baselink, 'text':section_title})
+        breadcrumbs.append({'link': baselink, 'text': section_title})
         if request.method == "GET":
             return render_template('person.html',
                                    heading=section_title,
@@ -112,24 +112,24 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             if scoutgroup.canAddToWaitinglist():
                 try:
                     member_no = scoutnet.AddPersonToWaitinglist(scoutgroup,
-                                                       request.form['firstname'],
-                                                       request.form['lastname'],
-                                                       pnr,
-                                                       request.form['email'],
-                                                       request.form["street"],
-                                                       request.form["zip_code"],
-                                                       request.form["zip_name"],
-                                                       request.form['phone'],
-                                                       request.form['mobile'],
-                                                       troop,
-                                                       request.form['anhorig1_name'],
-                                                       request.form['anhorig1_email'],
-                                                       request.form['anhorig1_mobile'],
-                                                       request.form['anhorig1_phone'],
-                                                       request.form['anhorig2_name'],
-                                                       request.form['anhorig2_email'],
-                                                       request.form['anhorig2_mobile'],
-                                                       request.form['anhorig2_phone'])
+                                                                request.form['firstname'],
+                                                                request.form['lastname'],
+                                                                pnr,
+                                                                request.form['email'],
+                                                                request.form["street"],
+                                                                request.form["zip_code"],
+                                                                request.form["zip_name"],
+                                                                request.form['phone'],
+                                                                request.form['mobile'],
+                                                                troop,
+                                                                request.form['anhorig1_name'],
+                                                                request.form['anhorig1_email'],
+                                                                request.form['anhorig1_mobile'],
+                                                                request.form['anhorig1_phone'],
+                                                                request.form['anhorig2_name'],
+                                                                request.form['anhorig2_email'],
+                                                                request.form['anhorig2_mobile'],
+                                                                request.form['anhorig2_phone'])
                     if member_no != 0:
                         person = Person.create(
                             member_no,
@@ -216,9 +216,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 raise ValueError('Missing troop or group')
 
             meeting = ndb.Key(urlsafe=key_url).get()
-            meeting.attendingPersons[:] = [] # clear the list
+            meeting.attendingPersons[:] = []  # clear the list
             for person_url in request.form["persons"].split(","):
-                #logging.debug("person_url=%s", person_url)
+                # logging.debug("person_url=%s", person_url)
                 if len(person_url) > 0:
                     person_key = ndb.Key(urlsafe=person_url)
                     meeting.attendingPersons.append(person_key)
@@ -346,7 +346,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         troop_persons = TroopPerson.getTroopPersonsForTroop(troop_key)
         meetings = Meeting.gettroopmeetings(troop_key)
 
-        attendances = [] # [meeting][person]
+        attendances = []  # [meeting][person]
         persons = []
         persons_dict = {}
         for troop_person in troop_persons:
@@ -508,8 +508,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 sensuslista = sensus.SensusLista()
                 sensuslista.NamnPaaKort = troop.getname() + "/" + patrol
 
-                fill_in_leader = 1 # make sure there is space to manually fill in minimum number of ledare.
-                fill_in_deltagare = 2 # make sure there is space to manually fill in minimum number of deltagare.
+                fill_in_leader = 1  # make sure there is space to manually fill in minimum number of ledare.
+                fill_in_deltagare = 2  # make sure there is space to manually fill in minimum number of deltagare.
                 for troop_person in troop_persons:
                     p = persons_dict[troop_person.person]
                     if p.getpatrol() != patrol:
@@ -521,7 +521,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     else:
                         sensuslista.deltagare.append(sensus.Deltagare(p.getReportID(), p.firstname, p.lastname, p.getpersonnr(), False))
                         fill_in_deltagare -= 1
-                
+
                 for _ in range(0, fill_in_leader):
                     sensuslista.ledare.append(sensus.Deltagare('', '', '', '', True, '', ''))
                 for _ in range(0, fill_in_deltagare):
@@ -559,23 +559,23 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             return lagerbidrag.render_lagerbidrag(request, scoutgroup, "troop", trooppersons=troop_persons, troop_key=troop_key)
         else:
             allowance = []
-            allowance.append({'name':'Antal möten:', 'value':meeting_count})
-            allowance.append({'name':'Deltagartillfällen', 'value':''})
-            allowance.append({'name':'Kvinnor:', 'value':sum_female_attendance_count})
-            allowance.append({'name':'Män:', 'value':sum_male_attendance_count})
-            allowance.append({'name':'Ledare Kvinnor:', 'value':sum_female_leader_attendance_count})
-            allowance.append({'name':'Ledare Män:', 'value':sum_male_leader_attendance_count})
+            allowance.append({'name': 'Antal möten:', 'value': meeting_count})
+            allowance.append({'name': 'Deltagartillfällen', 'value': ''})
+            allowance.append({'name': 'Kvinnor:', 'value': sum_female_attendance_count})
+            allowance.append({'name': 'Män:', 'value': sum_male_attendance_count})
+            allowance.append({'name': 'Ledare Kvinnor:', 'value': sum_female_leader_attendance_count})
+            allowance.append({'name': 'Ledare Män:', 'value': sum_male_leader_attendance_count})
             if no_leader_meeting_count > 0:
-                allowance.append({'name':'Antal möten utan ledare', 'value':no_leader_meeting_count})
+                allowance.append({'name': 'Antal möten utan ledare', 'value': no_leader_meeting_count})
             if too_small_group_meeting_count > 0:
-                allowance.append({'name':'Antal möten med för få deltagare', 'value':too_small_group_meeting_count})
+                allowance.append({'name': 'Antal möten med för få deltagare', 'value': too_small_group_meeting_count})
             if age_problem_count > 0:
-                allowance.append({'name':'Ålder utanför intervall:', 'value':age_problem_count})
+                allowance.append({'name': 'Ålder utanför intervall:', 'value': age_problem_count})
             if age_problem_desc != "":
                 age_problem_desc_str = ','.join(age_problem_desc[:3])
                 if len(age_problem_desc) > 3:
                     age_problem_desc_str += "..."
-                allowance.append({'name':'', 'value':age_problem_desc_str})
+                allowance.append({'name': '', 'value': age_problem_desc_str})
 
             return render_template('troop.html',
                                    heading=section_title,
@@ -591,4 +591,4 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                    user=user,
                                    semester=semester,
                                    lagerplats=scoutgroup.default_lagerplats
-                                  )
+                                   )
