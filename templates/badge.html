@@ -217,7 +217,7 @@ $(document).ready(function() {
 		fd.append('description', description)
 		fd.append('parts_scout', parts_scout)
 		fd.append('parts_admin', parts_admin)
-		fd.append('img_url', img_url)
+		fd.append('img_url', $("#thumbnail").val())
 		// console.log(tbl.rows())
 		$.ajax({
 			url:'.',
