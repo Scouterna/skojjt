@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Badge definitions including parts with short and long descriptions."""
 
-import logging
+# import logging
 from collections import namedtuple
 from flask import Blueprint, render_template, request
 
@@ -189,9 +189,10 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
                                    scoutgroup=scoutgroup)
         # POST
         new_badge_names = request.form['badges'].split("|")
+        new_badge_names = [n for n in new_badge_names if n != ""]
         # logging.info(new_badge_names)
         TroopBadge.update_for_troop(troop, new_badge_names)
-        return "ok" # TODO add render_template
+        return "ok"  # TODO add render_template
 
     if troop_url is not None and badge_url is not None:
         troop_key = ndb.Key(urlsafe=troop_url)
@@ -515,7 +516,7 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
         else:
             parts_admin = []
         img_url = request.form['img_url']
-        # logging.info("name: %s, parts: %s", name, parts)
+        # logging.info("name: %s, img_url: %s", name, img_url)
         if badge_url == "newbadge":
             badge = BadgeTemplate.create(name, description, parts_scout, parts_admin, img_url)
             return "ok"
@@ -523,6 +524,6 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
             badge_key = ndb.Key(urlsafe=badge_url)
             badge = badge_key.get()
             badge.update(name, description, parts_scout, parts_admin, img_url)
-            return "ok" # TODO add render_template
+            return "ok"  # TODO add render_template
     else:
         return "Unsupported method %s" % request.method, 500

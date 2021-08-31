@@ -182,25 +182,27 @@ class TroopBadge(ndb.Model):
 
     @staticmethod
     def update_for_troop(troop, name_list):
-        old_troop_badge_ids = TroopBadge.query(TroopBadge.troop_key == troop.key).fetch()
-        old_troop_badges = [Badge.get_by_id(tp.badge_key.id()) for tp in old_troop_badge_ids]
-        old_troop_badges = sorted(old_troop_badges, key=lambda x: x.name)
-        nr_old_troop_badges = len(old_troop_badges)
+        # logging.info("update_for_troop: %s" % name_list)
+        old_troop_badges = TroopBadge.query(TroopBadge.troop_key == troop.key).fetch()
+        # logging.info("old_troop_badges: %s" % old_troop_badges)
+        old_badges_for_troop = [Badge.get_by_id(otp.badge_key.id()) for otp in old_troop_badges]
+        old_badges_for_troop = sorted(old_badges_for_troop, key=lambda x: x.name)
+        nr_old_troop_badges = len(old_badges_for_troop)
         # logging.info("New are %d, old were %d" % (len(name_list), nr_old_troop_badges))
         # First find keys to remove
         to_remove = []
-        for old in old_troop_badges:
+        for old in old_badges_for_troop:
             if old.name not in name_list:
                 to_remove.append(old.key)
         # Next remove them from the troop badges
         for old_key in to_remove:
             for otb in old_troop_badges:
-                if otb.key == old_key:
+                if otb.badge_key == old_key:
                     otb.key.delete()
         # Now find really new names
         really_new = []
         for name in name_list:
-            for old in old_troop_badges:
+            for old in old_badges_for_troop:
                 if old.name == name:
                     break
             else:
