@@ -32,10 +32,10 @@
 					{% endif %}
 				{% endif %}
 				<td>{{sgroupname}}</td>
-				<td>{% if u.hasAccess() %}Ja{% else %}Nej{% endif %}</a></td>
-				<td>{% if u.canImport() %}Ja{% else %}Nej{% endif %}</a></td>
-				<td>{% if u.isGroupAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
-				<td>{% if u.isAdmin() %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.hasaccess %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.canimport %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.groupadmin %}Ja{% else %}Nej{% endif %}</a></td>
+				<td>{% if u.hasadminaccess %}Ja{% else %}Nej{% endif %}</a></td>
 				</tr>
 				{% endfor %}
               </tbody>
