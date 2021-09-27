@@ -9,3 +9,7 @@ c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" up
 c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=50 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --filename=TroopPerson_data.sql3 --kind=TroopPerson
 c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=50 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --filename=UserPrefs_data.sql3 --kind=UserPrefs
 
+c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=100 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --kind=Badge --filename=Badge_data.sql3
+c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=100 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --kind=BadgeCompleted --filename=BadgeCompleted_data.sql3
+c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=100 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --kind=BadgePartDone --filename=BadgePartDone_data.sql3
+c:\python27\python "c:\Program Files (x86)\Google\google_appengine\appcfg.py" upload_data --num_threads=1 --batch_size=100 --application=dev~skojjt --url=http://localhost:56035/_ah/remote_api --kind=BadgeTemplate --filename=BadgeTemplate_data.sql3
