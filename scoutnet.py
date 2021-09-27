@@ -55,7 +55,7 @@ def GetScoutnetDataListJson(json_data):
         m["patrool"] = GetValueFromJsonObject(p, 'patrol')
         m["active"] = GetValueFromJsonObject(p, 'status') == 'Aktiv'
         m["email"] = GetValueFromJsonObject(p, 'email')
-        m['contact_alt_email'] = GetValueFromJsonObject(p, 'email')
+        m['contact_alt_email'] = GetValueFromJsonObject(p, 'contact_alt_email')
         phone = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_home_phone'))
         if phone == "":
             phone = FixCountryPrefix(GetValueFromJsonObject(p, 'contact_telephone_home')) # scoutnet has both "Telefon hem" and "Hemtelefon" pick one!
