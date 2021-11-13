@@ -29,8 +29,8 @@ handlers:
 - url: /img
   static_dir: img
 
-- url: /data
-  static_dir: data
+- url: /testdata
+  static_dir: tests/data
   application_readable: true
 
 - url: /js

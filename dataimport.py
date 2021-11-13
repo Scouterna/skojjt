@@ -49,6 +49,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 
     user.groupaccess = importer.importedScoutGroup_key
     user.hasaccess = True
+    user.groupadmin = True
     user.put()
     if user.groupadmin:
         result.append(u"Du är kåradmin och kan dela ut tillgång till din kår för andra användare")
@@ -136,6 +137,8 @@ class ScoutnetImporter:
         troopPersonsToSave = []
         activePersonIds = set() # person.ids that was seen in this import
 
+        leadersToAddToTroops = [] # tuple: (troop_id, person)
+        allTroops = {} # dict: int(troop_id): troop
         for p in list:
             person_id = int(p["id"]) # type: int
             personnr = p["personnr"].replace('-', '')
@@ -191,7 +194,9 @@ class ScoutnetImporter:
                 self.result.warning(u"Ingen avdelning vald för %s %s %s" % (str(person.member_no), p["firstname"], p["lastname"]))
 
             troop = self.GetOrCreateTroop(p["troop"], p["troop_id"], scoutgroup.key, semester.key)
-            troop_key = troop.key if troop != None else None
+            troop_key = troop.key if troop is not None else None
+            if troop is not None:
+                allTroops[troop.scoutnetID] = troop
 
             if person._dirty:
                 self.result.append(u"Sparar ändringar:%s %s %s" % (str(person.member_no), p["firstname"], p["lastname"]))
@@ -200,11 +205,48 @@ class ScoutnetImporter:
 
             if troop_key != None:
                 if self.commit:
-                    tps = TroopPerson.query(TroopPerson.troop == troop_key, TroopPerson.person == person.key).fetch(1)
-                    if len(tps) == 0:
-                        tp = TroopPerson.create_or_update(troop_key, person.key, False)
+                    tp = TroopPerson.create_if_missing(troop_key, person.key, False)
+                    if tp:
                         troopPersonsToSave.append(tp)
                         self.result.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
+            
+            # collect leaders that are assigned to troops in scoutnet
+            roles = p['roles']
+            if "value" in roles:
+                values = roles["value"]
+                if len(values) > 0:
+                    for name, value  in values.items():
+                        if name == "troop":
+                            for troop_id, troop_roles in value.items():
+                                for troop_role_id in troop_roles:
+                                    if int(troop_role_id) in scoutnet.Roles.Troop_leader_role_set:
+                                        leadersToAddToTroops.append((int(troop_id), person))
+                                        break
+
+        # pass 2, add leaders to troops according to roles
+        for troop_leader in leadersToAddToTroops:
+            troop_id = troop_leader[0]
+            person = troop_leader[1]
+            troop = allTroops.get(troop_id)
+            if troop is None:
+                troop = Troop.getById(troop_id, semester.key)
+
+            if troop is not None:
+                tp = None
+                # search among the TroopPersons we are about to add to the database
+                for tpcandidate in troopPersonsToSave:
+                    if tpcandidate.troop == troop.key and tpcandidate.person == person.key:
+                        tp = tpcandidate
+                        tp.leader = True
+                        break
+
+                if tp is None:
+                    # try finding the TroopPerson in the database and set to leader
+                    tp = TroopPerson.create_or_set_as_leader(troop.key, person.key)
+                    if tp:
+                        # new or changed leader TroopPerson needs to be saved
+                        troopPersonsToSave.append(tp)
+                        self.result.append(u"Avdelning '%s' ny ledare:%s" % (troop.getname(), person.getname()))
 
         # check if old persons are still members, mark persons not imported in this import session as removed
         if len(personsToSave) > 0: # protect agains a failed import, with no persons marking everyone as removed

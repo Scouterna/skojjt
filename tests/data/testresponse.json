@@ -1,0 +1,268 @@
+{
+	"data": {
+		"1000": {
+			"member_no": {
+				"value": "1000"
+			},
+			"first_name": {
+				"value": "Ada"
+			},
+			"last_name": {
+				"value": "Testefternamn"
+			},
+			"ssno": {
+				"value": "20090628-2397"
+			},
+			"date_of_birth": {
+				"value": "2009-06-28"
+			},
+			"status": {
+				"raw_value": "2",
+				"value": "Aktiv"
+			},
+			"created_at": {
+				"value": "2015-09-28"
+			},
+			"confirmed_at": {
+				"value": "2015-09-28"
+			},
+			"group": {
+				"raw_value": "9999",
+				"value": "Test Scoutk\u00e5r"
+			},
+			"unit": {
+				"raw_value": "2000",
+				"value": "Vilddjuren"
+			},
+			"sex": {
+				"raw_value": "2",
+				"value": "Kvinna"
+			},
+			"address_1": {
+				"value": "Testv\u00e4gen 1"
+			},
+			"postcode": {
+				"value": "12345"
+			},
+			"town": {
+				"value": "Teststad"
+			},
+			"country": {
+				"value": "Sverige"
+			},
+			"email": {
+				"value": "ada_test_email@mail.com"
+			},
+			"contact_mothers_name": {
+				"value": "Mamma Testefternamn"
+			},
+			"contact_email_mum": {
+				"value": "MammaTestefternamn@mail.com"
+			},
+			"contact_mobile_mum": {
+				"value": "07070000002"
+			},
+			"contact_fathers_name": {
+				"value": "Pappa Testefternamn"
+			},
+			"contact_email_dad": {
+				"value": "PappaTestefternamn@gmail.com"
+			},
+			"contact_mobile_dad": {
+				"value": "07071000007"
+			},
+			"contact_guardian_email": {
+				"value": "MammaTestefternamn@mail.com"
+			},
+			"prev_term": {
+				"raw_value": "paid",
+				"value": "Betald"
+			},
+			"prev_term_due_date": {
+				"value": "2021-03-31"
+			},
+			"current_term": {
+				"raw_value": "not_due_unpaid",
+				"value": "Obetald, ej f\u00f6rfallen"
+			},
+			"current_term_due_date": {
+				"value": "2021-09-30"
+			},
+			"kid": {
+				"value": "11111112"
+			},
+			"roles": {
+				"value": []
+			}
+		},
+		"1001": {
+			"member_no": {
+				"value": "1001"
+			},
+			"first_name": {
+				"value": "Beda"
+			},
+			"last_name": {
+				"value": "Testefternamn"
+			},
+			"ssno": {
+				"value": "19750325-9280"
+			},
+			"date_of_birth": {
+				"value": "1975-03-25"
+			},
+			"status": {
+				"raw_value": "2",
+				"value": "Aktiv"
+			},
+			"created_at": {
+				"value": "2013-08-25"
+			},
+			"confirmed_at": {
+				"value": "2013-08-25"
+			},
+			"group": {
+				"raw_value": "9999",
+				"value": "Test Scoutk\u00e5r"
+			},
+			"unit": {
+				"raw_value": "2002",
+				"value": "Ledare"
+			},
+			"unit_role": {
+				"raw_value": "2,3",
+				"value": "Avdelningsledare, Ledare"
+			},
+			"group_role": {
+				"raw_value": "9,18",
+				"value": "Medlemsregistrerare, K\u00e5rutbildare"
+			},
+			"sex": {
+				"raw_value": "2",
+				"value": "Kvinna"
+			},
+			"address_1": {
+				"value": "Testv\u00e4gen 1"
+			},
+			"postcode": {
+				"value": "12345"
+			},
+			"town": {
+				"value": "Teststad"
+			},
+			"country": {
+				"value": "Sverige"
+			},
+			"email": {
+				"value": "bedatestefternamn@mail.com"
+			},
+			"contact_mobile_phone": {
+				"value": "07070000001"
+			},
+			"prev_term": {
+				"raw_value": "paid",
+				"value": "Betald"
+			},
+			"prev_term_due_date": {
+				"value": "2021-03-31"
+			},
+			"current_term": {
+				"raw_value": "not_due_unpaid",
+				"value": "Obetald, ej f\u00f6rfallen"
+			},
+			"current_term_due_date": {
+				"value": "2021-09-30"
+			},
+			"kid": {
+				"value": "111111111"
+			},
+			"roles": {
+				"value": {
+					"troop": {
+						"2000": {
+							"3": {
+								"role_id": 3,
+								"role_key": "other_leader",
+								"role_name": "Ledare"
+							},
+							"2": {
+								"role_id": 2,
+								"role_key": "leader",
+								"role_name": "Avdelningsledare"
+							}
+						}
+					},
+					"group": {
+						"1137": {
+							"18": {
+								"role_id": 18,
+								"role_key": "trainer",
+								"role_name": "K\u00e5rutbildare"
+							},
+							"9": {
+								"role_id": 9,
+								"role_key": "member_registrar",
+								"role_name": "Medlemsregistrerare"
+							}
+						}
+					}
+				}
+			},
+			"avatar_updated": {
+				"value": "111111"
+			},
+			"avatar_url": {
+				"value": "https:\/\/www.scoutnet.se\/user_avatar\/1001\/auth_key\/264679e5\/avatar.png"
+			}
+		}
+	},
+	"labels": {
+		"member_no": "Medlemsnr.",
+		"first_name": "F\u00f6rnamn",
+		"last_name": "Efternamn",
+		"ssno": "Personnummer",
+		"nickname": "Smeknamn",
+		"note": "Noteringar",
+		"date_of_birth": "F\u00f6delsedatum:",
+		"status": "Status",
+		"created_at": "Registrerad Scouterna",
+		"confirmed_at": "Startdatum K\u00e5r",
+		"group": "K\u00e5r",
+		"unit": "Avdelning",
+		"patrol": "Patrull",
+		"unit_role": "Avdelningsroll",
+		"group_role": "K\u00e5rfunktion",
+		"sex": "K\u00f6n",
+		"address_co": "c\/o",
+		"address_1": "Adress",
+		"address_2": "Adress, rad 2",
+		"address_3": "Adress, rad 3",
+		"postcode": "Postnummer",
+		"town": "Postort",
+		"country": "Land",
+		"email": "Prim\u00e4r e-postadress",
+		"contact_alt_email": "Alternativ e-post",
+		"contact_mobile_phone": "Mobiltelefon",
+		"contact_home_phone": "Hemtelefon",
+		"contact_mothers_name": "Anh\u00f6rig 1 namn",
+		"contact_email_mum": "Anh\u00f6rig 1 e-post",
+		"contact_mobile_mum": "Anh\u00f6rig 1 mobiltelefon",
+		"contact_telephone_mum": "Anh\u00f6rig 1 hemtelefon",
+		"contact_fathers_name": "Anh\u00f6rig 2 namn",
+		"contact_email_dad": "Anh\u00f6rig 2 e-post",
+		"contact_mobile_dad": "Anh\u00f6rig 2 mobiltelefon",
+		"contact_telephone_dad": "Anh\u00f6rig 2 hemtelefon",
+		"contact_email": "E-post",
+		"contact_guardian_email": "F\u00f6r\u00e4lders e-post",
+		"contact_leader_interest": "Jag kan hj\u00e4lpa till!",
+		"contact_telephone_home": "Telefon hem",
+		"prev_term": "V\u00e5r 2021",
+		"prev_term_due_date": "Medlemsavgift f\u00f6rfallodatum",
+		"current_term": "H\u00f6st 2021",
+		"current_term_due_date": "Medlemsavgift f\u00f6rfallodatum",
+		"kid": "Kid",
+		"roles": "Roller",
+		"avatar_updated": "Bild (Senast uppdaterad datum)",
+		"avatar_url": "Bild (URL)"
+	}
+}
