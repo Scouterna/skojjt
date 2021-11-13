@@ -564,9 +564,7 @@ class UserPrefs(ndb.Model):
         return self.hasaccess and self.hasadminaccess
 
     def canImport(self):
-        # Let any user import, if the user has the correct import key from scoutnet it is probably a valid user.
-        # This user already have all the information to get the the list of persons from scoutnet anyway.
-        return True
+        return self.isAdmin() or self.canimport == True
 
     def isGroupAdmin(self):
         return self.hasadminaccess or (self.hasaccess and self.groupadmin and self.groupaccess != None)
