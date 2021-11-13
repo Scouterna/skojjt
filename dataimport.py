@@ -235,8 +235,8 @@ class ScoutnetImporter:
                 # search among the TroopPersons we are about to add to the database
                 for tpcandidate in troopPersonsToSave:
                     if tpcandidate.troop == troop.key and tpcandidate.person == person.key:
+                        tpcandidate.leader = True
                         tp = tpcandidate
-                        tp.leader = True
                         break
 
                 if tp is None:
