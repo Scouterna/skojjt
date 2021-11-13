@@ -154,6 +154,13 @@ class Troop(ndb.Model):
     def getTroopsForUser(sgroup_key, user):
         return Troop.query(Troop.scoutgroup==sgroup_key, user.activeSemester==Troop.semester_key).fetch()
 
+    @staticmethod
+    def getById(troop_id, semester_key):
+        result = Troop.query(Troop.scoutnetID==troop_id, Troop.semester_key==semester_key).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
+
     def getname(self):
         return self.name
 
@@ -458,8 +465,30 @@ class TroopPerson(ndb.Model):
         else:
             tp = tps[0]
             tp.leader=isLeader
-
         return tp
+
+    @staticmethod
+    def create_or_set_as_leader(troop_key, person_key):
+        """Creates a new TroopPerson if missing or sets as leader, returns the  TroopPerson if one was added or changed"""
+        tps = TroopPerson.query(TroopPerson.troop==troop_key, TroopPerson.person==person_key).fetch(1)
+        if len(tps) == 0:
+            tp = TroopPerson(troop=troop_key, person=person_key)
+        else:
+            tp = tps[0]
+            if tp.leader:
+                tp = None
+            else:
+                tp.leader=True
+        return tp
+
+    @staticmethod
+    def create_if_missing(troop_key, person_key, isLeader):
+        """Creates a new TroopPerson if missing, returns the new TroopPerson if one was added"""
+        tps = TroopPerson.query(TroopPerson.troop == troop_key, TroopPerson.person == person_key).fetch(1)
+        if len(tps) == 0:
+            tp = TroopPerson.create_or_update(troop_key, person_key, isLeader)
+            return tp
+        return None
 
     def delete(self):
         self.key.delete()

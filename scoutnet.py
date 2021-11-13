@@ -3,16 +3,29 @@
 from data import UserPrefs
 from flask import render_template
 from google.appengine.api import mail
+from google.appengine.api import app_identity
 from google.appengine.runtime import apiproxy_errors
 import json
 import logging
 import urllib
 import urllib2
+import os
 
 def GetScoutnetUrl():
     #scoutnet_url = 'https://demo2.custard.no/'
     scoutnet_url = 'https://www.scoutnet.se/'
     return scoutnet_url
+
+
+def GetScoutnetMemberlistUrl(groupid, api_key):
+    if groupid == 'test' and api_key == 'test':
+        if os.environ.get('SERVER_SOFTWARE','').startswith('Development'):
+            server_url = app_identity.get_default_version_hostname()
+            return 'http://' + server_url + '/testdata/testresponse.json'
+        else:
+            raise Exception('Trying to read testdata on non Development environment')
+
+    return GetScoutnetUrl() + 'api/group/memberlist?id=' + groupid + '&key=' + api_key
 
 
 def GetScoutnetMembersAPIJsonData(groupid, api_key):
@@ -21,7 +34,7 @@ def GetScoutnetMembersAPIJsonData(groupid, api_key):
     :type api_key: str
     :rtype: str
     """
-    request = urllib2.Request(GetScoutnetUrl() + 'api/group/memberlist?id=' + groupid + '&key=' + api_key)
+    request = urllib2.Request(GetScoutnetMemberlistUrl(groupid, api_key))
     response = urllib2.urlopen(request, timeout=25) # "let it throw, let it throw, let it throw..."
     return response.read()
 
@@ -72,8 +85,12 @@ def GetScoutnetDataListJson(json_data):
         m["zip_name"] = GetValueFromJsonObject(p, 'town')
         m["troop_roles"] = [x.strip() for x in GetValueFromJsonObject(p, 'unit_role').lower().split(',')]
         m["group_roles"] = [x.strip() for x in GetValueFromJsonObject(p, 'group_role').lower().split(',')]
+        m["roles"] = p["roles"]
+
         result.append(m)
+
     return result
+
 
 
 def FixCountryPrefix(phone):
@@ -84,6 +101,14 @@ def FixCountryPrefix(phone):
 
 class ScoutnetException(Exception):
     pass
+
+
+class Roles():
+    leader = 2
+    other_leader = 3
+    vice_leader = 4
+    assistant_leader = 5
+    Troop_leader_role_set = [leader, other_leader, vice_leader, assistant_leader]
 
 
 class ContactFields():
