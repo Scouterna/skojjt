@@ -5,6 +5,7 @@ from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, User
 from flask import Flask, make_response, redirect, render_template, request
 from google.appengine.api import users
 from google.appengine.api import mail
+from google.appengine.api import memcache
 from google.appengine.ext import ndb
 
 from badges import badges
@@ -70,16 +71,26 @@ def getaccess():
     section_title = "Access"
     breadcrumbs.append({'link':baselink, 'text':section_title})
     if request.method == "POST":
-        sgroup_key = None
-        if len(request.form.get('scoutgroup')) != 0:
-            sgroup_key = ndb.Key(urlsafe=request.form.get('scoutgroup'))
 
-        adminEmails = [u.getemail() for u in UserPrefs.query(UserPrefs.groupaccess==sgroup_key, UserPrefs.groupadmin==True).fetch()]
-        if len(adminEmails) > 0:
-            mail.send_mail(sender=user.email,
-                to=','.join(adminEmails),
-                subject=u"Användren: " + user.getname() + " vill ha access till närvaroregistrering i Skojjt.\n",
-                body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/", user.getname()))
+        # anti-spam protection, the user can only ask once.
+        user_request_access_key = "request_access_" + user.getemail()
+        if memcache.get(user_request_access_key) is not None:
+            logging.warning("User is spamming req-access:" + user.getemail())
+            return "denied", 403
+        memcache.add(user_request_access_key, True)
+
+        sgroup = None
+        if len(request.form.get('scoutgroup')) != 0:
+            sgroup = ndb.Key(urlsafe=request.form.get('scoutgroup')).get()
+
+        if sgroup is not None:
+            groupAdminEmails = UserPrefs.getAllGroupAdminEmails(sgroup.key)
+            if len(groupAdminEmails) > 0:
+                mail.send_mail(sender=user.getemail(),
+                    to=','.join(groupAdminEmails),
+                    subject=u"""Användren: {} vill ha access till närvaroregistrering i Skojjt.
+                    för scoutkåren {}""".format(user.getemail(), sgroup.getname()),
+                    body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/", user.getname()))
         return redirect('/')
     else:
         return render_template('getaccess.html',

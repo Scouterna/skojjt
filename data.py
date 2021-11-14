@@ -564,7 +564,9 @@ class UserPrefs(ndb.Model):
         return self.hasaccess and self.hasadminaccess
 
     def canImport(self):
-        return self.isAdmin() or self.canimport == True
+        # Let any user import, if the user has the correct import key from scoutnet it is probably a valid user.
+        # This user already have all the information to get the the list of persons from scoutnet anyway.
+        return True
 
     def isGroupAdmin(self):
         return self.hasadminaccess or (self.hasaccess and self.groupadmin and self.groupaccess != None)
@@ -633,4 +635,9 @@ class UserPrefs(ndb.Model):
     @staticmethod
     def create(user, access=False, hasadminaccess=False):
         return UserPrefs(id=user.user_id(), userid=user.user_id(), name=user.nickname(), email=user.email(), hasaccess=access, hasadminaccess=hasadminaccess, activeSemester=Semester.getOrCreateCurrent().key)
+
+    @staticmethod
+    def getAllGroupAdminEmails(sgroup_key):
+        """Returns a list of all groupadmins emails for a sgroup"""
+        return [u.getemail() for u in UserPrefs.query(UserPrefs.groupaccess==sgroup_key, UserPrefs.groupadmin==True).fetch()]
 
