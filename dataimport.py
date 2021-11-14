@@ -49,6 +49,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 
     user.groupaccess = importer.importedScoutGroup_key
     user.hasaccess = True
+    user.groupadmin = True
     user.put()
     if user.groupadmin:
         result.append(u"Du är kåradmin och kan dela ut tillgång till din kår för andra användare")

@@ -5,9 +5,16 @@
 	<img src="/img/logo.png" alt="logo" />
   <div class="btn-toolbar">
 	<h2 class=>Välkommen {{user.getname()}}</h2>
+	{% if not user.hasAccess() %}
+	<hr/>
+	<div class="btn-toolbar">
+	<a href="/getaccess/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-import"></span> Begär access till närvaroregistrering</a>
+	</div>
+	{% else %}
 	<a href="{{starturl}}" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-check"></span> Närvaroregistrering</a>
 	<a href="{{personsurl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-user"></span> Personregister</a>
 	<a href="{{badgesurl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-education"></span> Märken</a>
+	{% endif %}
   </div>
 {% if user.canImport() %}
 	<hr/>

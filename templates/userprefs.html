@@ -16,14 +16,14 @@
 			{% if userprefs.canimport %}checked=""{% endif %}/>
 			</div>
 			<div class="form-group row">
-			<label class="control-label col-sm-3">Har admin access</label>
-			<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
-			{% if userprefs.hasadminaccess %}checked=""{% endif %}/>
-			</div>
-			<div class="form-group row">
 			<label class="control-label col-sm-3">Kår admin</label>
 			<input type="checkbox" class="form-control" name="groupadmin" id="groupadmin"
 			{% if userprefs.groupadmin %}checked=""{% endif %}/>
+			</div>
+			<div class="form-group row">
+			<label class="control-label col-sm-3">Har admin access</label>
+			<input type="checkbox" class="form-control" name="hasAdminAccess" id="hasAdminAccess"
+			{% if userprefs.hasadminaccess %}checked=""{% endif %}/>
 			</div>
 			<div class="form-group row">
 			<label for="groupaccess" class="control-label col-sm-3">Kår:</label>
