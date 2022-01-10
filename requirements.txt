@@ -13,4 +13,3 @@ openpyxl==2.5.12
 Werkzeug==1.0.1
 xmlschema==1.0.18
 packaging==20.9
-Pillow==4.0.0
