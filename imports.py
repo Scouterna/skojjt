@@ -2,8 +2,8 @@
 import time
 from data import Semester, UserPrefs
 from dataimport import RunScoutnetImport
-from google.appengine.ext import deferred, ndb
-from flask import Blueprint, render_template, request, make_response, redirect
+from google.appengine.ext import deferred
+from flask import Blueprint, render_template, request, redirect
 from progress import TaskProgress
 import traceback
 
@@ -25,18 +25,16 @@ def import_():
         apikey = scoutgroup.apikey_all_members
         groupid = scoutgroup.scoutnetID
 
-    semesters = Semester.getAllSemestersSorted()
     if request.method == 'POST':
         apikey = request.form.get('apikey').strip()
         groupid = request.form.get('groupid').strip()
-        semester_key=ndb.Key(urlsafe=request.form.get('semester'))
+        semester_key = Semester.getOrCreateCurrent()
         return startAsyncImport(apikey, groupid, semester_key, user, request)
 
     return render_template('updatefromscoutnetform.html',
                             heading="Import",
                             breadcrumbs=breadcrumbs,
                             user=user,
-                            semesters=semesters,
                             groupid=groupid,
                             apikey=apikey)
 
@@ -51,7 +49,6 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     :rtype werkzeug.wrappers.response.Response
     """
     taskProgress = TaskProgress(name='Import', return_url=request.url)
-    taskProgress.put()
     deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key, _queue="import")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 

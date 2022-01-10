@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
-from flask import Flask, make_response, redirect, render_template, request
+from data import ScoutGroup, UserPrefs
+from flask import Flask, redirect, render_template, request
 from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import memcache
@@ -86,7 +86,8 @@ def getaccess():
         if sgroup is not None:
             groupAdminEmails = UserPrefs.getAllGroupAdminEmails(sgroup.key)
             if len(groupAdminEmails) > 0:
-                mail.send_mail(sender=user.getemail(),
+                mail.send_mail(
+                    sender="noreply@skojjt.appspotmail.com",
                     to=','.join(groupAdminEmails),
                     subject=u"""Användren: {} vill ha access till närvaroregistrering i Skojjt.
                     för scoutkåren {}""".format(user.getemail(), sgroup.getname()),

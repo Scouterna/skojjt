@@ -29,20 +29,24 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
 
 ### Hur man testar/utvecklar i Windows:
 * Installera Git
-* Installera Python 2.7
 * Installera [Google Cloud SDK](https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe).
+* Python 2 följer med Google Cloud SDK, så vi behöver inte installera Python.
+* Initiera Google Cloud:
+    + `gcloud init`
+* Uppdatera till en version som fungerar:
+    + `gcloud components update --version 341.0.0`
+* Installera python komponenter för gcloud:
+    + `gcloud components install app-engine-python-extras`
 * Klona git-repot: 
     + `git clone https://github.com/Scouterna/skojjt`
 * Uppdatera biblioteken (kan även behövas efter pull):
-    + `pip install -r requirements.txt -t lib`
-* Initiera Google Cloud:
-    + `gcloud init`
+    + `scripts\update_libs.bat`
 * Du kan behöva uppdatera Google Cloud (om du redan har en installation):
     + `gcloud components update`
 * Om du gör ändringar i data eller queries så kan du behöva köra:
     + `gcloud datastore indexes create index.yaml`
 * Starta servern lokalt:
-    + `python "c:\Program Files (x86)\Google\google_appengine\dev_appserver.py" app.yaml`
+    + `scripts\run_local.bat`
 * Öppna en webläsare på adress: [http://localhost:8080/](http://localhost:8080/)
 * Deploy projektet publikt som `skojjt-X`(ditt val av namn)
   + `gcloud app deploy index.yaml --project skojjt-X`
