@@ -119,6 +119,7 @@
 			{% endif %}
 		</div>
 		<button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
+		<button data-toggle="collapse" data-target="#terminsprogram" set-focus="#terminsprogram" class="btn btn-lg btn-info togglebutton">Terminsprogram</button>
 	</div>
 
 	<div id="report" class="collapse col-xs-12">
@@ -139,6 +140,15 @@
 		<div id="lagerbidrag_info_sthlm" class="collapse well col-xs-12 col-md-6">
 				{% include "lagerbidragform_sthlm.html" %}
 			</div>
+	</div>
+
+	<div id="terminsprogram" class="collapse col-xs-12">
+		<div class="well col-xs-12 col-md-6">
+			<div><a class="btn btn-lg btn-info" id="terminsprogram" href="/terminsprogram/{{troop.key.urlsafe()}}.html">Länk till terminsprogram</a></div>
+			<div><input size="150" type="url" readonly value="{{request.host_url}}terminsprogram/{{troop.key.urlsafe()}}.html"/></div>
+			<div><a class="btn btn-lg btn-info" id="terminsprogram" href="/terminsprogram/{{troop.key.urlsafe()}}.xml">Terminsprogram i xml format</a></div>
+			<div><a class="btn btn-lg btn-info" id="terminsprogram" href="/terminsprogram/{{troop.key.urlsafe()}}.json">Terminsprogram i json format</a></div>
+		</div>
 	</div>
 
 	<div class="clearfix"></div>

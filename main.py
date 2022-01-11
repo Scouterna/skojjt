@@ -28,6 +28,7 @@ from imports import import_page
 from progress import progress
 from admin import admin
 from tasks import tasks
+from terminsprogram import terminsprogram
 app.register_blueprint(start, url_prefix='/start')
 app.register_blueprint(persons, url_prefix='/persons')
 app.register_blueprint(scoutgroupinfo, url_prefix='/scoutgroupinfo')
@@ -37,6 +38,7 @@ app.register_blueprint(progress, url_prefix='/progress')
 app.register_blueprint(admin, url_prefix='/admin')
 app.register_blueprint(tasks, url_prefix='/tasks')
 app.register_blueprint(badges, url_prefix='/badges')
+app.register_blueprint(terminsprogram, url_prefix='/terminsprogram')
 
 
 @app.route('/')

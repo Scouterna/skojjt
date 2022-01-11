@@ -39,6 +39,11 @@ handlers:
 - url: /fonts
   static_dir: fonts
 
+- url: "/terminsprogram/.*"
+  script: main.app
+  login: optional
+  secure: optional
+
 - url: /progress/.*
   script: main.app
   login: required
