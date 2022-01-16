@@ -28,7 +28,7 @@ def import_():
     if request.method == 'POST':
         apikey = request.form.get('apikey').strip()
         groupid = request.form.get('groupid').strip()
-        semester_key = Semester.getOrCreateCurrent()
+        semester_key = Semester.getOrCreateCurrent().key
         return startAsyncImport(apikey, groupid, semester_key, user, request)
 
     return render_template('updatefromscoutnetform.html',
