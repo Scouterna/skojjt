@@ -91,7 +91,7 @@ def getaccess():
                 mail.send_mail(
                     sender="noreply@skojjt.appspotmail.com",
                     to=','.join(groupAdminEmails),
-                    subject=u"""Användren: {} vill ha access till närvaroregistrering i Skojjt.
+                    subject=u"""Användaren: {} vill ha access till närvaroregistrering i Skojjt
                     för scoutkåren {}""".format(user.getemail(), sgroup.getname()),
                     body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/", user.getname()))
         return redirect('/')
