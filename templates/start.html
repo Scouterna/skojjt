@@ -4,36 +4,27 @@
 <div class="main"><div class="container"><div class="jumbotron">
 	<img src="/img/logo.png" alt="logo" />
   <div class="btn-toolbar">
-	<h2 class=>Välkommen {{user.getname()}}</h2>
-	{% if not user.hasAccess() %}
+	<h2 class=>Välkommen</h2>
 	<hr/>
 	<div class="btn-toolbar">
 	<a href="/getaccess/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-import"></span> Begär access till närvaroregistrering</a>
 	</div>
-	{% else %}
 	<a href="{{starturl}}" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-check"></span> Närvaroregistrering</a>
 	<a href="{{personsurl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-user"></span> Personregister</a>
 	<a href="{{badgesurl}}" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-education"></span> Märken</a>
-	{% endif %}
   </div>
-{% if user.canImport() %}
 	<hr/>
 	<div class="btn-toolbar">
 	<a href="/import/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-import"></span> Import</a>
 	</div>
-{% endif %}
-{% if user.isGroupAdmin() %}
 	<hr/>
 	<div class="btn-toolbar">
 	<a href="/groupaccess/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-lock"></span> Kåraccess för användare</a>
 	</div>
-{% endif %}
-{% if user.isAdmin() %}
 	<hr/>
 	<div class="btn-toolbar">
 	<a href="/admin/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-wrench"></span> Admin</a>
 	</div>
-{% endif %}
 	<hr/>
 	<a href="https://github.com/Scouterna/skojjt/wiki" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-education"></span> Dokumentation</a>
 	<a href="/badges/templates/" class="btn btn-lg btn-default"><span class="glyphicon glyphicon-education"></span> Märkesmallar</a>

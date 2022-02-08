@@ -58,8 +58,18 @@ handlers:
   script: main.app
   login: admin
   secure: always
-  
+
+- url: /login/.*
+  script: main.app
+  login: optional
+  secure: always
+
 - url: .*  # This regex directs all routes to main.app
   script: main.app
-  login: required
+  login: optional
   secure: always
+
+
+
+env_variables:
+  GAE_USE_SUBPROCESS: 0

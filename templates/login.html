@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+	<meta charset="UTF-8">
+	<title>Login</title>
+	<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
+</head>
+<html>
+  <h1>Logga in</h1>
+  <div id="firebaseui-auth-container"></div>
+  <script src="https://www.gstatic.com/firebasejs/8.0/firebase.js"></script>
+	<script>
+		var config = {
+			apiKey: "AIzaSyBhPu0RIN7KpbL33Wq8ICc3RSWSq68logM",
+    		authDomain: "skojjt-staging.firebaseapp.com",
+		};
+		firebase.initializeApp(config);
+	</script>
+	<script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
+  <script>
+    // Firebase log-in widget
+    const provider = new firebase.auth.SAMLAuthProvider('saml.scoutid');
+
+
+function configureFirebaseLoginWidget() {
+  var uiConfig = {
+    'signInSuccessUrl': '/',
+    'signInOptions': [
+      'saml.scoutid',
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID
+    ],
+    // Terms of service url
+    'tosUrl': 'https://www.google.com'
+  };
+
+  var ui = new firebaseui.auth.AuthUI(firebase.auth());
+  ui.start('#firebaseui-auth-container', uiConfig);
+}
+configureFirebaseLoginWidget();
+  </script>
+</html>

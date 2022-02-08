@@ -7,7 +7,7 @@ from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
-
+import access
 from badges import badges
 
 app = Flask(__name__)
@@ -40,8 +40,28 @@ app.register_blueprint(tasks, url_prefix='/tasks')
 app.register_blueprint(badges, url_prefix='/badges')
 app.register_blueprint(terminsprogram, url_prefix='/terminsprogram')
 
+@app.route('/login')
+@app.route('/login/')
+def login_():
+    return render_template('login.html') 
 
 @app.route('/')
+@access.hasAccess
+def home_():
+    breadcrumbs = [{'link':'/', 'text':'Hem'}]
+    return render_template('start.html',
+                           heading='Hem',
+                           items=[],
+                           breadcrumbs=breadcrumbs,
+                           user=None,
+                           starturl="starturl",
+                           personsurl="personsurl",
+                           badgesurl="badgesurl",
+                           logouturl=users.create_logout_url('/')
+                           ) 
+
+@app.route('/asdsa')
+@access.hasAccess
 def home():
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
     user = UserPrefs.current()
@@ -147,6 +167,10 @@ def page_not_found(e):
 @app.errorhandler(403)
 def access_denied(e):
     return render_template('403.html'), 403
+
+@app.errorhandler(401)
+def unauthorized(e):
+    return render_template('401.html'), 401
 
 @app.errorhandler(500)
 def serverError(e):
