@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, PendingPersonKeyChange
+from data_badge import TroopBadge, Badge
 from flask import Blueprint, render_template, request, make_response, redirect
 from progress import TaskProgress
 from google.appengine.ext import deferred
@@ -483,6 +484,54 @@ def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
 
     taskProgress.info("Done updating Person keys!")
     return None, False, stage
+
+
+# cleanup of bad database records
+@admin.route('/cleanup/', methods = ['POST', 'GET'])
+def cleanup():
+    user = UserPrefs.current()
+    if not user.isGroupAdmin():
+        return "", 403
+
+    heading="Cleanup"
+    baselink="/admin/cleanup/"
+    breadcrumbs = [{'link':'/', 'text':'Hem'},
+                   {'link':'/admin', 'text':'Admin'},
+                   {'link':'/admin/cleanup', 'text':'Cleanup'}]
+
+    if request.method == 'POST' and request.form is not None:
+        commit = "commit" in request.form and request.form['commit'] == 'on'
+
+        tps = TroopBadge.query().fetch()
+        tp_keys_to_remove = []
+        items = []
+        if not commit:
+            items.append('testmode')
+        for tp in tps:
+            badge = Badge.get_by_id(tp.badge_key.id())
+            if badge is None:
+                tp_keys_to_remove.append(tp.key)
+                items.append(str(tp.key))
+
+        if commit:
+            ndb.delete_multi(tp_keys_to_remove)
+
+        return render_template('table.html',
+                                heading=heading,
+                                baselink=baselink,
+                                tabletitle="Items to remove",
+                                items=items,
+                                breadcrumbs=breadcrumbs)
+    else:
+        form = htmlform.HtmlForm('cleanup', submittext="Radera", buttonType="btn-danger",
+                                    descriptionText=u"Cleanup of bad TroopBadge records")
+        form.AddField('commit', 'on', u'Commit to database', 'checkbox', False)
+        return render_template('form.html',
+                                heading=heading,
+                                baselink=baselink,
+                                form=str(form),
+                                breadcrumbs=breadcrumbs)
+
 
 
 def flushPendingDatabaseOperations():
