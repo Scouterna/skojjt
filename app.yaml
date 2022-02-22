@@ -64,6 +64,16 @@ handlers:
   login: optional
   secure: always
 
+- url: /sessionLogin/.*
+  script: main.app
+  login: optional
+  secure: always
+
+- url: /loggedIn/.*
+  script: main.app
+  login: optional
+  secure: always
+
 - url: .*  # This regex directs all routes to main.app
   script: main.app
   login: optional

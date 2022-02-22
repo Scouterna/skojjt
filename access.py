@@ -6,6 +6,7 @@ import google.auth.transport.requests
 import google.oauth2.id_token
 import requests_toolbelt.adapters.appengine
 import os
+from firebase_admin import auth
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses
 # URLFetch.
@@ -18,17 +19,17 @@ def hasAccess(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         logging.info(str(request.headers))
-        if 'HTTP_AUTHORIZATION' in request.headers or 'Authorization' in request.headers:
-            id_token = request.headers['Authorization'].split(' ').pop()
-            logging.info("*** hasAccess id_token=" + id_token)
-
-            claims = google.oauth2.id_token.verify_firebase_token(id_token, HTTP_REQUEST, audience=os.environ.get('GOOGLE_CLOUD_PROJECT'))
-            if not claims:
-                return redirect('/login/')
-        else:
+        session_cookie = request.cookies.get('session')
+        if not session_cookie:
             return redirect('/login/')
+        else:
+            logging.info("*** session_cookie=" + session_cookie)
+            decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
+            # claims = google.oauth2.id_token.verify_firebase_token(id_token, HTTP_REQUEST, audience=os.environ.get('GOOGLE_CLOUD_PROJECT'))
+            if decoded_claims:
+                return func(*args, **kwargs)
 
-        return func(*args, **kwargs)
+        return redirect('/login/')
 
     return wrapper
 

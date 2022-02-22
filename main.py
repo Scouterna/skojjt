@@ -2,21 +2,33 @@
 import logging
 import sys
 from data import ScoutGroup, UserPrefs
-from flask import Flask, redirect, render_template, request
+import access
+from badges import badges
+from flask import Flask, redirect, render_template, request, jsonify, abort
+from datetime import datetime, timedelta
 from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
-import access
-from badges import badges
+import requests_toolbelt.adapters.appengine
+requests_toolbelt.adapters.appengine.monkeypatch()
+from firebase_admin import auth
+from firebase_admin import exceptions
+from firebase_admin import initialize_app
+
+#HTTP_REQUEST = google.auth.transport.requests.Request()
+
 
 app = Flask(__name__)
 app.debug = True
+firebase_default_app = initialize_app()
+
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
 
 reload(sys)
 sys.setdefaultencoding('utf8')
+
 
 
 # page routes:
@@ -59,6 +71,33 @@ def home_():
                            badgesurl="badgesurl",
                            logouturl=users.create_logout_url('/')
                            ) 
+
+
+@app.route('/sessionLogin', methods=['POST'])
+def session_login():
+    # Get the ID token sent by the client
+    id_token = request.json['idToken']
+    logging.info("id_token=" + id_token)
+
+    # Set session expiration to 5 days.
+    expires_in = timedelta(days=5)
+    #try:
+    # Create the session cookie. This will also verify the ID token in the process.
+    # The session cookie will have the same claims as the ID token.
+    session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+    response = jsonify({'status': 'success'})
+    # Set cookie policy for session cookie.
+    expires = datetime.now() + expires_in
+    response.set_cookie('session', session_cookie, expires=expires, httponly=True, secure=True)
+    return response
+    #except exceptions.FirebaseError as ex:
+    #    return abort(401, 'Failed to create a session cookie, error=' + str(ex))
+
+
+@app.route('/loggedIn')
+def loggedIn():
+    return "You are logged in!"
+
 
 @app.route('/asdsa')
 @access.hasAccess

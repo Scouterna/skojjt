@@ -20,3 +20,5 @@ google-auth==2.3.3; python_version < '3.0'
 google-auth==2.3.3; python_version > '3.0'
 requests==2.27.1
 requests-toolbelt==0.9.1
+firebase-admin==3.2.1
+grpcio==1.20

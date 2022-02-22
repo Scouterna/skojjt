@@ -15,15 +15,17 @@
     		authDomain: "skojjt-staging.firebaseapp.com",
 		};
 		firebase.initializeApp(config);
+    console.log("firebase initializeApp done");
+    // As httpOnly cookies are to be used, do not persist any state client side.
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
 	</script>
 	<script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
   <script>
-    // Firebase log-in widget
-    const provider = new firebase.auth.SAMLAuthProvider('saml.scoutid');
+    const scoutid_provider = new firebase.auth.SAMLAuthProvider('saml.scoutid');
 
-
+/*
+// Firebase log-in widget
 function configureFirebaseLoginWidget() {
-  var uiConfig = {
     'signInSuccessUrl': '/',
     'signInOptions': [
       'saml.scoutid',
@@ -37,5 +39,50 @@ function configureFirebaseLoginWidget() {
   ui.start('#firebaseui-auth-container', uiConfig);
 }
 configureFirebaseLoginWidget();
+*/
+
+function postIdTokenToSessionLogin(absolutePath, idToken, csrfToken)
+{
+  return new Promise(function (resolve, reject) {
+    var XHR = new XMLHttpRequest();
+    XHR.addEventListener('load', function(event) 
+    {
+      resolve(XHR.response);
+    });
+    XHR.addEventListener('error', function(event) 
+    {
+      reject({ status: XHR.status, statusText: XHR.statusText });
+    });
+    XHR.open('POST', absolutePath);
+    XHR.setRequestHeader('Content-Type', 'application/json');
+    const jsondata = '{"idToken":"' + idToken + '"}';
+    console.log("POST jsondata:" + jsondata);
+    XHR.send(jsondata);
+  });
+}
+
+firebase.auth().getRedirectResult().then((result) => {
+  if (result.user) {
+    console.log("we have a credential:" + result.credential);
+    // Get the user's ID token as it is needed to exchange for a session cookie.
+    // HTTP_AUTHORIZATION
+    
+    // Session login endpoint is queried and the session cookie is set.
+    // CSRF protection should be taken into account.
+    // ...
+    result.user.getIdToken().then((idToken) => {
+      console.log("idToken:" + idToken);
+      //const csrfToken = getCookie('csrfToken')
+      // csrfToken
+      return postIdTokenToSessionLogin('/sessionLogin', idToken, null);
+    });
+  }
+  else
+  {
+    console.log("no credential sign in with redirect");
+    firebase.auth().signInWithRedirect(scoutid_provider);
+  }
+});
+
   </script>
 </html>
