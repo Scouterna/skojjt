@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import requests_toolbelt.adapters.appengine
+requests_toolbelt.adapters.appengine.monkeypatch()
+from firebase_admin import auth
+from firebase_admin import exceptions
+from firebase_admin import initialize_app
 import logging
 import sys
 from data import ScoutGroup, UserPrefs
@@ -10,11 +15,6 @@ from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
-import requests_toolbelt.adapters.appengine
-requests_toolbelt.adapters.appengine.monkeypatch()
-from firebase_admin import auth
-from firebase_admin import exceptions
-from firebase_admin import initialize_app
 
 #HTTP_REQUEST = google.auth.transport.requests.Request()
 
@@ -84,7 +84,7 @@ def session_login():
     #try:
     # Create the session cookie. This will also verify the ID token in the process.
     # The session cookie will have the same claims as the ID token.
-    session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+    session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in, app=firebase_default_app)
     response = jsonify({'status': 'success'})
     # Set cookie policy for session cookie.
     expires = datetime.now() + expires_in

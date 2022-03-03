@@ -83,3 +83,4 @@ handlers:
 
 env_variables:
   GAE_USE_SUBPROCESS: 0
+  GAE_USE_SOCKETS_HTTPLIB: 1
