@@ -1,9 +1,50 @@
 # -*- coding: utf-8 -*-
-from google.appengine.api import memcache
+#from google.appengine.api import global_cache
+from google.cloud.ndb.global_cache import RedisCache
 from google.appengine.api import users
-from google.appengine.ext import ndb
+from google.cloud.ndb import context as context_module
+from google.cloud import ndb
 import datetime
 import logging
+from functools import wraps
+
+
+# Assume REDIS_CACHE_URL is set in environment (or not).
+# If left unset, this will return `None`, which effectively allows you to turn
+# global cache on or off using the environment.
+global_cache = RedisCache.from_environment()
+# NOTE:  get will call redis.mget and always return a list
+class MemcacheRedisWrapper():
+    def get(self, key):
+        result = global_cache.get(key) # type: list[str]
+        if isinstance(result, list) and len(result) > 0:
+            return result[0]
+        return None
+
+    def set(self, key, value):
+        items = dict()
+        items[key] = value
+        global_cache.set(items)
+
+    def replace(self, key, value):
+        global_cache.delete([key])
+        self.set(key, value)
+
+memcache = MemcacheRedisWrapper()
+
+# Assume GOOGLE_APPLICATION_CREDENTIALS is set in environment.
+client = ndb.Client()
+# decorator that adds a database context.
+def dbcontext(func):
+    @wraps(func) # needed to get unique function signature for flask url-mapping
+    def wrapper(*args, **kwargs):
+        current_context = context_module.get_context(False)
+        if current_context is not None:
+            return func(*args, **kwargs)
+        else:
+            with client.context(global_cache=global_cache): # create context with cache
+                return func(*args, **kwargs)
+    return wrapper
 
 
 class PropertyWriteTracker(ndb.Model):
@@ -42,14 +83,14 @@ class Semester(ndb.Model):
 
     @staticmethod
     def getbyId(id_string):
-        return Semester.get_by_id(id_string.replace('-',''), use_memcache=True)
+        return Semester.get_by_id(id_string.replace('-',''))
 
     @staticmethod
     def getOrCreateCurrent():
         thisdate = datetime.datetime.now()
         ht = True if thisdate.month>6 else False
         year = thisdate.year
-        semester = Semester.get_by_id(Semester.getid(year, ht), use_memcache=True)
+        semester = Semester.get_by_id(Semester.getid(year, ht))
         if semester == None:
             semester = Semester.create(year, ht)
             semester.put()
@@ -67,6 +108,9 @@ class Semester(ndb.Model):
 
     def getname(self):
         return "%04d-%s" % (self.year, "ht" if self.ht else "vt")
+
+    def getsortname(self):
+        return "%04d.%d" % (self.year, 1 if self.ht else 0)
 
     def getMinDateStr(self):
         if self.ht:
@@ -108,13 +152,18 @@ class ScoutGroup(ndb.Model):
 
     @staticmethod
     def getbyname(name):
-        return ScoutGroup.get_by_id(ScoutGroup.getid(name), use_memcache=True)
+        return ScoutGroup.get_by_id(ScoutGroup.getid(name))
 
     @staticmethod
     def create(name, scoutnetID):
         if len(name) < 2:
             raise ValueError("Invalid name %s" % (name))
         return ScoutGroup(id=ScoutGroup.getid(name), name=name, scoutnetID=scoutnetID)
+
+    @staticmethod
+    def getFromUrlSafe(urlsafe):
+        key = ndb.Key(urlsafe=urlsafe)
+        return key.get()
 
     @staticmethod
     def getgroupsforuser(user):
@@ -127,6 +176,16 @@ class ScoutGroup(ndb.Model):
 
     def getname(self):
         return self.name
+
+    def getUniqueId(self):
+        return self.scoutnetID
+
+    @staticmethod
+    def getByUniqueId(id):
+        result = ScoutGroup.query(ScoutGroup.scoutnetID == id).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
 
     def canAddToWaitinglist(self):
         return self.scoutnetID != None and self.scoutnetID != "" and self.apikey_waitinglist != None and self.apikey_waitinglist != ""
@@ -163,6 +222,16 @@ class Troop(ndb.Model):
 
     def getname(self):
         return self.name
+
+    def getUniqueId(self):
+        return self.scoutnetID
+
+    @staticmethod
+    def getByUniqueId(id):
+        result = Troop.query(Troop.scoutnetID == id).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
 
     def delete(self):
         for tp in TroopPerson.getTroopPersonsForTroop(self.key):
@@ -223,12 +292,21 @@ class Person(PropertyWriteTracker):
 
     @staticmethod
     def getByMemberNo(member_no):
-        return Person.get_by_id(member_no, use_memcache=True)
+        return Person.get_by_id(member_no)
 
     #deprecated 
     @staticmethod
     def getByPersonNr(personnr):
-        return Person.get_by_id(personnr, use_memcache=True)
+        return Person.get_by_id(personnr)
+
+    @staticmethod
+    def getAllScoutGroupPersonsInOrder(sgroup_key):
+        return Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch()
+
+    @staticmethod
+    def getFromUrlSafe(urlsafe):
+        key = ndb.Key(urlsafe=urlsafe)
+        return key.get()
 
     def getMemberNo(self):
         return self.key.id()
@@ -244,7 +322,7 @@ class Person(PropertyWriteTracker):
     # do after calls to this method:
     #   remove the old persons
     #   commit changes
-    #   clear memcache
+    #   clear global_cache
     #
     # returns: newPerson, pendingKeyChange (to be committed)
     """
@@ -292,8 +370,6 @@ class Person(PropertyWriteTracker):
 
     def getbirthdatestring(self):
         return self.birthdate.strftime("%Y-%m-%d")
-    def getpersnumberstr(self):
-        return self.birthdate.strftime("%Y%m%d0000")
 
     def getname(self):
         return self.firstname + " " + self.lastname
@@ -352,7 +428,7 @@ class PendingPersonKeyChange(PropertyWriteTracker):
     @staticmethod
     def create_or_update(old_key, new_key):
         person_id = old_key.id()
-        ppkc = PendingPersonKeyChange.get_by_id(person_id, use_memcache=True)
+        ppkc = PendingPersonKeyChange.get_by_id(person_id)
         if ppkc is not None:
             ppkc.old_key = old_key
             ppkc.new_key = new_key
@@ -381,13 +457,12 @@ class Meeting(ndb.Model):
 
     @staticmethod
     def getOrCreate(troop_key, name, datetime, duration, ishike):
-        m = Meeting.get_by_id(Meeting.getId(datetime, troop_key), use_memcache=True)
+        m = Meeting.get_by_id(Meeting.getId(datetime, troop_key))
         if m != None:
             if m.name != name or m.duration != duration or m.ishike != ishike:
                 m.name = name
                 m.duration = duration
                 m.ishike = ishike
-                m.put()
         else:
             m = Meeting(id=Meeting.getId(datetime, troop_key),
                 datetime=datetime,
@@ -396,19 +471,12 @@ class Meeting(ndb.Model):
                 duration=duration,
                 ishike=ishike
                 )
-        troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
-        if troopmeeting_keys is not None and m.key not in troopmeeting_keys:
-            troopmeeting_keys.append(m.key)
-            memcache.replace(Meeting.__getMemcacheKeyString(troop_key), troopmeeting_keys)
         return m
 
     @staticmethod
     def gettroopmeetings(troop_key):
         troopmeetings = []
-        troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(troop_key))
-        if troopmeeting_keys is None:
-            troopmeeting_keys = Meeting.query(Meeting.troop==troop_key).fetch(keys_only=True)
-            memcache.add(Meeting.__getMemcacheKeyString(troop_key), troopmeeting_keys)
+        troopmeeting_keys = Meeting.query(Meeting.troop==troop_key).fetch(keys_only=True)
         for tm_key in troopmeeting_keys:
             m = tm_key.get()
             if m != None:
@@ -418,23 +486,26 @@ class Meeting(ndb.Model):
 
     def delete(self):
         self.key.delete()
-        troopmeeting_keys = memcache.get(Meeting.__getMemcacheKeyString(self.troop))
-        if troopmeeting_keys is not None:
-            troopmeeting_keys.remove(self.key)
-            memcache.replace(Meeting.__getMemcacheKeyString(self.troop), troopmeeting_keys)
 
     def getdate(self):
         return self.datetime.strftime("%Y-%m-%d")
+
     def gettime(self):
         return self.datetime.strftime("%H:%M")
+
     def getname(self):
         return self.name
+
+    def getUniqueId(self):
+        return str(self.key.id())
+
     def getendtime(self):
         maxEndTime = self.datetime.replace(hour=23,minute=59,second=59)
         endtime = self.datetime + datetime.timedelta(minutes=self.duration)
         if endtime > maxEndTime:
             endtime = maxEndTime # limit to the current day (to keep Stop time after Start time)
         return endtime.strftime('%H:%M')
+
     def getishike(self):
         return self.ishike
     
@@ -452,7 +523,7 @@ class TroopPerson(ndb.Model):
     troop = ndb.KeyProperty(kind=Troop, required=True)
     person = ndb.KeyProperty(kind=Person, required=True)
     leader = ndb.BooleanProperty(default=False)
-    sortname = ndb.ComputedProperty(lambda self: self.getname())
+    sortname = ndb.ComputedProperty(lambda self: self.getsortname())
 
     @staticmethod
     def create_or_update(troop_key, person_key, isLeader):
@@ -500,11 +571,23 @@ class TroopPerson(ndb.Model):
     def getTroopPersonsForTroop(troop_key):
         return TroopPerson.query(TroopPerson.troop==troop_key).order(-TroopPerson.leader, TroopPerson.sortname).fetch()
 
+    @staticmethod
+    def getTroopPersonForTroopAndPerson(person_key, troop_key):
+        return TroopPerson.query(TroopPerson.person == person_key, TroopPerson.troop == troop_key).fetch(1)
+
     def getname(self):
         person = self.person.get()
         if person is None:
             return "(None)"
         return person.getname()
+
+    def getsortname(self):
+        person = self.person.get()
+        if person is None:
+            return "(None)"
+        troop = self.troop.get()
+        semester = troop.semester_key.get()
+        return person.getname() + "-" + semester.getname() + "-" + troop.getname()
 
     def gettroopname(self):
         return self.troop.get().getname()
@@ -597,40 +680,16 @@ class UserPrefs(ndb.Model):
                     self.put()
                     logging.info("Auto groupaccess for %s: %s %s", self.email, person.firstname, person.lastname)
 
-    def updateMemcache(self):
-        if not memcache.add(self.userid, self):
-            memcache.replace(self.userid, self)
-
     def put(self):
         super(UserPrefs, self).put()
-        self.updateMemcache()
 
     @staticmethod
     def getorcreate(user):
-        userprefs = memcache.get(user.user_id())
-        if userprefs is not None:
-            return userprefs
-        else:
-            userprefs = UserPrefs.get_by_id(user.user_id()) # new records have user_id as id
-            if userprefs != None:
-                userprefs.updateMemcache()
-                return userprefs
-            usersresult = UserPrefs.query(UserPrefs.userid == user.user_id()).fetch() # Fetching old records from userid
-            if len(usersresult) == 0:
-                userprefs = UserPrefs.create(user, users.is_current_user_admin(), users.is_current_user_admin())
-                userprefs.put()
-            else:
-                olduser = usersresult[0]
-                # old record, update to a new with user_id as id and email
-                if olduser != None:
-                    userprefs = UserPrefs.create(user, olduser.hasAccess(), olduser.isAdmin())
-                    userprefs.activeSemester = olduser.activeSemester
-                    userprefs.groupaccess = olduser.groupaccess
-                    userprefs.groupadmin = olduser.groupadmin
-                    userprefs.put()
-                    olduser.key.delete()
-            userprefs.updateMemcache()
-            return userprefs
+        userprefs = UserPrefs.get_by_id(user.user_id()) # new records have user_id as id
+        if userprefs is None:
+            userprefs = UserPrefs.create(user, users.is_current_user_admin(), users.is_current_user_admin())
+            userprefs.put()
+        return userprefs
 
     @staticmethod
     def create(user, access=False, hasadminaccess=False):

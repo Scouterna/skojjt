@@ -5,7 +5,7 @@ import datetime
 from operator import attrgetter
 from flask import Blueprint, make_response, redirect, render_template, request
 
-from google.appengine.ext import ndb  # pylint: disable=import-error
+from google.cloud import ndb
 
 import htmlform
 import lagerbidrag
@@ -14,25 +14,26 @@ import sensus
 from excelreport import ExcelReport
 from excelreport_sthlm import ExcelReportSthlm
 from jsonreport import JsonReport
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, dbcontext
 from dakdata import DakData, Deltagare, Sammankomst
 from data_badge import TroopBadge
+import access
 
 
 start = Blueprint('start_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
 
 
 @start.route('/')
-@start.route('/<sgroup_url>', methods=['POST', 'GET'])
-@start.route('/<sgroup_url>/', methods=['POST', 'GET'])
-@start.route('/<sgroup_url>/<troop_url>', methods=['POST', 'GET'])
-@start.route('/<sgroup_url>/<troop_url>/', methods=['POST', 'GET'])
-@start.route('/<sgroup_url>/<troop_url>/<key_url>', methods=['POST', 'GET'])
-@start.route('/<sgroup_url>/<troop_url>/<key_url>/', methods=['POST', 'GET'])
-def show(sgroup_url=None, troop_url=None, key_url=None):
+@start.route('/<sgroup_id>', methods=['POST', 'GET'])
+@start.route('/<sgroup_id>/', methods=['POST', 'GET'])
+@start.route('/<sgroup_id>/<troop_url>', methods=['POST', 'GET'])
+@start.route('/<sgroup_id>/<troop_url>/', methods=['POST', 'GET'])
+@start.route('/<sgroup_id>/<troop_url>/<key_url>', methods=['POST', 'GET'])
+@start.route('/<sgroup_id>/<troop_url>/<key_url>/', methods=['POST', 'GET'])
+@dbcontext
+@access.hasAccess
+def show(sgroup_id=None, troop_url=None, key_url=None):
     user = UserPrefs.current()
-    if not user.hasAccess():
-        return "denied", 403
 
     breadcrumbs = [{'link': '/', 'text': 'Hem'}]
     section_title = u'Kårer'
@@ -40,10 +41,10 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
     baselink = '/start/'
 
     scoutgroup = None
-    if sgroup_url is not None:
-        sgroup_key = ndb.Key(urlsafe=sgroup_url)
-        scoutgroup = sgroup_key.get()
-        baselink += sgroup_url+"/"
+    if sgroup_id is not None:
+        scoutgroup = ScoutGroup.getFromUrlSafe(sgroup_id)
+        sgroup_key = scoutgroup.key
+        baselink += sgroup_id+"/"
         breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
 
     troop = None
@@ -307,9 +308,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         return render_template('troops.html',
                                heading=section_title,
                                baselink=baselink,
-                               scoutgroupbadgeslink='/badges/' + sgroup_url + '/',
-                               scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
-                               groupsummarylink='/groupsummary/' + sgroup_url + '/',
+                               scoutgroupbadgeslink='/badges/' + sgroup_id + '/',
+                               scoutgroupinfolink='/scoutgroupinfo/' + sgroup_id + '/',
+                               groupsummarylink='/groupsummary/' + sgroup_id + '/',
                                user=user,
                                semester=semester,
                                semesters=Semester.getAllSemestersSorted(),

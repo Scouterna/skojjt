@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
+from data import ScoutGroup, UserPrefs, dbcontext, memcache
 from flask import Flask, make_response, redirect, render_template, request
 from google.appengine.api import users
 from google.appengine.api import mail
-from google.appengine.api import memcache
-from google.appengine.ext import ndb
+import access
 
 from badges import badges
 
@@ -40,6 +39,7 @@ app.register_blueprint(badges, url_prefix='/badges')
 
 
 @app.route('/')
+@dbcontext
 def home():
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
     user = UserPrefs.current()
@@ -64,6 +64,7 @@ def home():
 
 
 @app.route('/getaccess/', methods = ['POST', 'GET'])
+@dbcontext
 def getaccess():
     user = UserPrefs.current()
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
@@ -81,7 +82,7 @@ def getaccess():
 
         sgroup = None
         if len(request.form.get('scoutgroup')) != 0:
-            sgroup = ndb.Key(urlsafe=request.form.get('scoutgroup')).get()
+            sgroup = ScoutGroup.getFromUrlSafe(request.form.get('scoutgroup'))
 
         if sgroup is not None:
             groupAdminEmails = UserPrefs.getAllGroupAdminEmails(sgroup.key)
@@ -99,10 +100,10 @@ def getaccess():
             scoutgroups=ScoutGroup.query().fetch())
 
 
-
 @app.route('/groupaccess')
 @app.route('/groupaccess/')
 @app.route('/groupaccess/<userprefs_url>')
+@dbcontext
 def groupaccess(userprefs_url=None):
     user = UserPrefs.current()
     if not user.isGroupAdmin() and user.groupaccess is None:

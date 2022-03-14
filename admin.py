@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, PendingPersonKeyChange
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, PendingPersonKeyChange, dbcontext
 from flask import Blueprint, render_template, request, make_response, redirect
 from progress import TaskProgress
 from google.appengine.ext import deferred
-from google.appengine.api import memcache
-from google.appengine.ext import ndb
+from data import memcache
 from google.appengine.ext.ndb import metadata
 from datetime import datetime
-import htmlform
 import logging
 import scoutnet
 import time
@@ -18,6 +16,7 @@ admin = Blueprint('admin_page', __name__, template_folder='templates')
 
 
 @admin.route('/')
+@dbcontext
 def admin_():
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -31,6 +30,7 @@ def admin_():
 @admin.route('/access/')
 @admin.route('/access/<userprefs_url>')
 @admin.route('/access/<userprefs_url>/', methods = ['POST', 'GET'])
+@dbcontext
 def adminaccess(userprefs_url=None):
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -81,6 +81,7 @@ def adminaccess(userprefs_url=None):
 
 # merge scoutgroups with different names (renamed in scoutnet):
 @admin.route('/merge_sg/', methods = ['POST', 'GET'])
+@dbcontext
 def adminMergeScoutGroups():
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -123,6 +124,7 @@ List all tasks:
 Delete a task:
 > gcloud tasks delete <task-name> --queue=default
 """
+@dbcontext
 def startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, move_troops, delete_sg, semester_id):
     """
     :type oldname: str
@@ -140,6 +142,7 @@ def startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, 
     deferred.defer(merge_sg_deferred, oldname, newname, commit, taskProgress.key, user.key, move_users, move_persons, move_troops, delete_sg, semester_id, _queue="admin")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
+@dbcontext
 def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move_users, move_persons, move_troops, delete_sg, semester_id):
     try:
         user = user_key.get()  # type: data.UserPrefs
@@ -156,6 +159,7 @@ def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move
     except Exception as e:
         pass
 
+@dbcontext
 def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, move_persons, move_troops, delete_sg, semester_id):
     start_time = time.time()
     oldsg = ScoutGroup.getbyname(oldname)
@@ -200,7 +204,7 @@ def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, 
         for oldt in Troop.query(Troop.scoutgroup == oldsg.key, Troop.semester_key == convertsemester.key).fetch():
             taskProgress.info(" * found old troop for %s, semester=%s" % (str(oldt.key.id()), oldt.semester_key.get().getname()))
             keys_to_delete.append(oldt.key)
-            newt = Troop.get_by_id(Troop.getid(oldt.scoutnetID, newsg.key, oldt.semester_key), use_memcache=True)
+            newt = Troop.get_by_id(Troop.getid(oldt.scoutnetID, newsg.key, oldt.semester_key))
             if newt is None:
                 taskProgress.info(" * * creating new troop for %s, semester=%s" % (str(oldt.key.id()), oldt.semester_key.get().getname()))
                 newt = Troop.create(oldt.name, oldt.scoutnetID, newsg.key, oldt.semester_key)
@@ -211,7 +215,7 @@ def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, 
             taskProgress.info(" * Move all trooppersons to the new group")
             for oldtp in TroopPerson.query(TroopPerson.troop == oldt.key).fetch():
                 keys_to_delete.append(oldtp.key)
-                newtp = TroopPerson.get_by_id(TroopPerson.getid(newt.key, oldtp.person), use_memcache=True)
+                newtp = TroopPerson.get_by_id(TroopPerson.getid(newt.key, oldtp.person))
                 if newtp is None:
                     logging.info(" * * creating new TroopPerson for %s:%s" % (newt.getname(), oldtp.getname()))
                     newtp = TroopPerson.create_or_update(newt.key, oldtp.person, oldtp.leader)
@@ -222,7 +226,7 @@ def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, 
             taskProgress.info(" * Move all old meetings to the new troop")
             for oldm in Meeting.query(Meeting.troop==oldt.key).fetch():
                 keys_to_delete.append(oldm.key)
-                newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key), use_memcache=True)
+                newm = Meeting.get_by_id(Meeting.getId(oldm.datetime, newt.key))
                 if newm is None:
                     logging.info(" * * creating new Meeting for %s:%s" % (newt.getname(), oldm.datetime.strftime("%Y-%m-%d %H:%M")))
                     newm = Meeting(id=Meeting.getId(oldm.datetime, newt.key),
@@ -266,6 +270,7 @@ def merge_scout_group(oldname, newname, commit, taskProgress, user, move_users, 
 
 # update person ids to member_no
 @admin.route('/update_person_ids/', methods = ['POST', 'GET'])
+@dbcontext
 def adminUpdateUpdatePersonIds():
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -306,6 +311,7 @@ List all tasks:
 Delete a task:
 > gcloud tasks delete <task-name> --queue=admin
 """
+@dbcontext
 def startAsyncUpdatePersonIds(commit, sgroup_key):
     taskProgress = TaskProgress(name='Update Person IDs', return_url=request.url)
     taskProgress.put()
@@ -320,6 +326,7 @@ def startAsyncUpdatePersonIds(commit, sgroup_key):
     deferred.defer(update_person_ids_deferred, commit, sgroup_key, None, 0, taskProgress.key, _queue="admin")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
+@dbcontext
 def update_person_ids_deferred(commit, sgroup_key, cursor, stage, taskProgress_key):
     there_is_more = True
     try:
@@ -342,6 +349,7 @@ def update_person_ids_deferred(commit, sgroup_key, cursor, stage, taskProgress_k
 
 max_time_seconds = 7*60
 PAGE_SIZE = 100
+@dbcontext
 def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
     start_time = time.time()
     time_is_out = False
@@ -491,35 +499,8 @@ def flushPendingDatabaseOperations():
         pass
 
 
-@admin.route('/deleteall/')
-def dodelete():
-    user = UserPrefs.current()
-    if not user.isAdmin():
-        return "denied", 403
-
-    # DeleteAllData() # uncomment to enable this
-    return redirect('/admin/')
-
-
-@admin.route('/settroopsemester/')
-def settroopsemester():
-    user = UserPrefs.current()
-    if not user.isAdmin():
-        return "denied", 403
-
-    dosettroopsemester()
-    return redirect('/admin/')
-
-@admin.route('/updateschemas')
-def doupdateschemas():
-    user = UserPrefs.current()
-    if not user.isAdmin():
-        return "denied", 403
-
-    UpdateSchemas()
-    return redirect('/admin/')
-
 @admin.route('/setcurrentsemester')
+@dbcontext
 def setcurrentsemester():
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -527,12 +508,14 @@ def setcurrentsemester():
 
     semester = Semester.getOrCreateCurrent()
     for u in UserPrefs.query().fetch():
-        u.activeSemester = semester.key
-        u.put()
+        if u.activeSemester != semester.key:
+            u.activeSemester = semester.key
+            u.put()
 
     return redirect('/admin/')
 
 @admin.route('/autoGroupAccess')
+@dbcontext
 def autoGroupAccess():
     user = UserPrefs.current()
     if not user.isAdmin():
@@ -584,32 +567,6 @@ def GetBackupXML():
 
     xml += '</data>'
     return xml
-
-
-
-def DeleteAllData():
-    entries = []
-    entries.extend(Person.query().fetch(keys_only=True))
-    entries.extend(Troop.query().fetch(keys_only=True))
-    entries.extend(ScoutGroup.query().fetch(keys_only=True))
-    entries.extend(Meeting.query().fetch(keys_only=True))
-    entries.extend(TroopPerson.query().fetch(keys_only=True))
-    entries.extend(Semester.query().fetch(keys_only=True))
-    entries.extend(TaskProgress.query().fetch(keys_only=True))
-    entries.extend(TaskProgressMessage.query().fetch(keys_only=True))
-    entries.extend(UserPrefs.query().fetch(keys_only=True))
-    ndb.delete_multi(entries)
-    ndb.get_context().clear_cache() # clear memcache
-
-
-def dosettroopsemester():
-    semester_key = Semester.getOrCreateCurrent().key
-    troops = Troop.query().fetch()
-    for troop in troops:
-        #if troop.semester_key != semester_key:
-        troop.semester_key = semester_key
-        logging.info("updating semester for: %s", troop.getname())
-        troop.put()
 
 
 def UpdateSchemaTroopPerson():

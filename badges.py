@@ -6,9 +6,9 @@ from collections import namedtuple
 from flask import Blueprint, render_template, request
 
 
-from google.appengine.ext import ndb  # pylint: disable=import-error
+from google.cloud import ndb  # pylint: disable=import-error
 
-from data import ScoutGroup, TroopPerson, UserPrefs
+from data import ScoutGroup, TroopPerson, UserPrefs, dbcontext
 from data_badge import Badge, BadgePartDone, TroopBadge, BadgeCompleted, BadgeTemplate, DEFAULT_IMG_URL
 
 badges = Blueprint('badges_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
@@ -25,6 +25,7 @@ badges = Blueprint('badges_page', __name__, template_folder='templates')  # pyli
 @badges.route('/<sgroup_url>/person/<person_url>/')  # List of badges for a person
 @badges.route('/<sgroup_url>/person/<person_url>/<badge_url>/', methods=['POST', 'GET'])
 @badges.route('/<sgroup_url>/person/<person_url>/<badge_url>/', methods=['POST', 'GET'])
+@dbcontext
 def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, action=None, template_url=None):
     # logging.info("badges.py: sgroup_url=%s, badge_url=%s, troop_url=%s, person_url=%s, action=%s",
     #             sgroup_url, badge_url, troop_url, person_url, action)
@@ -294,7 +295,7 @@ def update_badge_progress(badge, progress, part_type, examiner_name):
     if len(idx_list) > 0:  # Fix trailing scout
         badge_update_person(badge, prev_scout_url, idx_list, part_type, examiner_name)
 
-
+@dbcontext
 def render_badge_for_user(request, person_url, badge_url, baselink, breadcrumbs):
     person_key = ndb.Key(urlsafe=person_url)
     person = person_key.get()
@@ -433,6 +434,7 @@ def compile_progress(persons, persons_progress, badge_parts):
 @badges.route('/templates/<badge_url>/', methods=['POST', 'GET'])  # A specific badge, post with newbadge
 @badges.route('/templates/<badge_url>/<action>/', methods=['POST', 'GET'])  # Actions: show, change
 @badges.route('/<sgroup_url>/templates/')
+@dbcontext
 def show_template(badge_url=None, action=None, sgroup_url=None):
     """Common templates for badges that scout groups can use."""
     baselink = "/badges/templates/"

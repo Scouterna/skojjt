@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from data import Meeting, Person, Semester, UserPrefs
-from google.appengine.ext import ndb
+from data import Meeting, Person, Semester, UserPrefs, ScoutGroup, dbcontext
 from flask import Blueprint, render_template
 import datetime
 
@@ -8,6 +7,7 @@ groupsummary = Blueprint('groupsummary_page', __name__, template_folder='templat
 
 @groupsummary.route('/<sgroup_url>')
 @groupsummary.route('/<sgroup_url>/')
+@dbcontext
 def scoutgroupsummary(sgroup_url):
     user = UserPrefs.current()
     if not user.canImport():
@@ -20,8 +20,7 @@ def scoutgroupsummary(sgroup_url):
     else:
         semester = user.activeSemester.get()
 
-    sgroup_key = ndb.Key(urlsafe=sgroup_url)
-    scoutgroup = sgroup_key.get()
+    scoutgroup = ScoutGroup.getFromUrlSafe(sgroup_url)
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
     baselink = "/groupsummary/" + sgroup_url
     section_title = "Föreningsredovisning - " + scoutgroup.getname()
@@ -57,7 +56,7 @@ def scoutgroupsummary(sgroup_url):
     to_date_time = datetime.datetime.strptime(str(semester.year) + "-12-31 00:00", "%Y-%m-%d %H:%M")
 
     emails = []
-    for person in Person.query(Person.scoutgroup==sgroup_key).fetch():
+    for person in Person.query(Person.scoutgroup==scoutgroup.key).fetch():
         if person.member_years is None or semester.year not in person.member_years:
             continue
         if person.email is not None and len(person.email) != 0 and person.email not in emails:

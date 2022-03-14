@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, dbcontext
 from progress import TaskProgress
-from google.appengine.ext import ndb
+from google.cloud import ndb
 import logging
 import scoutnet
 import urllib2
+import access
 
 
+@dbcontext
 def RunScoutnetImport(groupid, api_key, user, semester, result):
     """
     :type groupid: str
@@ -72,7 +74,7 @@ class ScoutnetImporter:
     def GetOrCreateTroop(self, name, troop_id, group_key, semester_key):
         if len(name) == 0:
             return None
-        troop = Troop.get_by_id(Troop.getid(troop_id, group_key, semester_key), use_memcache=True)
+        troop = Troop.get_by_id(Troop.getid(troop_id, group_key, semester_key))
         if troop != None:
             if troop.name != name:
                 troop.name = name
@@ -97,7 +99,7 @@ class ScoutnetImporter:
     def GetOrCreateGroup(self, name, scoutnetID):
         if len(name) == 0:
             return None
-        group = ScoutGroup.get_by_id(ScoutGroup.getid(name), use_memcache=True)
+        group = ScoutGroup.get_by_id(ScoutGroup.getid(name))
         if group == None:
             self.result.append(u"Ny kår %s, id=%s" % (name, str(scoutnetID)))
             group = ScoutGroup.create(name, scoutnetID)

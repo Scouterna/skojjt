@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from google.appengine.api import memcache, users
-from google.appengine.ext import ndb
+from google.cloud import ndb
 
 from data import ScoutGroup, Troop, Person
 

@@ -2,21 +2,54 @@
 """
 Tests of DAK handling.
 """
-import sys
-import shutil
-import time
-import platform
-import os
-import json
-import unittest
-import datetime
 
+"""
+Setup
+"""
+import os
+import sys
+import platform
+
+
+print("Setting up path")
+if platform.system() == 'Windows':
+    # Add app engine paths on windows.
+    sys.path.insert(1, "C:/Program Files (x86)/Google/google_appengine")
+    sys.path.insert(1, "C:/Program Files (x86)/Google/google_appengine/lib")
+    sys.path.insert(1, "C:/Program Files (x86)/Google/google_appengine/lib/yaml-3.10")
+    sys.path.insert(1, "C:/Program Files (x86)/Google/google_appengine/lib/fancy_urllib")
+    sys.path.insert(1, "c:/Program Files (x86)/Google/google_appengine/google/appengine/api")
+    sys.path.insert(1, "c:/Program Files (x86)/Google/google_appengine/google/appengine")
+elif platform.system() == 'Darwin':  # i.e. MacOS
+    BASE = "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/"
+elif platform.system() == 'Linux':
+    BASE = "/usr/lib64/google-cloud-sdk/"
+if platform.system() == 'Darwin' or platform.system() == 'Linux':
+    sys.path.insert(1, BASE + "platform/google_appengine")
+    sys.path.insert(1, BASE + "platform/google_appengine/lib")
+    sys.path.insert(1, BASE + "platform/google_appengine/lib/yaml-3.10")
+    sys.path.insert(1, BASE + "platform/google_appengine/lib/fancy_urllib")
+    sys.path.insert(1, BASE + "platform/google_appengine/api")
+    sys.path.insert(1, BASE + "lib/third_party")
+
+if 'google' in sys.modules:
+    del sys.modules['google']
+	
 # Disable all import warnings since the imports are pretty hacky
 #pylint: disable=import-error,wrong-import-order,wrong-import-position
 sys.path.append('../lib') # add lib to path for unit-testing
 sys.path.append('..') # add parent to path for unit-testing
 sys.path.append('./lib') # add lib to path for unit-testing
 sys.path.append('.') # add current dir to path for unit-testing
+
+
+# -----
+import shutil
+import time
+import json
+import unittest
+import datetime
+
 import xmlschema
 import jsonpickle
 from openpyxl import load_workbook
@@ -24,25 +57,6 @@ from flask import Flask, render_template
 from jsonreport import JsonReport
 from dakdata import DakData, Deltagare, Sammankomst
 
-if platform.system() == 'Windows':
-    # Add app engine paths on windows.
-    sys.path.append("C:/Program Files (x86)/Google/google_appengine")
-    sys.path.append("C:/Program Files (x86)/Google/google_appengine/lib")
-    sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine/api")
-    sys.path.append("c:/Program Files (x86)/Google/google_appengine/google/appengine")
-
-elif platform.system() == 'Darwin':  # i.e. MacOS
-    BASE = "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/"
-elif platform.system() == 'Linux':
-    BASE = "/usr/lib64/google-cloud-sdk/"
-if platform.system() == 'Darwin' or platform.system() == 'Linux':
-    sys.path.append(BASE + "platform/google_appengine/lib/fancy_urllib")
-    sys.path.append(BASE + "platform/google_appengine/lib")
-    sys.path.append(BASE + "platform/google_appengine/api")
-    sys.path.append(BASE + "platform/google_appengine")
-    sys.path.append(BASE + "lib/third_party")
-
-from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 from excelreport import ExcelReport
 from data import Semester

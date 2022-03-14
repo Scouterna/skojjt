@@ -9,6 +9,13 @@ libraries:
   version: latest
 - name: lxml
   version: latest
+- name: grpcio
+  version: 1.0.0
+- name: setuptools
+  version: 36.6.0
+
+env_variables:
+  REDIS_CACHE_URL: redis://127.0.0.1:6379
 
 builtins:
 - deferred: on
@@ -38,6 +45,11 @@ handlers:
 
 - url: /fonts
   static_dir: fonts
+
+- url: "/terminsprogram/.*"
+  script: main.app
+  login: optional
+  secure: optional
 
 - url: /progress/.*
   script: main.app

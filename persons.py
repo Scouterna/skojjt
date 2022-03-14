@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from data import Person, ScoutGroup, TroopPerson, UserPrefs
+from data import Person, ScoutGroup, TroopPerson, UserPrefs, Troop, dbcontext
 from flask import abort, Blueprint, redirect, render_template, request
-from google.appengine.ext import ndb
 import logging
 import scoutnet
 
@@ -14,6 +13,7 @@ persons = Blueprint('persons_page', __name__, template_folder='templates')
 @persons.route('/<sgroup_url>/<person_url>')
 @persons.route('/<sgroup_url>/<person_url>/')
 @persons.route('/<sgroup_url>/<person_url>/<action>')
+@dbcontext
 def show(sgroup_url=None, person_url=None, action=None):
     # logging.info("persons.py: sgroup_url=%s, person_url=%s, action=%s", sgroup_url, person_url, action)
     user = UserPrefs.current()
@@ -29,8 +29,8 @@ def show(sgroup_url=None, person_url=None, action=None):
     sgroup_key = None  # type: ndb.Key
     scoutgroup = None  # type: ScoutGroup
     if sgroup_url is not None:
-        sgroup_key = ndb.Key(urlsafe=sgroup_url)
-        scoutgroup = sgroup_key.get()
+        scoutgroup = ScoutGroup.getFromUrlSafe(sgroup_url)
+        sgroup_key = scoutgroup.key
         baselink += sgroup_url+"/"
         breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
 
@@ -46,8 +46,8 @@ def show(sgroup_url=None, person_url=None, action=None):
     person_key = None  # type: ndb.Key
     person = None  # type: Person
     if person_url is not None:
-        person_key = ndb.Key(urlsafe=person_url)
-        person = person_key.get()
+        person = Person.getFromUrlSafe(person_url)
+        person_key = person.key
         baselink += person_url+"/"
         section_title = person.getname()
         breadcrumbs.append({'link': baselink, 'text': section_title})
@@ -60,7 +60,7 @@ def show(sgroup_url=None, person_url=None, action=None):
             'persons.html',
             heading=section_title,
             baselink=baselink,
-            persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch(),
+            persons=Person.getAllScoutGroupPersonsInOrder(sgroup_key),
             breadcrumbs=breadcrumbs,
             username=user.getname())
 
@@ -75,17 +75,18 @@ def show(sgroup_url=None, person_url=None, action=None):
             person.removed = action == "deleteperson"
             person.put() # we only mark the person as removed
             if person.removed:
-                tps = TroopPerson.query(TroopPerson.person == person.key).fetch()
+                tps = TroopPerson.getTroopPersonsForPersonInOrder(person.key)
                 for tp in tps:
-                    tp.key.delete()
+                    tp.delete()
             return redirect(breadcrumbs[-1]['link'])
         elif action == "removefromtroop" or action == "setasleader" or action == "removeasleader":
-            troop_key = ndb.Key(urlsafe=request.args["troop"])
-            tps = TroopPerson.query(TroopPerson.person == person.key, TroopPerson.troop == troop_key).fetch(1)
+            troop = Troop.getFromUrlSafe(request.args["troop"])
+            troop_key = troop.key
+            tps = TroopPerson.getTroopPersonForTroopAndPerson(person.key, troop.key)
             if len(tps) == 1:
                 tp = tps[0]
                 if action == "removefromtroop":
-                    tp.key.delete()
+                    tp.delete()
                 else:
                     tp.leader = (action == "setasleader")
                     tp.put()

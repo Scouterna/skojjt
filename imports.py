@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 import time
-from data import Semester, UserPrefs
+from data import Semester, UserPrefs, dbcontext
 from dataimport import RunScoutnetImport
 from google.appengine.ext import deferred, ndb
 from flask import Blueprint, render_template, request, make_response, redirect
 from progress import TaskProgress
 import traceback
+import access
 
 import_page = Blueprint('import_page', __name__, template_folder='templates')
 
 @import_page.route('/', methods = ['POST', 'GET'])
+@dbcontext
+@access.canImport
 def import_():
     user = UserPrefs.current()
     if not user.canImport():
@@ -41,6 +44,7 @@ def import_():
                             apikey=apikey)
 
 
+@dbcontext
 def startAsyncImport(api_key, groupid, semester_key, user, request):
     """
     :type api_key: str
@@ -55,6 +59,7 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key, _queue="import")
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
+@dbcontext
 def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     """
     :type api_key: str

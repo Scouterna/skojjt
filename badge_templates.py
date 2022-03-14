@@ -6,15 +6,16 @@ from collections import namedtuple
 from flask import Blueprint, render_template, request
 
 
-from google.appengine.ext import ndb  # pylint: disable=import-error
+from google.cloud import ndb  # pylint: disable=import-error
 
-from data import ScoutGroup, TroopPerson, UserPrefs
+from data import ScoutGroup, TroopPerson, UserPrefs, dbcontext
 from data_badge import Badge, BadgePartDone, TroopBadge, BadgeCompleted, ADMIN_OFFSET
 
 badge_templates = Blueprint('badgetemplates_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
 
 @badges.route('/')
 @badges.route('/<badge_url>/)
+@dbcontext
 def show(badge_url=None):
     logging.info("badgetemplates: badge_url=%s", badge_url)
     user = UserPrefs.current()

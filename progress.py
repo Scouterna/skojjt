@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
-from google.appengine.api import memcache
+from data import memcache
 from flask import Blueprint, render_template, request, make_response
 import urllib
 import json

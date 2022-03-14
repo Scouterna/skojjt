@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from data import Semester, UserPrefs
+from data import Semester, UserPrefs, dbcontext
 from flask import Blueprint, render_template, redirect, request
-from google.appengine.ext import ndb
+from google.cloud import ndb
 from imports import startAsyncImport
 import logging
 
@@ -10,6 +10,7 @@ scoutgroupinfo = Blueprint('scoutgroupinfo_page', __name__, template_folder='tem
 
 @scoutgroupinfo.route('/<sgroup_url>')
 @scoutgroupinfo.route('/<sgroup_url>/', methods=['POST', 'GET'])
+@dbcontext
 def show(sgroup_url):
     user = UserPrefs.current()
     if not user.canImport():
