@@ -21,7 +21,7 @@ import urllib
 RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])
 
 
-LIMITS = {'gbg' : RegionLimits(3, 15, 7, 25, True),  # min 2 nights, max 14 nights, 7-25 yers + some older
+LIMITS = {'gbg' : RegionLimits(2, 15, 7, 25, True),  # min 2 days, max 14 days, 7-25 yers + some older
           'sthlm' : RegionLimits(2, 7, 7, 20, False)} # min 2 days, max 7 days, 7-20 years
 
 DATE_FORMAT = '%Y-%m-%d'
@@ -332,7 +332,7 @@ def validateLagetbidragInput(from_date_time, to_date_time, limits):
     if nr_days > limits.max_days:
         raise ValueError('Lägret får max vara %d dagar' % limits.max_days)
     if nr_days < limits.min_days:
-        raise ValueError('Lägret måsta vara minst %d dagar' % limits.min_days)
+        raise ValueError('Lägret måste vara minst %d dagar' % limits.min_days)
 
 
 def createLagerbidragReport(limits, scoutgroup, persons, bidrag):
