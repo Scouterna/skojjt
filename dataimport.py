@@ -245,6 +245,7 @@ class ScoutnetImporter:
                     tp = TroopPerson.create_or_set_as_leader(troop.key, person.key)
                     if tp:
                         # new or changed leader TroopPerson needs to be saved
+                        tp.leader = True
                         troopPersonsToSave.append(tp)
                         self.result.append(u"Avdelning '%s' ny ledare:%s" % (troop.getname(), person.getname()))
 
