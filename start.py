@@ -310,6 +310,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                scoutgroupbadgeslink='/badges/' + sgroup_url + '/',
                                scoutgroupinfolink='/scoutgroupinfo/' + sgroup_url + '/',
                                groupsummarylink='/groupsummary/' + sgroup_url + '/',
+                               gbg_memberlist_csv_link='/persons/' + sgroup_url + '/?gbg_csv',
                                user=user,
                                semester=semester,
                                semesters=Semester.getAllSemestersSorted(),
@@ -447,7 +448,8 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             for m in meetings:
                 if (not scoutgroup.attendance_incl_hike) and m.ishike:
                     continue
-                sammankomst = Sammankomst(str(m.key.id()[:50]), m.datetime, m.duration, m.getname())
+                
+                sammankomst = Sammankomst(m.get_short_key(troop), m.datetime, m.duration, m.getname())
                 for troop_person in troop_persons:
                     is_attending = troop_person.person in m.attendingPersons
                     if is_attending:

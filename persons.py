@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from data import Person, ScoutGroup, TroopPerson, UserPrefs
-from flask import abort, Blueprint, redirect, render_template, request
+from data import Person, ScoutGroup, TroopPerson, UserPrefs, Semester
+from flask import abort, Blueprint, redirect, render_template, request, make_response
 from google.appengine.ext import ndb
 import logging
 import scoutnet
+import urllib
 
 persons = Blueprint('persons_page', __name__, template_folder='templates')
 
@@ -19,6 +20,9 @@ def show(sgroup_url=None, person_url=None, action=None):
     user = UserPrefs.current()
     if not user.hasAccess():
         return "denied", 403
+
+    if "gbg_csv" in request.args:
+        return get_gbg_csv(sgroup_url)
 
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
 
@@ -140,3 +144,41 @@ def show(sgroup_url=None, person_url=None, action=None):
         scoutgroup=scoutgroup,
         breadcrumbs=breadcrumbs,
         badge_url='/badges/' + scoutgroup_url + '/person/' + person_url + '/')
+
+
+def get_gbg_csv(sgroup_url=None):
+    user = UserPrefs.current()
+    if not user.hasAccess():
+        return "denied", 403
+
+    sgroup_key = None  # type: ndb.Key
+    scoutgroup = None  # type: ScoutGroup
+    if sgroup_url is not None:
+        sgroup_key = ndb.Key(urlsafe=sgroup_url)
+        scoutgroup = sgroup_key.get()
+
+    if user.activeSemester is None:
+        semester = Semester.getOrCreateCurrent()
+    else:
+        semester = user.activeSemester.get()
+    
+    gothenburg_zip_prefixes = [400, 401, 402, 403, 404, 405, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 430, 436, 442, 475]
+    persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch()
+    rows = u''
+    rows += u"Förnamn;Efternamn;Personnummer;Postnummer;Är bosatt i Göteborgs Stad (Ja/Nej);Har funktionsnedsättning (Ja/Nej)\n"
+    for person in persons:
+        if semester.year not in person.member_years:
+            continue
+        is_living_in_gothenburg = "Nej"
+        zip_prefix = int(person.zip_code[:3])
+        if zip_prefix in gothenburg_zip_prefixes:
+            is_living_in_gothenburg = "Ja"
+
+        rows += person.firstname + u';' + person.lastname + u';' + person.personnr + u';' + person.zip_code + u';' + is_living_in_gothenburg + u';' + 'Nej' + '\n'
+
+    response = make_response(rows)
+    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(scoutgroup.name), safe='') +
+                                                           '-' + str(semester.year) + '.csv;')
+    return response
+

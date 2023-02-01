@@ -8,7 +8,7 @@ class JsonReport(IReport):
         self.dak = dak
         self.semester = semester
 
-    def get_url_anme(self):
+    def get_url_name(self):
         return "json"
 
     def get_mime_type(self):

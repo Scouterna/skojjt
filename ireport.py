@@ -3,7 +3,7 @@ class IReport(object):
     def __init__(self, dak, semester):
         pass
 
-    def get_url_anme(self):
+    def get_url_name(self):
         """Short name that can be used as a url parameter"""
         pass
 

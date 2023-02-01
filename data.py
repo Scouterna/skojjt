@@ -437,6 +437,22 @@ class Meeting(ndb.Model):
         return endtime.strftime('%H:%M')
     def getishike(self):
         return self.ishike
+    def get_short_key(self, troop):
+        """
+        get_short_key returns a unique key for the meeting that will fit into a 32-bit signed integer.
+        It is based on the date and troop id. Only one meeting per day is unique.
+        """
+        # MAX ID: 2147483647 (max signed 32 bit int)
+        # Example:1231zzyyxx
+        # where zzyyxx is the troop id (to avoid collisions on the same day)
+        toopid = 0
+        if troop.rapportID:
+            toopid = troop.rapportID
+        elif troop.scoutnetID:
+            toopid = troop.scoutnetID
+        troopstr = ("%d" % toopid)[:6]
+        return self.datetime.strftime("%m%d") + troopstr
+
     
     def uppdateOldPersonKeys(self, oldToNewDict):
         was_updated = False
