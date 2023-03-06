@@ -42,6 +42,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
     scoutgroup = None
     if sgroup_url is not None:
         sgroup_key = ndb.Key(urlsafe=sgroup_url)
+        if not user.hasGroupKeyAccess(sgroup_key):
+            return "denied", 403
+
         scoutgroup = sgroup_key.get()
         baselink += sgroup_url+"/"
         breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})

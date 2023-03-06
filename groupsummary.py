@@ -21,6 +21,9 @@ def scoutgroupsummary(sgroup_url):
         semester = user.activeSemester.get()
 
     sgroup_key = ndb.Key(urlsafe=sgroup_url)
+    if not user.hasGroupKeyAccess(sgroup_key):
+        return "denied", 403
+
     scoutgroup = sgroup_key.get()
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
     baselink = "/groupsummary/" + sgroup_url

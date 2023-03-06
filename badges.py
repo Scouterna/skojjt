@@ -40,6 +40,9 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
     scoutgroup = None
     if sgroup_url is not None:
         sgroup_key = ndb.Key(urlsafe=sgroup_url)
+        if not user.hasGroupKeyAccess(sgroup_key):
+            return "denied", 403
+
         scoutgroup = sgroup_key.get()
         baselink += sgroup_url + "/"
         breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
@@ -452,6 +455,9 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
         else:
             breadcrumbs.append({'link': '/badges/', 'text': 'Märken'})
             sgroup_key = ndb.Key(urlsafe=sgroup_url)
+            if not user.hasGroupKeyAccess(sgroup_key):
+                return "denied", 403
+
             scoutgroup = sgroup_key.get()
             baselink = '/badges/' + sgroup_url + '/'
             breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})

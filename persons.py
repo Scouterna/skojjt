@@ -21,9 +21,6 @@ def show(sgroup_url=None, person_url=None, action=None):
     if not user.hasAccess():
         return "denied", 403
 
-    if "gbg_csv" in request.args:
-        return get_gbg_csv(sgroup_url)
-
     breadcrumbs = [{'link':'/', 'text':'Hem'}]
 
     section_title = u'Personer'
@@ -34,9 +31,15 @@ def show(sgroup_url=None, person_url=None, action=None):
     scoutgroup = None  # type: ScoutGroup
     if sgroup_url is not None:
         sgroup_key = ndb.Key(urlsafe=sgroup_url)
+        if not user.hasGroupKeyAccess(sgroup_key):
+            return "denied", 403
+
         scoutgroup = sgroup_key.get()
         baselink += sgroup_url+"/"
         breadcrumbs.append({'link': baselink, 'text': scoutgroup.getname()})
+
+    if "gbg_csv" in request.args:
+        return get_gbg_csv(sgroup_url)
 
     if scoutgroup is None:
         return render_template(
@@ -57,8 +60,6 @@ def show(sgroup_url=None, person_url=None, action=None):
         breadcrumbs.append({'link': baselink, 'text': section_title})
 
     if person is None:
-        if not user.hasGroupKeyAccess(sgroup_key):
-            return "denied", 403
         section_title = 'Personer'
         return render_template(
             'persons.html',
