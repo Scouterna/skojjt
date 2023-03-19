@@ -7,8 +7,9 @@ from google.appengine.api import app_identity
 from google.appengine.runtime import apiproxy_errors
 import json
 import logging
-import urllib
-import urllib2
+import urllib.parse
+import urllib.request
+import urllib.error
 import os
 
 def GetScoutnetUrl():
@@ -34,9 +35,9 @@ def GetScoutnetMembersAPIJsonData(groupid, api_key):
     :type api_key: str
     :rtype: str
     """
-    request = urllib2.Request(GetScoutnetMemberlistUrl(groupid, api_key))
-    response = urllib2.urlopen(request, timeout=25) # "let it throw, let it throw, let it throw..."
-    return response.read()
+    request = urllib.request.Request(GetScoutnetMemberlistUrl(groupid, api_key))
+    with urllib.request.urlopen(request, timeout=25) as response:
+        return response.read()
 
 
 def GetValueFromJsonObject(p, key, value_name='value'):
@@ -209,19 +210,18 @@ def AddPersonToWaitinglist( scoutgroup,
 
     logging.info('Adding %s %s to waitinglist' % (firstname, lastname))
 
-    url = GetScoutnetUrl() + 'api/organisation/register/member?id=' + scoutgroup.scoutnetID + '&key=' + scoutgroup.apikey_waitinglist + '&' + urllib.urlencode(form)
+    url = GetScoutnetUrl() + 'api/organisation/register/member?id=' + scoutgroup.scoutnetID + '&key=' + scoutgroup.apikey_waitinglist + '&' + urllib.parse.urlencode(form)
     logging.info(url)
-    request = urllib2.Request(url)
+    request = urllib.request.Request(url)
     try:
-        response = urllib2.urlopen(request)
-    except urllib2.HTTPError as e:
-        result_json = e.read()
-        logging.error("Failed to add person, code=%d, msg=%s", e.code, result_json)
+        with urllib.request.urlopen(request) as response:
+           result_json = response.read()
+    except urllib.error.URLError as e:
+        logging.error("Failed to add person, msg=%s", e.reason)
         # Typical responses:
         """{"profile":[{"key":"ssno","value":null,"msg":"Personnumret \u00e4r redan registrerat p\u00e5 medlem '######'. Kontakta Scouternas kansli p\u00e5 scoutnet@scouterna.se f\u00f6r att f\u00e5 hj\u00e4lp."}]}"""
         """{"contact_list":[{"key":"contact_17","value":"example@mail.com","subkey":"contact_type_id","msg":"Invalid. Please choose contact type"}]}"""
         raise ScoutnetException(result_json.decode('unicode_escape')) # display the raw json message
-        return 0
 
     if 200 <= response.getcode() <= 201:
         result_json = response.read()
@@ -247,10 +247,11 @@ def AddPersonToWaitinglist( scoutgroup,
 
 def sendRegistrationQueueInformationEmail(scoutgroup):
     try:
+        app_id = app_identity.get_application_id()
         message = mail.EmailMessage(
-            sender="noreply@skojjt.appspotmail.com",
+            sender="noreply@" + app_id + ".appspotmail.com",
             subject=u"Ny person i scoutnets kölista",
-            body=render_template("email_queueinfo.txt",    scoutgroup=scoutgroup)
+            body=render_template("email_queueinfo.txt", scoutgroup=scoutgroup)
             )
         user=UserPrefs.current()
         message.to=user.getemail()

@@ -102,6 +102,16 @@ class ScoutGroup(ndb.Model):
     attendance_min_year = ndb.IntegerProperty(required=False, default=10)
     attendance_incl_hike = ndb.BooleanProperty(required=False, default=True)
 
+    def short_urlsafe(self) -> str:
+        return str(self.scoutnetID)
+
+    @staticmethod
+    def from_short_urlsafe(scoutnetID: str):
+        result = ScoutGroup.query(ScoutGroup.scoutnetID==scoutnetID).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
+
     @staticmethod
     def getid(name):
         return name.lower().replace(' ', '')
@@ -141,6 +151,17 @@ class Troop(ndb.Model):
     scoutnetID = ndb.IntegerProperty(required=False, default=0)
     semester_key = ndb.KeyProperty(kind=Semester)
 
+    def short_urlsafe(self) -> str:
+        return str(self.scoutnetID)
+
+    @staticmethod
+    def from_short_urlsafe(scoutnetID: str):
+        result = Troop.query(Troop.scoutnetID==int(scoutnetID)).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
+
+
     @staticmethod
     def getid(troop_id, scoutgroup_key, semester_key):
         semester = semester_key.get()
@@ -152,7 +173,7 @@ class Troop(ndb.Model):
 
     @staticmethod
     def getTroopsForUser(sgroup_key, user):
-        return Troop.query(Troop.scoutgroup==sgroup_key, user.activeSemester==Troop.semester_key).fetch()
+        return Troop.query(Troop.scoutgroup==sgroup_key, Troop.semester_key==user.activeSemester).fetch()
 
     @staticmethod
     def getById(troop_id, semester_key):
@@ -171,9 +192,6 @@ class Troop(ndb.Model):
             meeting.delete()
         self.key.delete()
 
-
-class PendingPersonKeyChange(PropertyWriteTracker):
-    pass # forward declaration see below
 
 
 class Person(PropertyWriteTracker):
@@ -225,60 +243,18 @@ class Person(PropertyWriteTracker):
     def getByMemberNo(member_no):
         return Person.get_by_id(member_no, use_memcache=True)
 
-    #deprecated 
+    def short_urlsafe(self) -> str:
+        return str(self.member_no)
+
     @staticmethod
-    def getByPersonNr(personnr):
-        return Person.get_by_id(personnr, use_memcache=True)
+    def from_short_urlsafe(member_no: str):
+        result = Person.query(Person.member_no==int(member_no)).fetch(1)
+        if len(result) == 1:
+            return result[0]
+        return None
 
     def getMemberNo(self):
         return self.key.id()
-
-    """
-    # updateKey
-    # If the person is not using member_no as id
-    # create a new person with member_no as id
-    # copy all fields to the new person
-    # update all TroopPerson's person
-    # update all Meeting's attending persons
-    # create update record, old_id -> new_id
-    # do after calls to this method:
-    #   remove the old persons
-    #   commit changes
-    #   clear memcache
-    #
-    # returns: newPerson, pendingKeyChange (to be committed)
-    """
-    def updateKey(self): 
-        if self.member_no is not None and self.key.id() != self.member_no:
-            newPerson = Person.create(self.member_no, self.firstname, self.lastname, self.personnr)
-            newPerson.patrool = self.patrool
-            newPerson.scoutgroup = self.scoutgroup
-            newPerson.notInScoutnet = self.notInScoutnet
-            newPerson.removed = self.removed
-            newPerson.email = self.email
-            newPerson.phone = self.phone
-            newPerson.mobile = self.mobile
-            newPerson.alt_email = self.alt_email
-            newPerson.mum_name = self.mum_name
-            newPerson.mum_email = self.mum_email
-            newPerson.mum_mobile = self.mum_mobile
-            newPerson.dad_name = self.dad_name
-            newPerson.dad_email = self.dad_email
-            newPerson.dad_mobile = self.dad_mobile
-            newPerson.street = self.street
-            newPerson.zip_code = self.zip_code
-            newPerson.zip_name = self.zip_name
-            newPerson.troop_roles = self.troop_roles
-            newPerson.group_roles = self.group_roles
-            newPerson.member_years = self.member_years
-            # set a version number to allow us to work incrementally, the records with version 1 will not be checked again
-            self.version = 1 # this means that we have processed this record (it still has the wrong id, but will be deleted)
-            newPerson.version = 2
-            pendingKeyChange = PendingPersonKeyChange.create_or_update(self.key, newPerson.key)
-            return (newPerson, pendingKeyChange)
-        else:
-            return (None, None)
-
 
     def isFemale(self):
         return Person.getIsFemale(self.personnr)
@@ -342,24 +318,6 @@ class Person(PropertyWriteTracker):
         if self.zip_code is None or self.zip_name is None:
             return ''
         return self.zip_code + ' ' + self.zip_name
-
-
-# used for key person key update
-class PendingPersonKeyChange(PropertyWriteTracker):
-    old_key = ndb.KeyProperty(kind=Person)
-    new_key = ndb.KeyProperty(kind=Person)
-
-    @staticmethod
-    def create_or_update(old_key, new_key):
-        person_id = old_key.id()
-        ppkc = PendingPersonKeyChange.get_by_id(person_id, use_memcache=True)
-        if ppkc is not None:
-            ppkc.old_key = old_key
-            ppkc.new_key = new_key
-        else:
-            ppkc = PendingPersonKeyChange(id=person_id, old_key=old_key, new_key=new_key)
-            ppkc._dirty = True
-        return ppkc
 
 
 class Meeting(ndb.Model):

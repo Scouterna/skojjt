@@ -18,8 +18,9 @@ window.updateCursor = '';
 function updateProgress(){
     $("#animation").attr("src","/img/working.gif");
     $.ajax({
-        url: './update/?cursor=' + window.updateCursor,
+        url: document.location.href + '/update/?cursor=' + window.updateCursor,
         dataType: "json",
+        
         error: function(msg){
             $("#topinfo").html(msg);
             $("#animation").attr("src","/img/error.gif");

@@ -2,7 +2,7 @@ from data import Meeting, ScoutGroup, Semester, Troop
 from flask import Blueprint, render_template, make_response
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
-import urllib
+import urllib.parse
 
 terminsprogram = Blueprint('terminsprogram', __name__, template_folder='templates')
 
@@ -33,7 +33,7 @@ def show(troop_url, filetype):
         xml += '</terminsprogram>\r\n'
         response = make_response(xml)
         response.headers['Content-Type'] = 'application/xml'
-        response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(filename), safe='')
+        response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.parse.quote(str(filename), safe='')
         return response
     elif filetype=="json":
         json = "{"
@@ -48,7 +48,7 @@ def show(troop_url, filetype):
         json += "}"
         response = make_response(json)
         response.headers['Content-Type'] = 'text/json'
-        response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(str(filename), safe='')
+        response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.parse.quote(str(filename), safe='')
         return response
     else:
         return "Unknown file format, html, xml or json is supported"

@@ -2,9 +2,11 @@
 import datetime
 from google.appengine.api import memcache
 from flask import Blueprint, render_template, request, make_response
-import urllib
+import urllib.parse
 import json
 import logging
+import pickle
+import base64
 
 
 
@@ -13,6 +15,7 @@ progress = Blueprint('progress_page', __name__, template_folder='templates')
 
 class TaskProgress():
     pass
+
 class TaskProgressKey():
     def __init__(self, taskProgress):
         self.taskProgress = taskProgress
@@ -29,10 +32,13 @@ class TaskProgress():
         self.key = self
         self.failed = False
         self.completed = None
-        memcache.add(self.urlsafe(), self)
+        logging.info(f"adding new taskProgress={self.urlsafe()} to memcache")
+        memcache.add(self.urlsafe(), base64.b64encode(pickle.dumps(self)))
+        logging.info(f"added new taskProgress={self.urlsafe()} to memcache")
+
 
     def urlsafe(self):
-        return urllib.quote(self.name + str(self.created))
+        return urllib.parse.quote(self.name + self.created.strftime("_%Y%m%d%H%M%S%f"))
 
     @staticmethod
     def getTaskProgress(url_safe):
@@ -40,11 +46,19 @@ class TaskProgress():
             return url_safe.taskProgress
         if isinstance(url_safe, TaskProgress):
             return url_safe
-        return memcache.get(urllib.quote(url_safe))
+        logging.info(f"getting url_safe={url_safe} from memcache")
+        encodedTaskProgress = memcache.get(url_safe)
+        if encodedTaskProgress:
+            return pickle.loads(base64.b64decode(encodedTaskProgress))
+        logging.warning(f"not found url_safe={url_safe} in memcache")
+        return None
 
     def append(self, message):
         self.messages.append(message)
-        memcache.replace(self.urlsafe(), self)
+        logging.info(f"appending={self.urlsafe()} to memcache")
+        memcache.replace(self.urlsafe(), base64.b64encode(pickle.dumps(self)))
+        logging.info(f"append={self.urlsafe()} to memcache")
+
 
     def info(self, message):
         self.append(message)
@@ -59,7 +73,7 @@ class TaskProgress():
 
     def done(self):
         self.completed = datetime.datetime.now()
-        memcache.replace(self.urlsafe(), self)
+        memcache.replace(self.urlsafe(), base64.b64encode(pickle.dumps(self)))
 
     def isRunning(self):
         return self.completed is None
@@ -95,8 +109,10 @@ class TaskProgress():
 @progress.route('/<progress_url>/')
 @progress.route('/<progress_url>/<update>')
 @progress.route('/<progress_url>/<update>/')
-def importProgress(progress_url, update=None):
+def getProgress(progress_url, update=None):
+    logging.info(f"getProgress: progress_url={progress_url}, update={update}")
     taskProgress = TaskProgress.getTaskProgress(progress_url)
+    logging.info(f"getProgress: taskProgress={taskProgress.urlsafe()}")
 
     if update is not None:
         if taskProgress is not None:
@@ -116,3 +132,4 @@ def importProgress(progress_url, update=None):
     else:
         breadcrumbs = [{'link':'/', 'text':'Hem'}, {'link':'', 'text':'Tillbaka'}]
         return render_template('progressreport.html', tabletitle='<raderad>', rowtitle='Result', breadcrumbs=breadcrumbs, return_url='')
+

@@ -26,5 +26,6 @@
         "C:/Program Files (x86)/Google/google_appengine",
         "C:/Program Files (x86)/Google/google_appengine/lib"
     ],
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.analysis.typeCheckingMode": "basic"
 }

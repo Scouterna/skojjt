@@ -179,7 +179,7 @@ def get_gbg_csv(sgroup_url=None):
 
     response = make_response(rows)
     response.headers['Content-Type'] = 'text/csv'
-    response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(scoutgroup.name), safe='') +
+    response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(scoutgroup.name), safe='') +
                                                            '-' + str(semester.year) + '.csv;')
     return response
 

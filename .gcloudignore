@@ -9,3 +9,8 @@
 .gcloudignore
 !include:.gitignore
 scripts/
+env/
+.vscode/
+__pycache__/
+documentation/
+design/

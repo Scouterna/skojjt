@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 # [WIP]
+import logging
+import time
+import json
+from threading import Thread
 from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
 from flask import Blueprint, render_template, request, make_response, redirect
-from google.appengine.ext import deferred
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import metadata
 from datetime import datetime
-import bisect
-import htmlform
-import logging
-import scoutnet
-import time
-import traceback
-import json
 
 stats = Blueprint('stats', __name__, template_folder='templates')
 
@@ -64,7 +60,8 @@ def update_meeting_date_count():
     memcache.add("update_meeting_date_count_is_running", True)
     memcache.delete("meeting_date_counter_dict")
     memcache.add("meeting_date_counter_dict", {})
-    deferred.defer(meeting_date_count_deferred, None)
+    t = Thread(target=meeting_date_count_deferred, args=[None])
+    t.run()
     return "Running update"
 
 
@@ -95,7 +92,9 @@ def meeting_date_count_deferred(start_cursor):
             if there_is_more:
                 memcache.delete("meeting_date_counter_dict")
                 memcache.add("meeting_date_counter_dict", meeting_date_counter_dict)
-                deferred.defer(meeting_date_count_deferred, start_cursor)
+                t = Thread(target=meeting_date_count_deferred, args=[start_cursor]) # TODO: not sure there is a timelimit on threads, check
+                t.run()
+                return
 
 
     meeting_date_counter = [{"date" : day_key, "delt": meeting_date_counter_dict[day_key]} for day_key in sorted(meeting_date_counter_dict)]

@@ -474,7 +474,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xlsx;')
                 return response
             elif key_url == "json":
@@ -482,13 +482,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 resultbytes = json_report.get_report_string()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = json_report.get_mime_type()
-                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(json_report.get_filename(), safe='') + ';'
+                response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.parse.quote(json_report.get_filename(), safe='') + ';'
                 return response
             else:
                 result = render_template('dak.xml', dak=dak)
                 response = make_response(result)
                 response.headers['Content-Type'] = 'application/xml'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.quote(str(dak.kort.namn_paa_kort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.namn_paa_kort), safe='') +
                                                            '-' + semester.getname() + '.xml;')
                 return response
         elif key_url == "sensus":

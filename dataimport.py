@@ -4,7 +4,7 @@ from progress import TaskProgress
 from google.appengine.ext import ndb
 import logging
 import scoutnet
-import urllib2
+import urllib.error
 
 
 def RunScoutnetImport(groupid, api_key, user, semester, result):
@@ -23,7 +23,7 @@ def RunScoutnetImport(groupid, api_key, user, semester, result):
 
     try:
         data = scoutnet.GetScoutnetMembersAPIJsonData(groupid, api_key)
-    except urllib2.HTTPError as e:
+    except urllib.error.HTTPError as e:
         result.error(u"Kunde inte läsa medlemmar från scoutnet, fel:%s" % (str(e)))
         if e.code == 401:
             result.error(u"Kontrollera: api nyckel och kårid. Se till att du har rollen 'Medlemsregistrerare', och möjligen 'Webbansvarig' i scoutnet")
@@ -146,9 +146,6 @@ class ScoutnetImporter:
             if len(personnr) < 12:
                 self.result.warning(u"%d %s %s har inte korrekt personnummer: '%s', hoppar över personen" % (person_id, p["firstname"], p["lastname"], personnr))
                 continue
-
-            if person == None:
-                person = Person.getByPersonNr(personnr) # fallback lookup, these records will be converted to member_no.
 
             if person != None:
                 person_id = person.key.id()

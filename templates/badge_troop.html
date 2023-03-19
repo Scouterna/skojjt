@@ -14,7 +14,7 @@
 		{% for person in persons_scout_part %}{% set iperson = loop.index0 %}
 		<tr class="{{person.key.urlsafe()}}">
 		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
-			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+			<a href="{{baselink+person.key.urlsafe() + '/'}}">{{loop.index}}. {{person.getname()}}</a>
 		</td>
 		{% for part in badge_parts_scout %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
 			<td><input title="{{part[0]}}: {{person.getname()}}"
@@ -60,7 +60,7 @@
 		{% for person in persons_admin_part %}{% set iperson = loop.index0 %}
 		<tr class="{{person.key.urlsafe()}}">
 		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
-			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+			<a href="{{baselink+person.key.urlsafe() + '/'}}">{{loop.index}}. {{person.getname()}}</a>
 		</td>
 		{% for part in badge_parts_admin %} {# name is meeting, id is the person #}{% set ipart = loop.index0 %}
 			<td><input title="{{part[0]}}: {{person.getname()}}"
@@ -84,7 +84,7 @@
 		{% for person in persons_done %}{% set iperson = loop.index0 %}
 		<tr class="{{person.key.urlsafe()}}">
 		<td class="name-field troopnames" id="name{{person.key.urlsafe()}}" title="{{person.getname()}}">
-			<a href="{{baselink+person.key.urlsafe()+ '/'}}">{{loop.index}}. {{person.getname()}}</a>
+			<a href="{{baselink+person.key.urlsafe() + '/'}}">{{loop.index}}. {{person.getname()}}</a>
 		</td>
 		</tr>
 		{% endfor %}
