@@ -44,3 +44,5 @@ list.sort() måste använda functools.cmp_to_key för att sortera med jämförel
 
 dict.iteritems() blir dict.items()
 
+zip(a,b) -> list(zip(a,b)) ger en lista i py3.
+
