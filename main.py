@@ -3,6 +3,7 @@ import logging
 import sys
 from data import ScoutGroup, UserPrefs
 from flask import Flask, redirect, render_template, request
+from google.appengine.api import app_identity
 from google.appengine.api import users
 from google.appengine.api import mail
 from google.appengine.api import memcache
@@ -95,12 +96,13 @@ def getaccess():
         if sgroup is not None:
             groupAdminEmails = UserPrefs.getAllGroupAdminEmails(sgroup.key)
             if len(groupAdminEmails) > 0:
+                app_id = app_identity.get_application_id()
                 mail.send_mail(
-                    sender="noreply@skojjt.appspotmail.com",
+                    sender="noreply@" + app_id + ".appspotmail.com",
                     to=','.join(groupAdminEmails),
                     subject=u"""Användaren: {} vill ha access till närvaroregistrering i Skojjt
                     för scoutkåren {}""".format(user.getemail(), sgroup.getname()),
-                    body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/", user.getname()))
+                    body=u"""Gå till {} för att lägga till {}""".format(request.host_url + "groupaccess/?name=" + user.getname(), user.getname()))
         return redirect('/')
     else:
         return render_template('getaccess.html',
@@ -112,10 +114,10 @@ def getaccess():
 
 @app.route('/groupaccess')
 @app.route('/groupaccess/')
-@app.route('/groupaccess/<userprefs_url>')
-def groupaccess(userprefs_url=None):
+@app.route('/groupaccess/<user_name>')
+def groupaccess(user_name=None):
     user = UserPrefs.current()
-    if not user.isGroupAdmin() and user.groupaccess is None:
+    if not user.isGroupAdmin():
         return "denied", 403
 
     section_title = u'Hem'
@@ -126,18 +128,24 @@ def groupaccess(userprefs_url=None):
     baselink += 'groupaccess/'
     breadcrumbs.append({'link':baselink, 'text':section_title})
 
-    if userprefs_url != None:
-        userprefs = ndb.Key(urlsafe=userprefs_url).get()
-        groupaccessurl = request.args["setgroupaccess"]
-        if groupaccessurl == 'None':
-            userprefs.groupaccess = None
+    users = []
+    if user_name != None:
+        candidate = UserPrefs().query(UserPrefs.name == user_name).fetch(1)[0]
+        groupaccessurl = request.args["accept_user"]
+        if groupaccessurl == '1':
+            candidate.groupaccess = user.groupaccess
+            candidate.hasaccess = True
         else:
-            userprefs.groupaccess = ndb.Key(urlsafe=groupaccessurl)
-            userprefs.hasaccess = True
-        userprefs.put()
+            candidate.groupaccess = None
+        candidate.put()
+        users = [candidate]
+    else:
+        if 'name' in request.args:
+            users = UserPrefs().query(UserPrefs.name == request.args['name']).fetch(1)
+        else:
+            users = UserPrefs().query(UserPrefs.groupaccess == None).fetch()
+            users.extend(UserPrefs().query(UserPrefs.groupaccess == user.groupaccess).fetch())
 
-    users = UserPrefs().query(UserPrefs.groupaccess == None).fetch()
-    users.extend(UserPrefs().query(UserPrefs.groupaccess == user.groupaccess).fetch())
     return render_template('groupaccess.html',
         heading=section_title,
         baselink=baselink,
