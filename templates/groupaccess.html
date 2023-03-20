@@ -27,8 +27,8 @@ Användare som du lägger till kan rapportera närvaro i din kår.
 				{% set sgroupname = group.getname() %}
 			{% endif %}
 		{% endif %}
-		<td>{%if sgroupname==''%}<a href="./{{u.key.urlsafe()}}?setgroupaccess={{mygroupurl}}" class="btn btn-success">Lägg till i {{mygroupname}}</a>
-		{%else%}<a href="./{{u.key.urlsafe()}}?setgroupaccess=None" class="btn btn-warning">Ta bort ifrån {{mygroupname}}{%endif%}</a></td>
+		<td>{%if sgroupname==''%}<a href="./{{u.name}}?accept_user=1" class="btn btn-success">Lägg till i {{mygroupname}}</a>
+		{%else%}<a href="./{{u.name}}?accept_user=0" class="btn btn-warning">Ta bort ifrån {{mygroupname}}{%endif%}</a></td>
 		</tr>
 		{% endfor %}
 	  </tbody>
