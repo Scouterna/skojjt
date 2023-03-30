@@ -16,6 +16,7 @@ import io
 import copy
 import math
 import urllib
+from functools import cmp_to_key
 
 
 RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])
@@ -169,7 +170,7 @@ def response_sthlm(bidragcontainer):
 
     response = make_response(resultbytes)
     response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.quote(ascii_doc_name)
+    response.headers['Content-Disposition'] = 'attachment; filename=' + urllib.parse.quote(ascii_doc_name)
     return response
 
 
@@ -246,6 +247,7 @@ class LagerBidrag():
     account = ""
     firmatecknare = ""
     firmatecknartelefon = ""
+    firmatecknaremail = ""
     organisationsnummer = ""
     kontonummer = ""
     dateFrom = ""
@@ -296,7 +298,7 @@ def createLagerbidragGroup(limits, scoutgroup, troops, bidrag):
                     person_days[person] += 1
 
     # Collect number of persons
-    for person, days in person_days.iteritems():
+    for person, days in person_days.items():
         _add_person(person, persons, year, days)
 
     return createLagerbidragReport(limits, scoutgroup, persons, bidrag)
@@ -372,7 +374,7 @@ def createLagerbidragReport(limits, scoutgroup, persons, bidrag):
                 bidrag.nights += person.days - 1
                 bidrag.days += person.days
 
-    container.persons.sort(person_sort)
+    container.persons.sort(key=cmp_to_key(person_sort))
 
     number_of_persons = container.nr_young_persons + container.nr_older_persons + container.nr_under_min_age
     assert number_of_persons == len(container.persons)
@@ -383,7 +385,7 @@ def createLagerbidragReport(limits, scoutgroup, persons, bidrag):
     bidrag.divider = 25 if tmp_divider < 25 else tmp_divider
     # Add empty persons
     container.persons.extend([LagerPerson() for i in range(0, bidrag.divider * 2 - len(container.persons))])
-    container.numbers = range(0, bidrag.divider)
+    container.numbers = [x for x in range(0, bidrag.divider)]
 
     container.bidrag = bidrag
     return container

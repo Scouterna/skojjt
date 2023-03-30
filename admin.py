@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs, PendingPersonKeyChange
-from data_badge import TroopBadge, Badge
-from flask import Blueprint, render_template, request, make_response, redirect
-from progress import TaskProgress
-from google.appengine.ext import deferred
-from google.appengine.api import memcache
-from google.appengine.ext import ndb
-from google.appengine.ext.ndb import metadata
 from datetime import datetime
-import htmlform
 import logging
-import scoutnet
 import time
 import traceback
+from threading import Thread
+from flask import Blueprint, render_template, request, make_response, redirect
+from google.appengine.ext import ndb
+from google.appengine.ext.ndb import metadata
+from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
+from data_badge import TroopBadge, Badge
+from progress import TaskProgress
+import htmlform
+import scoutnet
 
 
 admin = Blueprint('admin_page', __name__, template_folder='templates')
@@ -138,7 +137,8 @@ def startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, 
     """
     taskProgress = TaskProgress(name='MergeSG', return_url=request.url)
     taskProgress.put()
-    deferred.defer(merge_sg_deferred, oldname, newname, commit, taskProgress.key, user.key, move_users, move_persons, move_troops, delete_sg, semester_id, _queue="admin")
+    t = Thread(target=merge_sg_deferred, args=[oldname, newname, commit, taskProgress.key, user.key, move_users, move_persons, move_troops, delete_sg, semester_id])
+    t.run()
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
 def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move_users, move_persons, move_troops, delete_sg, semester_id):
@@ -150,10 +150,12 @@ def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move
 
     except Exception as e:
         # catch all exceptions so that defer stops running it again (automatic retry)
-        taskProgress.error(str(e) + "CS:" + traceback.format_exc())
+        if taskProgress:
+            taskProgress.error(str(e) + "CS:" + traceback.format_exc())
 
     try:
-        taskProgress.done()
+        if taskProgress:
+            taskProgress.done()
     except Exception as e:
         pass
 
@@ -298,192 +300,6 @@ def adminUpdateUpdatePersonIds():
             breadcrumbs=breadcrumbs,
             scoutgroups=ScoutGroup.query().fetch())
 
-
-"""
-How to handle tasks 
-List all tasks:
-> gcloud tasks list --queue=admin
-
-Delete a task:
-> gcloud tasks delete <task-name> --queue=admin
-"""
-def startAsyncUpdatePersonIds(commit, sgroup_key):
-    taskProgress = TaskProgress(name='Update Person IDs', return_url=request.url)
-    taskProgress.put()
-    taskProgress.info("Startar Person id uppdatering")
-    if not commit:
-        taskProgress.info("** Test mode **")
-
-    if sgroup_key is None:
-        taskProgress.error("Missing sgroup_key")
-        return redirect('/progress/' + taskProgress.key.urlsafe())
-
-    deferred.defer(update_person_ids_deferred, commit, sgroup_key, None, 0, taskProgress.key, _queue="admin")
-    return redirect('/progress/' + taskProgress.key.urlsafe())
-
-def update_person_ids_deferred(commit, sgroup_key, cursor, stage, taskProgress_key):
-    there_is_more = True
-    try:
-        taskProgress = TaskProgress.getTaskProgress(taskProgress_key)
-
-        cursor, there_is_more, stage = update_person_ids(commit, sgroup_key, cursor, stage, taskProgress)
-
-        if there_is_more:
-            deferred.defer(update_person_ids_deferred, commit, sgroup_key, cursor, stage, taskProgress_key, _queue="admin")
-
-    except Exception as e:
-        # catch all exceptions so that defer stops running it again (automatic retry)
-        taskProgress.error(str(e) + "CS:" + traceback.format_exc())
-
-    try:
-        if not there_is_more:
-            taskProgress.done()
-    except Exception as e:
-        pass
-
-max_time_seconds = 7*60
-PAGE_SIZE = 100
-def update_person_ids(commit, sgroup_key, start_cursor, stage, taskProgress):
-    start_time = time.time()
-    time_is_out = False
-    there_is_more = True
-    oldToNewDict = {}
-
-    # --- Stage 0 ---
-    if stage == 0:
-        while there_is_more:
-
-            if time.time() - start_time > max_time_seconds:
-                time_is_out = True
-                break # time out
-
-            person_keys, start_cursor, there_is_more = Person.query(Person.scoutgroup ==sgroup_key) \
-                                                        .fetch_page(page_size=PAGE_SIZE, start_cursor=start_cursor, keys_only=True)
-            for person_key in person_keys:
-                if len(str(person_key.id())) < 12: # cannot be a personnr if shorter than 12 chars
-                    taskProgress.info("Not updating id=%s" % (str(person_key.id())))
-                    continue
-                person = person_key.get()
-                if person.version == 1 or person.version == 2:
-                    taskProgress.info("Already updated id=%s" % (str(person_key.id())))
-                    continue
-                if person.member_no is None:
-                    taskProgress.warning("Cannot update, member_no is None id=%s, %s" % (str(person_key.id()), person.getname()))
-                    continue
-
-                taskProgress.info("Updating Person: id=%s, pnr=%s, no=%s, %s" % (str(person.key.id()), person.personnr, str(person.member_no), person.getname()))
-
-                newPerson, pendingKeyChange = person.updateKey()
-
-                if newPerson is not None:
-                    if commit and newPerson._dirty:
-                        k = newPerson.put()
-                        assert(k == newPerson.key)
-                if commit and person._dirty:
-                    person.put()
-                if pendingKeyChange is not None:
-                    if pendingKeyChange._dirty:
-                        pendingKeyChange.put() # safe to put, to be able to test the rest of the method
-
-        if there_is_more:
-            return start_cursor, there_is_more, stage
-        else:
-            taskProgress.info("Updated all persons Persons")
-            stage = 1
-            start_cursor = None
-            there_is_more = True
-            return start_cursor, there_is_more, stage # restart to start fresh and let datastore catch up
-
-
-    taskProgress.info("Loading PendingPersonKeyChange records")
-    ppkc_more = True
-    ppkc_start_cursor = None
-    while ppkc_more:
-        ppkcs, ppkc_start_cursor, ppkc_more = PendingPersonKeyChange.query().fetch_page(page_size=1000, start_cursor=ppkc_start_cursor)
-        for ppkc in ppkcs:
-            oldToNewDict[ppkc.old_key] = ppkc.new_key
-        
-        taskProgress.info("Loaded persons to convert %d" % (len(oldToNewDict)))
-
-    taskProgress.info("Number of persons to convert %d" % (len(oldToNewDict)))
-
-    # --- Stage 1 ---
-    if stage == 1:
-        num_meetings_updated = 0
-        troop_count = 0
-        there_is_more = True
-        taskProgress.info("Updating Meetings")
-        while there_is_more:
-            if time.time() - start_time > max_time_seconds:
-                return start_cursor, there_is_more, stage
-
-            troop_keys, start_cursor, there_is_more = Troop.query(Troop.scoutgroup == sgroup_key) \
-                                                    .fetch_page(page_size=5, start_cursor=start_cursor, keys_only=True)
-            for troop_key in troop_keys:
-                troop_count += 1
-                meetings = Meeting.query(Meeting.troop == troop_key).fetch()
-                for meeting in meetings:
-                    if meeting.uppdateOldPersonKeys(oldToNewDict):
-                        num_meetings_updated += 1
-                        if commit:
-                            meeting.put()
-
-            if num_meetings_updated % 10 == 0:
-                taskProgress.info("Updated %d meetings, %d troop_count" % (num_meetings_updated, troop_count))
-
-        if there_is_more:
-            return start_cursor, there_is_more, stage
-        else:
-            taskProgress.info("Updated all meetings, time taken: %s s" % (str(time.time() - start_time)))
-            stage = 2
-            there_is_more = True
-            start_cursor = None
-            return start_cursor, there_is_more, stage
-
-    # --- Stage 2 ---
-    if stage == 2:
-        update_counter = 0
-        if start_cursor == None:
-            start_cursor = 0
-
-        taskProgress.info("Updating TroopPersons")
-        for index, (old_person_key, new_person_key) in enumerate(oldToNewDict.items()):
-            if index < start_cursor:
-                continue
-
-            for troopPerson in TroopPerson.query(TroopPerson.person==old_person_key).fetch():
-                troopPerson.person = new_person_key
-                update_counter += 1
-                if commit:
-                    troopPerson.put()
-                if update_counter % 10 == 0:
-                    taskProgress.info("Updated %d TroopPersons" % (update_counter))
-
-            if time.time() - start_time > max_time_seconds:
-                start_cursor = index
-                there_is_more = True
-                return start_cursor, there_is_more, stage
-
-        taskProgress.info("Updated all TroopPersons")
-        there_is_more = True
-        stage = 3
-        start_cursor = None
-        return start_cursor, there_is_more, stage # restart to start fresh and let datastore catch up
-
-    # --- Stage 3 ---
-    if stage == 3:
-        taskProgress.info("Deleting old persons")
-        if commit and len(oldToNewDict) != 0:
-            old_person_keys = [old_person_key for index, (old_person_key, new_person_key) in enumerate(oldToNewDict.items())]
-            ndb.delete_multi(old_person_keys)
-            taskProgress.info("Deleted %d old persons" % (len(old_person_keys)))
-
-        there_is_more = False
-        start_cursor = None
-        stage = 4
-
-    taskProgress.info("Done updating Person keys!")
-    return None, False, stage
 
 
 # cleanup of bad database records

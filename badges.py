@@ -116,14 +116,14 @@ def show(sgroup_url=None, badge_url=None, troop_url=None, person_url=None, actio
             parts_admin = []
             img_url = DEFAULT_IMG_URL
             if badge:
-                parts_scout = zip(badge.parts_scout_short, badge.parts_scout_long)
-                parts_admin = zip(badge.parts_admin_short, badge.parts_admin_long)
+                parts_scout = list(zip(badge.parts_scout_short, badge.parts_scout_long))
+                parts_admin = list(zip(badge.parts_admin_short, badge.parts_admin_long))
                 other_badges = filter(lambda bdg: bdg.name != badge.name, other_badges)
                 if badge.img_url:
                     img_url = badge.img_url
             elif template:
-                parts_scout = zip(template.parts_scout_short, template.parts_scout_long)
-                parts_admin = zip(template.parts_admin_short, template.parts_admin_long)
+                parts_scout = list(zip(template.parts_scout_short, template.parts_scout_long))
+                parts_admin = list(zip(template.parts_admin_short, template.parts_admin_long))
                 if template.img_url:
                     img_url = template.img_url
             other_badge_names = ",".join([bdg.name for bdg in other_badges])
@@ -363,8 +363,8 @@ def render_badge_for_troop(sgroup_url, badge_key, badge, troop_key, troop, basel
     troop_persons = TroopPerson.getTroopPersonsForTroop(troop_key)
     # Remove leaders since they are not candidates for badges
     troop_persons = [tp for tp in troop_persons if not tp.leader]
-    badge_parts_scout = zip(badge.parts_scout_short, badge.parts_scout_long)
-    badge_parts_admin = zip(badge.parts_admin_short, badge.parts_admin_long)
+    badge_parts_scout = list(zip(badge.parts_scout_short, badge.parts_scout_long))
+    badge_parts_admin = list(zip(badge.parts_admin_short, badge.parts_admin_long))
     nr_scout_parts = len(badge_parts_scout)
     nr_parts = nr_scout_parts + len(badge_parts_admin)
     persons = []
@@ -487,8 +487,8 @@ def show_template(badge_url=None, action=None, sgroup_url=None):
         breadcrumbs.append({'link': baselink, 'text': name})
 
         if badge is not None:
-            parts_scout = zip(badge.parts_scout_short, badge.parts_scout_long)
-            parts_admin = zip(badge.parts_admin_short, badge.parts_admin_long)
+            parts_scout = list(zip(badge.parts_scout_short, badge.parts_scout_long))
+            parts_admin = list(zip(badge.parts_admin_short, badge.parts_admin_long))
         else:
             parts_scout = []
             parts_admin = []

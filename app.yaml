@@ -1,65 +1,29 @@
-runtime: python27
-api_version: 1
-threadsafe: yes
+runtime: python311
+# https://github.com/GoogleCloudPlatform/appengine-python-standard
+app_engine_apis: true
 
-default_expiration: "2h"
-
-libraries:
-- name: ssl
-  version: latest
-- name: lxml
-  version: latest
-
-builtins:
-- deferred: on
-- remote_api: on
 
 handlers:
-- url: /favicon.ico
-  static_files: img/favicon.ico
-  upload: img/favicon.ico
+  # This configures Google App Engine to serve the files in the app's static
+  # directory.
+- url: /static
+  static_dir: static
 
-- url: /manifest.json
-  static_files: img/manifest.json
-  upload: img/manifest.json
-
-- url: /css
-  static_dir: css
-
-- url: /img
-  static_dir: img
-
-- url: /testdata
-  static_dir: tests/data
-  application_readable: true
-
-- url: /js
-  static_dir: js
-
-- url: /fonts
-  static_dir: fonts
-
-- url: "/terminsprogram/.*"
-  script: main.app
-  login: optional
-  secure: optional
-
-- url: /progress/.*
-  script: main.app
+  # This handler routes all requests not caught above to your main app. It is
+  # required when static routes are defined, but can be omitted (along with
+  # the entire handlers section) when there are no static files defined.
+- url: /.*
+  script: auto
   login: required
-  secure: always
 
-- url: /tasks/.*
-  script: main.app
-  login: admin
-  secure: always
-  
-- url: /admin/.*
-  script: main.app
-  login: admin
-  secure: always
-  
-- url: .*  # This regex directs all routes to main.app
-  script: main.app
-  login: required
-  secure: always
+
+inbound_services:
+- mail
+- mail_bounce
+
+
+env_variables:
+  DEFERRED_USE_CROSS_COMPATIBLE_PICKLE_PROTOCOL: 'True'
+  MEMCACHE_USE_CROSS_COMPATIBLE_PROTOCOL: 'True'
+  NDB_USE_CROSS_COMPATIBLE_PICKLE_PROTOCOL: 'True'
+

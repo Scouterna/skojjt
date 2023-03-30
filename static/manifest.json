@@ -1,5 +1,7 @@
 {
+    "manifest_version" : 3,
     "name": "Skojjt",
+    "version": "3.0.0",
     "icons": [
         {
             "src": "/img/android-chrome-144x144.png",
@@ -9,5 +11,9 @@
     ],
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
-    "display": "standalone"
+    "display": "standalone",
+    "host_permissions" : [
+        "http://*/*",
+        "https://*/*"
+    ]
 }

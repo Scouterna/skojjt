@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import time
+import logging
 from data import Semester, UserPrefs
 from dataimport import RunScoutnetImport
-from google.appengine.ext import deferred
+from threading import Thread
 from flask import Blueprint, render_template, request, redirect
 from progress import TaskProgress
 import traceback
@@ -49,8 +50,11 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     :rtype werkzeug.wrappers.response.Response
     """
     taskProgress = TaskProgress(name='Import', return_url=request.url)
-    deferred.defer(importTask, api_key, groupid, semester_key, taskProgress.key, user.key, _queue="import")
-    return redirect('/progress/' + taskProgress.key.urlsafe())
+    logging.info(f"Starting import thread for progress={taskProgress.urlsafe()}")
+    t = Thread(target=importTask, args=[api_key, groupid, semester_key, taskProgress.key, user.key])
+    t.run()
+    logging.info(f"Started import thread for progress={taskProgress.urlsafe()}")
+    return redirect('/progress/' + taskProgress.urlsafe())
 
 def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     """
@@ -60,6 +64,7 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     :type taskProgress_key: google.appengine.ext.ndb.Key
     :type user_key: google.appengine.ext.ndb.Key
     """
+    logging.info(f"importTask thread running for progress={taskProgress_key}")
     start_time = time.time()
     semester = semester_key.get()  # type: data.Semester
     user = user_key.get()  # type: data.UserPrefs
@@ -74,6 +79,7 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
             if user.groupaccess is not None:
                 progress.info('<a href="/start/%s/">Gå till scoutkåren</a>' % (user.groupaccess.urlsafe()))
     except Exception as e: # catch all exceptions so that defer stops running it again (automatic retry)
+        logging.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
         progress.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
 
     end_time = time.time()
@@ -81,3 +87,4 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     progress.info("Tid: %s s" % str(time_taken))
 
     progress.done()
+    logging.info("import klar!")

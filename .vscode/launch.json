@@ -1,23 +1,54 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Google App Engine (py2.7)",
+            "name": "dev_appserver",
             "request": "launch",
             "type": "python",
-            "host": "localhost",
+            "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "python": "${env:ProgramFiles(x86)}/Google/Cloud SDK/google-cloud-sdk/platform/bundledpython2/python.exe",
-            "program": "${env:ProgramFiles(x86)}/Google/Cloud SDK/google-cloud-sdk/bin/dev_appserver.py",
+            "envFile": "/env/pyvenv.cfg",
+            "python": "python3",
+            "program": "/lib/google-cloud-sdk/bin/dev_appserver.py",
             "args": [
                 "app.yaml",
-                "-A", "skojjt",
-                "--port", "8080",
-                "--admin_port", "8000",
-                "--api_port", "56035",
+                "-A",
+                "skojjt",
+                "--port",
+                "8080",
+                "--admin_port",
+                "8000",
+                "--api_port",
+                "56035",
                 "--enable_console",
-                "--skip_sdk_update_check"
-            ]
+                "--skip_sdk_update_check",
+                "--support_datastore_emulator",
+                "False"
+            ],
+            "env": {
+                "PYDEVD_LOAD_NATIVE_LIB": "0"
+            }
+        },
+        {
+            "name": "python main.py",
+            "envFile": "/env/pyvenv.cfg",
+            "type": "python",
+            "request": "launch",
+            "python": "python3",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }
