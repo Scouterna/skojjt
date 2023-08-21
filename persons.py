@@ -171,9 +171,11 @@ def get_gbg_csv(sgroup_url=None):
         if semester.year not in person.member_years:
             continue
         is_living_in_gothenburg = "Nej"
-        zip_prefix = int(person.zip_code[:3])
-        if zip_prefix in gothenburg_zip_prefixes:
-            is_living_in_gothenburg = "Ja"
+        zip_3 = person.zip_code[:3]
+        if zip_3.isnumeric():
+            zip_prefix = int(zip_3)
+            if zip_prefix in gothenburg_zip_prefixes:
+                is_living_in_gothenburg = "Ja"
 
         rows += person.firstname + u';' + person.lastname + u';' + person.personnr + u';' + person.zip_code + u';' + is_living_in_gothenburg + u';' + 'Nej' + '\n'
 
