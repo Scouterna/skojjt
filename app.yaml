@@ -15,6 +15,7 @@ handlers:
 - url: /.*
   script: auto
   login: required
+  secure: always
 
 
 inbound_services:
