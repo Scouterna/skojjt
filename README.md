@@ -28,39 +28,20 @@ Skojjt implementerar APN/DAK för redovisning till Göteborgs kommun:
 ### [Dokumentation](https://github.com/Scouterna/skojjt/wiki)
 
 ### Hur man testar/utvecklar i Windows:
-* Installera Git
-* Installera [Google Cloud SDK](https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe).
-* Python 2 följer med Google Cloud SDK, så vi behöver inte installera Python.
-* Initiera Google Cloud:
-    + `gcloud init`
-* Uppdatera till en version som fungerar:
-    + `gcloud components update --version 341.0.0`
-* Installera python komponenter för gcloud:
-    + `gcloud components install app-engine-python-extras`
-* Klona git-repot: 
-    + `git clone https://github.com/Scouterna/skojjt`
-* Uppdatera biblioteken (kan även behövas efter pull):
-    + `scripts\update_libs.bat`
-* Du kan behöva uppdatera Google Cloud (om du redan har en installation):
-    + `gcloud components update`
-* Om du gör ändringar i data eller queries så kan du behöva köra:
-    + `gcloud datastore indexes create index.yaml`
-* Starta servern lokalt:
-    + `scripts\run_local.bat`
-* Öppna en webläsare på adress: [http://localhost:8080/](http://localhost:8080/)
-* Deploy projektet publikt som `skojjt-X`(ditt val av namn)
-  + `gcloud app deploy index.yaml --project skojjt-X`
-  + `gcloud app deploy app.yaml --project skojjt-X`
-* Testa appen `gcloud app browse`
+Windows stöds inte längre. Använd Windows Subsystem For Linux (WSL)
 
 ### Hur man testar/utvecklar i Linux:
 * Klona git-repon till lokal dator.
-* Installera Python 2.7 och [Google App Engine SDK (GAE)](https://cloud.google.com/sdk/docs/#deb).
-* Installera biblioteken. `pip install -r requirements.txt -t lib`
+* Installera Python 3.11
+* [Google Cloud CLI](https://cloud.google.com/sdk/docs/#deb).
+* Skapa en virtual env med Python 3.11: `/usr/bin/python3.11 -m venv env`
+* Aktivera virtual env: `source ./env/bin/activate`
+* Installera biblioteken. `pip install -r requirements.txt`
 * Konfigurera GAE `gcloud init` och följ instruktionerna.
 * Deploy kod `gcloud app deploy` från git mappen
 * Update indexes`gcloud datastore indexes create index.yaml`
 * Testa appen `gcloud app browse`
+* Installera datastor emulator: `sudo apt-get install default-jre google-cloud-sdk-datastore-emulator`
 
 ### Hur man testar/utvecklar på Mac:
 * Använd homebrew för att installera Python 2.7 och Google App Engine.
