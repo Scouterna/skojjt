@@ -7,9 +7,9 @@
 #   $ gcloud topic gcloudignore
 #
 .gcloudignore
-!include:.gitignore
+#!include:.gitignore
 scripts/
-env/
+.git/
 .vscode/
 __pycache__/
 documentation/
