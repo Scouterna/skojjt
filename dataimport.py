@@ -135,6 +135,7 @@ class ScoutnetImporter:
 
         personsToSave = []
         troopPersonsToSave = []
+        troopPersonsKeysToRemove = []
         activePersonIds = set() # person.ids that was seen in this import
 
         leadersToAddToTroops = [] # tuple: (troop_id, person)
@@ -195,7 +196,6 @@ class ScoutnetImporter:
                 self.result.warning(u"Ingen avdelning vald för %s %s %s" % (str(person.member_no), p["firstname"], p["lastname"]))
 
             troop = self.GetOrCreateTroop(p["troop"], p["troop_id"], scoutgroup.key, semester.key)
-            troop_key = troop.key if troop is not None else None
             if troop is not None:
                 allTroops[troop.scoutnetID] = troop
 
@@ -204,9 +204,17 @@ class ScoutnetImporter:
                 if self.commit:
                     personsToSave.append(person)
 
-            if troop_key != None:
-                if self.commit:
-                    tp = TroopPerson.create_if_missing(troop_key, person.key, False)
+            if troop != None:
+                tps = TroopPerson.get_troop_persons(troop.key, person.key)
+                tp = None
+                tpCount = len(tps)
+                if tpCount >= 1:
+                    tp = tps[0]
+                    if tpCount > 1: # this is a bugfix for duplicate TroopPerson
+                        self.result.append(f"Tar bort {tpCount-1} extra avdelningsperson(er) i {p['troop']} för {p['firstname']} {p['lastname']}")
+                        troopPersonsKeysToRemove.extend([t.key for t in tps[1:]])
+                if tp is None:              
+                    tp = TroopPerson.create(troop.key, person.key)
                     if tp:
                         troopPersonsToSave.append(tp)
                         self.result.append(u"Ny avdelning '%s' för:%s %s" % (p["troop"], p["firstname"], p["lastname"]))
@@ -243,9 +251,15 @@ class ScoutnetImporter:
 
                 if tp is None:
                     # try finding the TroopPerson in the database and set to leader
-                    tp = TroopPerson.create_or_set_as_leader(troop.key, person.key)
-                    if tp:
-                        # new or changed leader TroopPerson needs to be saved
+                    tps = TroopPerson.get_troop_persons(troop.key, person.key)
+                    tpCount = len(tps)
+                    if tpCount >= 1:
+                        tp = tps[0]
+                        if tpCount > 1: # this is a bugfix for duplicate TroopPerson
+                            self.result.append(f"Tar bort {tpCount-1} extra avdelningsperson(er) i {troop.getname()} för {person.getname()}")
+                            troopPersonsKeysToRemove.extend([t.key for t in tps[1:]])
+                    if tp is None:                
+                        tp = TroopPerson.create(troop.key, person.key)
                         tp.leader = True
                         troopPersonsToSave.append(tp)
                         self.result.append(u"Avdelning '%s' ny ledare:%s" % (troop.getname(), person.getname()))
@@ -263,6 +277,8 @@ class ScoutnetImporter:
                     personsToSave.append(personToMarkAsRemoved)
 
         if self.commit:
+            if len(troopPersonsKeysToRemove) > 0:
+                ndb.delete_multi(troopPersonsKeysToRemove)
             ndb.put_multi(personsToSave)
             ndb.put_multi(troopPersonsToSave)
 
