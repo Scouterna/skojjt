@@ -138,7 +138,7 @@ def startAsyncMergeSG(oldname, newname, commit, user, move_users, move_persons, 
     taskProgress = TaskProgress(name='MergeSG', return_url=request.url)
     taskProgress.put()
     t = Thread(target=merge_sg_deferred, args=[oldname, newname, commit, taskProgress.key, user.key, move_users, move_persons, move_troops, delete_sg, semester_id])
-    t.run()
+    t.start()
     return redirect('/progress/' + taskProgress.key.urlsafe())
 
 def merge_sg_deferred(oldname, newname, commit, taskProgress_key, user_key, move_users, move_persons, move_troops, delete_sg, semester_id):

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import logging
+from google.appengine.api import memcache
 from data import Semester, UserPrefs
 from dataimport import RunScoutnetImport
 from threading import Thread
@@ -52,7 +53,7 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     taskProgress = TaskProgress(name='Import', return_url=request.url)
     logging.info(f"Starting import thread for progress={taskProgress.urlsafe()}")
     t = Thread(target=importTask, args=[api_key, groupid, semester_key, taskProgress.key, user.key])
-    t.run()
+    t.start()
     logging.info(f"Started import thread for progress={taskProgress.urlsafe()}")
     return redirect('/progress/' + taskProgress.urlsafe())
 
@@ -65,10 +66,16 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     :type user_key: google.appengine.ext.ndb.Key
     """
     logging.info(f"importTask thread running for progress={taskProgress_key}")
+
     start_time = time.time()
     semester = semester_key.get()  # type: data.Semester
     user = user_key.get()  # type: data.UserPrefs
     progress = TaskProgress.getTaskProgress(taskProgress_key)
+    import_task_mutex = "import_task:" + groupid
+    if not memcache.add(import_task_mutex, True): # add returns false if the key already exist
+        progress.error(f"Import already running for group: {groupid}")
+        return
+
     try:
         success = RunScoutnetImport(groupid, api_key, user, semester, progress)
         if not success:
@@ -81,6 +88,8 @@ def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
     except Exception as e: # catch all exceptions so that defer stops running it again (automatic retry)
         logging.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
         progress.error("Importfel: " + str(e) + "CS:" + traceback.format_exc())
+    finally:
+        memcache.delete(import_task_mutex)
 
     end_time = time.time()
     time_taken = end_time - start_time

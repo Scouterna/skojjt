@@ -162,6 +162,10 @@ class ScoutnetImporter:
                     personnr)
                 self.result.append("Ny person:%s %s %s" % (str(person_id), p["firstname"], p["lastname"]))
 
+            if person.key.id() in activePersonIds:
+                self.result.error(f"{person.key.id()}/{p['member_no']} skickas flera gånger från scoutnet")
+                continue
+
             activePersonIds.add(person.key.id())
             person.removed = False
             person.patrool = p["patrool"]

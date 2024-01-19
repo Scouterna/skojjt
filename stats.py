@@ -61,7 +61,7 @@ def update_meeting_date_count():
     memcache.delete("meeting_date_counter_dict")
     memcache.add("meeting_date_counter_dict", {})
     t = Thread(target=meeting_date_count_deferred, args=[None])
-    t.run()
+    t.start()
     return "Running update"
 
 
@@ -93,7 +93,7 @@ def meeting_date_count_deferred(start_cursor):
                 memcache.delete("meeting_date_counter_dict")
                 memcache.add("meeting_date_counter_dict", meeting_date_counter_dict)
                 t = Thread(target=meeting_date_count_deferred, args=[start_cursor]) # TODO: not sure there is a timelimit on threads, check
-                t.run()
+                t.start()
                 return
 
 
