@@ -429,9 +429,9 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
         if key_url in ("dak", "excel", "excel_sthlm", "json"):
             dak = DakData()
             dak.foerenings_namn = scoutgroup.getname()
-            if scoutgroup.foreningsID:
+            if scoutgroup.foreningsID is not None and scoutgroup.foreningsID != "":
                 dak.forenings_id = scoutgroup.foreningsID
-            elif scoutgroup.organisationsnummer:
+            elif scoutgroup.organisationsnummer is not None and scoutgroup.organisationsnummer != "":
                 dak.forenings_id = scoutgroup.organisationsnummer
             else:
                 dak.forenings_id = f"8020062942-{scoutgroup.scoutnetID}"
