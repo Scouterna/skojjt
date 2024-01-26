@@ -112,10 +112,10 @@
 		</div>
 		<button data-toggle="collapse" data-target="#settings" set-focus="#settingslink" class="btn btn-lg btn-info togglebutton">Inställningar</button>
 		<div id="settings" class="collapse well">
-			<a id="settingslink" href="./settings"><span class="glyphicon glyphicon-cog"></span> Avdelningens Inställningar</a>
+			<a id="settingslink" href="./settings/"><span class="glyphicon glyphicon-cog"></span> Avdelningens Inställningar</a>
 			{% if user.isGroupAdmin() %}
 			<hr/>
-			<a id="delete" href="./delete"><span class="glyphicon glyphicon-trash"></span> Radera avdelningen</a>
+			<a id="delete" href="./delete/"><span class="glyphicon glyphicon-trash"></span> Radera avdelningen</a>
 			{% endif %}
 		</div>
 		<button data-toggle="collapse" data-target="#report" set-focus="#daklink" class="btn btn-lg btn-info togglebutton">Närvarorapport</button>
