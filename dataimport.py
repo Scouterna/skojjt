@@ -145,8 +145,7 @@ class ScoutnetImporter:
             personnr = p["personnr"].replace('-', '')
             person = Person.getByMemberNo(person_id)
             if len(personnr) < 12:
-                self.result.warning(u"%d %s %s har inte korrekt personnummer: '%s', hoppar över personen" % (person_id, p["firstname"], p["lastname"], personnr))
-                continue
+                self.result.warning("%d %s %s har inte korrekt personnummer: '%s'" % (person_id, p["firstname"], p["lastname"], personnr))
 
             if person != None:
                 person_id = person.key.id()
