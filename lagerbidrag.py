@@ -22,7 +22,7 @@ from functools import cmp_to_key
 RegionLimits = namedtuple('RegionLimits', ['min_days', 'max_days', 'min_age', 'max_age', 'count_over_max_age'])
 
 
-LIMITS = {'gbg' : RegionLimits(2, 15, 7, 25, True),  # min 2 days, max 14 days, 7-25 yers + some older
+LIMITS = {'gbg' : RegionLimits(2, 15, 7, 25, False),  # min 2 days, max 14 days, 7-25 yers + some older
           'sthlm' : RegionLimits(2, 7, 7, 20, False)} # min 2 days, max 7 days, 7-20 years
 
 DATE_FORMAT = '%Y-%m-%d'
@@ -261,6 +261,8 @@ class LagerBidrag():
     uptoMaxAge = 0
     overMaxAge = 0
     nights = 0
+    nightsUpToMaxAge = 0
+    nightsOverMaxAge = 0   
     days = 0
     divider = 25
 
@@ -354,8 +356,10 @@ def createLagerbidragReport(limits, scoutgroup, persons, bidrag):
         if person.age > limits.max_age:
             bidrag.overMaxAge = bidrag.overMaxAge + 1
             container.nr_older_persons += 1
+            bidrag.nightsOverMaxAge += person.days - 1
         elif person.age >= limits.min_age:
             bidrag.uptoMaxAge = bidrag.uptoMaxAge + 1
+            bidrag.nightsUpToMaxAge += person.days - 1
             bidrag.nights += person.days - 1
             bidrag.days += person.days
             container.nr_young_persons += 1
