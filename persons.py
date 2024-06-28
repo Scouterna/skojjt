@@ -147,6 +147,10 @@ def show(sgroup_url=None, person_url=None, action=None):
         badge_url='/badges/' + scoutgroup_url + '/person/' + person_url + '/')
 
 
+"""
+Generate a members CSV file data for Gothenburg municipality. See documentation at:
+https://goteborg.se/wps/portal/start/foretag-och-organisationer/foreningar/kulturstod-och-bidrag-till-foreningar/ansok-om-bidrag-till-foreningar-inom-idrott-och-fritid/aktivitetsbidrag
+"""
 def get_gbg_csv(sgroup_url=None):
     user = UserPrefs.current()
     if not user.hasAccess():
@@ -163,25 +167,23 @@ def get_gbg_csv(sgroup_url=None):
     else:
         semester = user.activeSemester.get()
     
-    gothenburg_zip_prefixes = [400, 401, 402, 403, 404, 405, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 430, 436, 442, 475]
     persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch()
-    rows = u''
-    rows += u"Förnamn;Efternamn;Personnummer;Postnummer;Är bosatt i Göteborgs Stad (Ja/Nej);Har funktionsnedsättning (Ja/Nej)\n"
+    rows = '\ufeff' # BOM for Excel
+    rows += u"Förnamn;Efternamn;Personnummer;Har funktionsnedsättning\n"
     for person in persons:
         if semester.year not in person.member_years:
             continue
-        is_living_in_gothenburg = "Nej"
-        zip_3 = person.zip_code[:3]
-        if zip_3.isnumeric():
-            zip_prefix = int(zip_3)
-            if zip_prefix in gothenburg_zip_prefixes:
-                is_living_in_gothenburg = "Ja"
+        
+        if len(person.personnr) != 12:
+            continue # skip persons with invalid person number
 
-        rows += person.firstname + u';' + person.lastname + u';' + person.personnr + u';' + person.zip_code + u';' + is_living_in_gothenburg + u';' + 'Nej' + '\n'
+        # add a dash to the person number
+        formatted_personnr = person.personnr[:-4] + '-' + person.personnr[-4:]
+            
+        rows += person.firstname + u';' + person.lastname + u';' + formatted_personnr + u';' + 'Nej' + '\n'
 
     response = make_response(rows)
-    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
     response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(scoutgroup.name), safe='') +
                                                            '-' + str(semester.year) + '.csv;')
     return response
-
