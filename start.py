@@ -66,12 +66,15 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             troop.defaultstarttime = request.form['defaultstarttime']
             troop.defaultduration = int(request.form['defaultduration'])
             troop.rapportID = int(request.form['rapportID'])
+            troop.scoutnetID = int(request.form['scoutnetID'])
             troop.put()
 
         form = htmlform.HtmlForm('troopsettings')
         form.AddField('defaultstarttime', troop.defaultstarttime, 'Avdelningens vanliga starttid')
         form.AddField('defaultduration', troop.defaultduration, u'Avdelningens vanliga mötestid i minuter', 'number')
-        form.AddField('rapportID', troop.rapportID, u'Unik rapport ID för kommunens närvarorapport', 'number')
+        form.AddField('scoutnetID', troop.scoutnetID, u'ScoutnetID för avdelningen : ID för DAK närvarorapport', 'number')
+        form.AddField('rapportID', troop.rapportID, u'Rapport ID för kommunens närvarorapport', 'number')
+        form.AddField('unique_id', troop.get_unique_id(), u'Unikt ID för avdelningen', 'number', False, True)
         return render_template('form.html',
                                heading=section_title,
                                baselink=baselink,
@@ -437,7 +440,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 troop.rapportID = troop.scoutnetID
                 troop.put()
 
-            dak.kort.naervarokort_nummer = str(troop.rapportID)
+            dak.kort.naervarokort_nummer = str(troop.get_unique_id())
 
             for troop_person in troop_persons:
                 p = persons_dict[troop_person.person]

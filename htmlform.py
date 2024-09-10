@@ -16,8 +16,8 @@ class HtmlForm():
         self.descriptionText = descriptionText
         self.buttonType=buttonType
 
-    def AddField(self, name, value, description, type="text", required=True):
-        self.fields.append((name, value, description, type, required))
+    def AddField(self, name, value, description, type="text", required=True, readonly=False):
+        self.fields.append((name, value, description, type, required, readonly))
 
     def __str__(self):
         s = ""
@@ -29,7 +29,9 @@ class HtmlForm():
             s += '<label for="' + field[0] + '">' + field[2] + '</label>'
             s += '<input type="' + field[3] + '" class="form-control" size="50"'
             if field[4]:
-                s += ' required=""'
+                s += ' required'
+            if field[5]:
+                s += ' readonly'
             s += ' name="' + field[0] + '" id="' + field[0] + '" value="' + str(field[1]) + '"/>'
             s += '</div>'
         s += '<div class="btn-toolbar">'

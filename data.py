@@ -147,7 +147,7 @@ class Troop(ndb.Model):
     scoutgroup = ndb.KeyProperty(kind=ScoutGroup)
     defaultstarttime = ndb.StringProperty(default="18:30")
     defaultduration = ndb.IntegerProperty(default=90)
-    rapportID = ndb.IntegerProperty()
+    rapportID = ndb.IntegerProperty() # use scountnetID instead, this is for old data only
     scoutnetID = ndb.IntegerProperty(required=False, default=0)
     semester_key = ndb.KeyProperty(kind=Semester)
 
@@ -191,6 +191,15 @@ class Troop(ndb.Model):
         for meeting in Meeting.gettroopmeetings(self.key):
             meeting.delete()
         self.key.delete()
+
+    def get_unique_id(self) -> int:
+        troopid:int = 0
+        if self.scoutnetID:
+            troopid = int(self.scoutnetID)
+        elif self.rapportID:
+            troopid = int(self.rapportID)
+        return troopid
+
 
 
 
@@ -403,11 +412,7 @@ class Meeting(ndb.Model):
         # MAX ID: 2147483647 (max signed 32 bit int)
         # Example:1231zzyyxx
         # where zzyyxx is the troop id (to avoid collisions on the same day)
-        toopid = 0
-        if troop.rapportID:
-            toopid = troop.rapportID
-        elif troop.scoutnetID:
-            toopid = troop.scoutnetID
+        toopid = troop.get_unique_id()
         troopstr = ("%d" % toopid)[:6]
         return self.datetime.strftime("%m%d") + troopstr
 
