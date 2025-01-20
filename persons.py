@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from data import Person, ScoutGroup, TroopPerson, UserPrefs, Semester
+from data import Person, ScoutGroup, TroopPerson, UserPrefs, Semester, Meeting
 from flask import abort, Blueprint, redirect, render_template, request, make_response
 from google.appengine.ext import ndb
 import logging
 import scoutnet
 import urllib
+import datetime
 
 persons = Blueprint('persons_page', __name__, template_folder='templates')
 
@@ -166,6 +167,9 @@ def get_gbg_csv(sgroup_url=None):
         semester = Semester.getOrCreateCurrent()
     else:
         semester = user.activeSemester.get()
+
+    from_date_time = datetime.datetime.strptime(str(semester.year) + "-01-01 00:00", "%Y-%m-%d %H:%M")
+    to_date_time = datetime.datetime.strptime(str(semester.year) + "-12-31 00:00", "%Y-%m-%d %H:%M")
     
     persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch()
     rows = '\ufeff' # BOM for Excel
@@ -173,7 +177,22 @@ def get_gbg_csv(sgroup_url=None):
     for person in persons:
         if semester.year not in person.member_years:
             continue
-        
+
+        if scoutgroup.attendance_incl_hike:
+            number_of_meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                              Meeting.datetime >= from_date_time,
+                                              Meeting.datetime <= to_date_time).count()
+        else:
+           meetings = Meeting.query(Meeting.attendingPersons==person.key,
+                                    Meeting.datetime >= from_date_time,
+                                    Meeting.datetime <= to_date_time)
+           nr_all = meetings.count()
+           nr_hike_meetings = meetings.filter(Meeting.ishike == True).count()
+           number_of_meetings = nr_all - nr_hike_meetings
+
+        if number_of_meetings < scoutgroup.attendance_min_year:
+            continue # skip persons with too few meetings
+
         if len(person.personnr) != 12:
             continue # skip persons with invalid person number
 
