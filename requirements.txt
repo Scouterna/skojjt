@@ -13,6 +13,6 @@ lxml==4.9.1
 jsonpickle==3.0.1
 MarkupSafe==2.1.2
 openpyxl==3.1.2
-Werkzeug==2.3.6
+Werkzeug==3.0.3
 xmlschema==2.2.2
 packaging==23.0
