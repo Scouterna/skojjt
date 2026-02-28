@@ -32,9 +32,9 @@ Windows stöds inte längre. Använd Windows Subsystem For Linux (WSL)
 
 ### Hur man testar/utvecklar i Linux:
 * Klona git-repon till lokal dator.
-* Installera Python 3.11
+* Installera Python 3.14
 * [Google Cloud CLI](https://cloud.google.com/sdk/docs/#deb).
-* Skapa en virtual env med Python 3.11: `/usr/bin/python3.11 -m venv env`
+* Skapa en virtual env med Python 3.14: `/usr/bin/python3.14 -m venv env`
 * Aktivera virtual env: `source ./env/bin/activate`
 * Installera biblioteken. `pip install -r requirements.txt`
 * Konfigurera GAE `gcloud init` och följ instruktionerna.
