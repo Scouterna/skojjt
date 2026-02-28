@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-import urllib
-import logging
 import datetime
+import logging
+import urllib
 from operator import attrgetter
-from flask import Blueprint, make_response, redirect, render_template, request
 
+from flask import Blueprint, make_response, redirect, render_template, request
 from google.appengine.ext import ndb  # pylint: disable=import-error
 
 import htmlform
 import lagerbidrag
 import scoutnet
 import sensus
+from dakdata import DakData, Deltagare, Sammankomst
+from data import (Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson,
+                  UserPrefs)
+from data_badge import TroopBadge
 from excelreport import ExcelReport
 from excelreport_sthlm import ExcelReportSthlm
 from jsonreport import JsonReport
-from data import Meeting, Person, ScoutGroup, Semester, Troop, TroopPerson, UserPrefs
-from dakdata import DakData, Deltagare, Sammankomst
-from data_badge import TroopBadge
-
 
 start = Blueprint('start_page', __name__, template_folder='templates')  # pylint : disable=invalid-name
 
@@ -435,12 +435,12 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             dak.forenings_id = scoutgroup.foreningsID
             dak.organisationsnummer = scoutgroup.organisationsnummer
             dak.kommun_id = scoutgroup.kommunID
-            dak.kort.namn_paa_kort = troop.getname()
+            dak.kort.NamnPaaKort = troop.getname()
             if troop.rapportID is None or troop.rapportID == 0:
                 troop.rapportID = troop.scoutnetID
                 troop.put()
 
-            dak.kort.naervarokort_nummer = str(troop.get_unique_id())
+            dak.kort.NaervarokortNummer = troop.get_unique_id()
 
             for troop_person in troop_persons:
                 p = persons_dict[troop_person.person]
@@ -472,12 +472,12 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 if key_url == "excel":
                     excel_report = ExcelReport(dak, semester)
                 else:
-                    dak.kort.lokal = scoutgroup.default_lagerplats
+                    dak.kort.Lokal = scoutgroup.default_lagerplats
                     excel_report = ExcelReportSthlm(dak, semester)
                 resultbytes = excel_report.getFilledInExcelSpreadsheet()
                 response = make_response(resultbytes)
                 response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.namn_paa_kort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.NamnPaaKort), safe='') +
                                                            '-' + semester.getname() + '.xlsx;')
                 return response
             elif key_url == "json":
@@ -491,7 +491,7 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                 result = render_template('dak.xml', dak=dak)
                 response = make_response(result)
                 response.headers['Content-Type'] = 'application/xml'
-                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.namn_paa_kort), safe='') +
+                response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(dak.kort.NamnPaaKort), safe='') +
                                                            '-' + semester.getname() + '.xml;')
                 return response
         elif key_url == "sensus":

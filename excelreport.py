@@ -13,11 +13,11 @@ class ExcelReport:
         numPersonRows = 64
         startRowPersons = 13
         ws = workbook.worksheets[0]
-        ws['E1'] = self.dak.kort.naervarokort_nummer
+        ws['E1'] = self.dak.kort.NaervarokortNummer
         ws['I1'] = self.semester.year
-        ws['D2'] = self.dak.kort.namn_paa_kort
+        ws['D2'] = self.dak.kort.NamnPaaKort
         ws['D3'] = "Scouting"
-        ws['D4'] = self.dak.kort.lokal
+        ws['D4'] = self.dak.kort.Lokal
         if self.semester.ht:
             ws['C7'] = 'X'
         else:
@@ -29,7 +29,7 @@ class ExcelReport:
 
         for index, sammankomst in enumerate(self.dak.kort.sammankomster):
             aktivitetColumn = 11+index
-            ws.cell(row=2, column=aktivitetColumn).value = sammankomst.aktivitet
+            ws.cell(row=2, column=aktivitetColumn).value = sammankomst.Aktivitet
             ws.cell(row=7, column=aktivitetColumn).value = sammankomst.get_start_time_string('%H')
             ws.cell(row=9, column=aktivitetColumn).value = sammankomst.get_stop_time_string('%H')
             ws.cell(row=10, column=aktivitetColumn).value = sammankomst.get_date_string('%m')

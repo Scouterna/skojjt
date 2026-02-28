@@ -18,7 +18,7 @@ class JsonReport(IReport):
         return self.get_json()
 
     def get_filename(self):
-        return str(self.dak.kort.namn_paa_kort) + '-' + self.semester.getname() + '.json'
+        return str(self.dak.kort.NamnPaaKort) + '-' + self.semester.getname() + '.json'
 
     def get_json(self, unpicklable=True, warn=False):
         return jsonpickle.encode(self.dak, unpicklable=unpicklable, warn=warn)

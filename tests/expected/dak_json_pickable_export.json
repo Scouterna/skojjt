@@ -54,9 +54,9 @@
                 "epost": "adam@test.com"
             }
         ], 
-        "namn_paa_kort": "Testavdelning", 
-        "naervarokort_nummer": "1", 
-        "lokal": "Scouthuset", 
+        "NamnPaaKort": "Testavdelning", 
+        "NaervarokortNummer": "1", 
+        "Lokal": "Scouthuset", 
         "sammankomster": [
             {
                 "py/object": "dakdata.Sammankomst", 
@@ -89,7 +89,7 @@
                 }, 
                 "kod": "123", 
                 "duration": 90, 
-                "aktivitet": "M\u00f6te"
+                "Aktivitet": "M\u00f6te"
             }, 
             {
                 "py/object": "dakdata.Sammankomst", 
@@ -122,7 +122,7 @@
                 }, 
                 "kod": "123", 
                 "duration": 90, 
-                "aktivitet": "M\u00f6te"
+                "Aktivitet": "M\u00f6te"
             }, 
             {
                 "py/object": "dakdata.Sammankomst", 
@@ -152,9 +152,9 @@
                 }, 
                 "kod": "123", 
                 "duration": 90, 
-                "aktivitet": "M\u00f6te"
+                "Aktivitet": "M\u00f6te"
             }
         ], 
-        "aktivitet": "Moete"
+        "Aktivitet": "Moete"
     }
 }

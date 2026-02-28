@@ -15,4 +15,4 @@ MarkupSafe==2.1.2
 openpyxl==3.1.2
 Werkzeug==2.3.6
 xmlschema==2.2.2
-packaging==23.0
+packaging>=24.0
