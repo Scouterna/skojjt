@@ -174,7 +174,7 @@ class Troop(ndb.Model):
 
     @staticmethod
     def create(name, troop_id, scoutgroup_key, semester_key):
-        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
+        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key, scoutnetID=troop_id)
 
     @staticmethod
     def getTroopsForUser(sgroup_key, user):
