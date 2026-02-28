@@ -64,9 +64,9 @@ def create_dak_data():
     dak.forenings_id = "1111"
     dak.organisationsnummer = "556677-8899"
     dak.kommun_id = "0"
-    dak.kort.namn_paa_kort = "Testavdelning"
-    dak.kort.naervarokort_nummer = "1"
-    dak.kort.aktivitet = u'Moete'
+    dak.kort.NamnPaaKort = "Testavdelning"
+    dak.kort.NaervarokortNummer = "1"
+    dak.kort.Aktivitet = u'Moete'
     #
     dak.kort.ledare.append(Deltagare("1234", "Adam", "Adamsson", u"198501011234", True, "adam@test.com", "12345678", u"Göteborg"))
     dak.kort.deltagare.append(Deltagare("1235", "Bertil", "Bertilsson", u"200501011234", False, "bertil@test.com", "12345678", u"Göteborg"))
@@ -187,11 +187,11 @@ class TestJsonReport(unittest.TestCase):
 
         self.assertEqual(data[u'foerenings_namn'], u"Test Scoutkår")
         self.assertEqual(data[u'forenings_id'], u"1111")
-        self.assertEqual(data[u'kort'][u'namn_paa_kort'], "Testavdelning")
+        self.assertEqual(data[u'kort'][u'NamnPaaKort'], "Testavdelning")
         self.assertEqual(data[u'kort'][u'sammankomster'][0]['deltagare'][0]['uid'], "1235")
         self.assertEqual(data[u'kort'][u'sammankomster'][0]['deltagare'][1]['uid'], "1236")
         self.assertEqual(data[u'kort'][u'sammankomster'][0]['ledare'][0]['uid'], "1234")
-        self.assertEqual(data[u'kort'][u'naervarokort_nummer'], "1")
+        self.assertEqual(data[u'kort'][u'NaervarokortNummer'], "1")
         self.save_and_check(stream, 'dak_json_export.json', 'dak_json_export.json')
 
         stream = jsonreport.get_report_string()
@@ -199,11 +199,11 @@ class TestJsonReport(unittest.TestCase):
 
         self.assertEqual(data.foerenings_namn, u"Test Scoutkår")
         self.assertEqual(data.forenings_id, u"1111")
-        self.assertEqual(data.kort.namn_paa_kort, "Testavdelning")
+        self.assertEqual(data.kort.NamnPaaKort, "Testavdelning")
         self.assertEqual(data.kort.sammankomster[0].deltagare[0].uid, "1235")
         self.assertEqual(data.kort.sammankomster[0].deltagare[1].uid, "1236")
         self.assertEqual(data.kort.sammankomster[0].ledare[0].uid, "1234")
-        self.assertEqual(data.kort.naervarokort_nummer, "1")
+        self.assertEqual(data.kort.NaervarokortNummer, "1")
         self.save_and_check(stream, 'dak_json_pickable_export.json', 'dak_json_pickable_export.json', force=True)
 
     def test_dak_xml_export(self):
@@ -224,11 +224,11 @@ class TestJsonReport(unittest.TestCase):
 
         workbook = load_workbook(generated_path)
         worksheets = workbook.worksheets[0]
-        self.assertEqual(self.dak.kort.naervarokort_nummer, worksheets['E1'].value)
+        self.assertEqual(self.dak.kort.NaervarokortNummer, worksheets['E1'].value)
         self.assertEqual(current_semester.year, worksheets['I1'].value)
-        self.assertEqual(self.dak.kort.namn_paa_kort, worksheets['D2'].value)
+        self.assertEqual(self.dak.kort.NamnPaaKort, worksheets['D2'].value)
         self.assertEqual("Scouting", worksheets['D3'].value)
-        self.assertEqual(self.dak.kort.lokal, worksheets['D4'].value)
+        self.assertEqual(self.dak.kort.Lokal, worksheets['D4'].value)
         if current_semester.ht:
             self.assertEqual(worksheets['C6'].value, None)
             self.assertEqual(worksheets['C7'].value, 'X')

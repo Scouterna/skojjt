@@ -38,7 +38,7 @@ class Sammankomst(object):
         self.kod = kod
         self.datum = datum
         self.duration = duration
-        self.aktivitet = aktivitet
+        self.Aktivitet = aktivitet # Huvudsaklig Aktivitet för sammankomsten. 
         self.typ = "Moete" # OBS en av: Traening, Match, Moete, Oevrigt
         self.deltagare = []
         self.ledare = []
@@ -71,10 +71,10 @@ class Narvarokort(object):
         self.deltagare = []
         self.ledare = []
         self.sammankomster = []
-        self.naervarokort_nummer = ""
-        self.lokal = "Scouthuset"
-        self.namn_paa_kort = ""
-        self.aktivitet = "Scouting" # Huvudsaklig aktivitet för närvarokortet. 
+        self.NaervarokortNummer = 0
+        self.Lokal = "Scouthuset"
+        self.NamnPaaKort = ""
+        self.Aktivitet = "Scouting" # Huvudsaklig Aktivitet för närvarokortet. 
 
 
 class DakData(object):

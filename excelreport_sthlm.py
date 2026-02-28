@@ -34,12 +34,12 @@ class ExcelReportSthlm:
 
         startRowPersons = 15
         ws = workbook.worksheets[0]
-        ws['A1'] = "Närvarokort Nr %s" % self.dak.kort.naervarokort_nummer
+        ws['A1'] = "Närvarokort Nr %s" % self.dak.kort.NaervarokortNummer
         ws['AJ1'] = self.semester.year
         ws['A3'] = self.dak.foerenings_namn
         ws['A5'] = "Scouting"
-        ws['C5'] = self.dak.kort.namn_paa_kort
-        ws['A7'] = self.dak.kort.lokal
+        ws['C5'] = self.dak.kort.NamnPaaKort
+        ws['A7'] = self.dak.kort.Lokal
         if self.semester.ht:
             ws['D1'] = "HT-%d" % (self.semester.year % 100)
         else:
@@ -50,7 +50,7 @@ class ExcelReportSthlm:
 
         for index, sammankomst in enumerate(self.dak.kort.sammankomster):
             aktivitetColumn = 7 + index
-            ws.cell(row=4, column=aktivitetColumn).value = sammankomst.aktivitet
+            ws.cell(row=4, column=aktivitetColumn).value = sammankomst.Aktivitet
             ws.cell(row=10, column=aktivitetColumn).value = sammankomst.get_start_time_string('%H')
             ws.cell(row=11, column=aktivitetColumn).value = sammankomst.get_stop_time_string('%H')
 

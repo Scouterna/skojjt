@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import logging
 from google.appengine.api import memcache
@@ -51,20 +52,34 @@ def startAsyncImport(api_key, groupid, semester_key, user, request):
     :rtype werkzeug.wrappers.response.Response
     """
     taskProgress = TaskProgress(name='Import', return_url=request.url)
+    # Capture the current request-local os.environ so we can propagate it to
+    # the import thread.  In Python 3.13+ threading.Thread.start() uses
+    # _start_joinable_thread instead of _start_new_thread, which means the
+    # GAE RequestEnvironmentThreadHook is never invoked and the child thread
+    # would start with an empty (thread-local) os.environ – missing
+    # GAE_APPLICATION, the API ticket, etc.
+    parent_environ = dict(os.environ)
     logging.info(f"Starting import thread for progress={taskProgress.urlsafe()}")
-    t = Thread(target=importTask, args=[api_key, groupid, semester_key, taskProgress.key, user.key])
+    t = Thread(target=importTask, args=[api_key, groupid, semester_key, taskProgress.key, user.key, parent_environ])
     t.start()
     logging.info(f"Started import thread for progress={taskProgress.urlsafe()}")
     return redirect('/progress/' + taskProgress.urlsafe())
 
-def importTask(api_key, groupid, semester_key, taskProgress_key, user_key):
+def importTask(api_key, groupid, semester_key, taskProgress_key, user_key, parent_environ=None):
     """
     :type api_key: str
     :type groupid: str
     :type semester_key: google.appengine.ext.ndb.Key
     :type taskProgress_key: google.appengine.ext.ndb.Key
     :type user_key: google.appengine.ext.ndb.Key
+    :type parent_environ: dict | None
     """
+    # Restore the parent request's environment in this thread so that
+    # GAE_APPLICATION, API ticket and other request-scoped variables are
+    # visible to the App Engine SDK (see comment in startAsyncImport).
+    if parent_environ:
+        os.environ.update(parent_environ)
+
     logging.info(f"importTask thread running for progress={taskProgress_key}")
 
     start_time = time.time()

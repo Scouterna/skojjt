@@ -42,6 +42,9 @@ def show(sgroup_url=None, person_url=None, action=None):
     if "gbg_csv" in request.args:
         return get_gbg_csv(sgroup_url)
 
+    if "num_nights_out" in request.args:
+        return get_num_nights_out(sgroup_url)
+
     if scoutgroup is None:
         return render_template(
             'index.html',
@@ -200,6 +203,56 @@ def get_gbg_csv(sgroup_url=None):
         formatted_personnr = person.personnr[:-4] + '-' + person.personnr[-4:]
             
         rows += person.firstname + u';' + person.lastname + u';' + formatted_personnr + u';' + 'Nej' + '\n'
+
+    response = make_response(rows)
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    response.headers['Content-Disposition'] = ('attachment; filename=' + urllib.parse.quote(str(scoutgroup.name), safe='') +
+                                                           '-' + str(semester.year) + '.csv;')
+    return response
+
+
+def get_num_nights_out(sgroup_url=None, semester=None):
+    user = UserPrefs.current()
+    if not user.hasAccess():
+        return "denied", 403
+
+    sgroup_key = None  # type: ndb.Key
+    scoutgroup = None  # type: ScoutGroup
+    if sgroup_url is not None:
+        sgroup_key = ndb.Key(urlsafe=sgroup_url)
+        scoutgroup = sgroup_key.get()
+
+    if semester is None:
+        semester = user.activeSemester.get()
+
+    from_date_time = datetime.datetime.strptime(str(semester.year) + "-01-01 00:00", "%Y-%m-%d %H:%M")
+    to_date_time = datetime.datetime.strptime(str(semester.year) + "-12-31 00:00", "%Y-%m-%d %H:%M")
+    
+    persons=Person.query(Person.scoutgroup == sgroup_key).order(Person.firstname, Person.lastname).fetch()
+    rows = '\ufeff' # BOM for Excel
+    rows += u"Förnamn;Efternamn;Medlemsid;Antalnätter\n"
+    for person in persons:
+        logging.info("person=%s", person.getname())
+        if semester.year not in person.member_years:
+            logging.info("discarding by member years" + str(person.member_years))
+            continue
+
+        meeting_keys = Meeting.query(Meeting.attendingPersons==person.key,
+                                Meeting.datetime >= from_date_time,
+                                Meeting.datetime <= to_date_time,
+                                Meeting.ishike == True).order(Meeting.datetime)
+
+        meetings = meeting_keys.fetch()
+        if len(meetings) < 2:
+            logging.info("discarding by meeting count=%d", len(meetings))
+            continue
+
+        nr_nights = 0
+        for i in range(1, len(meetings)):
+            if (meetings[i].datetime - meetings[i-1].datetime).days == 1:
+                nr_nights += 1
+
+        rows += person.firstname + u';' + person.lastname + u';' + str(person.member_no) + u';' + str(nr_nights) + '\n'
 
     response = make_response(rows)
     response.headers['Content-Type'] = 'text/csv; charset=utf-8'

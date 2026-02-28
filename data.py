@@ -80,6 +80,11 @@ class Semester(ndb.Model):
         else:
             return "%04d-06-30" % (self.year)
 
+    def get_short_id(self) -> int:
+        y = int(self.year) - 2000
+        s = 1 if self.ht else 0
+        return y * 10 + s
+
 # kår
 class ScoutGroup(ndb.Model):
     name = ndb.StringProperty(required=True)
@@ -169,7 +174,7 @@ class Troop(ndb.Model):
 
     @staticmethod
     def create(name, troop_id, scoutgroup_key, semester_key):
-        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key)
+        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key, scoutnetID=troop_id)
 
     @staticmethod
     def getTroopsForUser(sgroup_key, user):
@@ -194,14 +199,13 @@ class Troop(ndb.Model):
 
     def get_unique_id(self) -> int:
         troopid:int = 0
+        semester = self.semester_key.get()
+        semester_id = semester.get_short_id()
         if self.scoutnetID:
             troopid = int(self.scoutnetID)
         elif self.rapportID:
             troopid = int(self.rapportID)
-        return troopid
-
-
-
+        return (troopid*1000 + semester_id) & 0x7FFFFFFF # limit to 32-bit signed integer
 
 class Person(PropertyWriteTracker):
     firstname = ndb.StringProperty(required=True)
@@ -314,8 +318,10 @@ class Person(PropertyWriteTracker):
         Eventually all persons will have scoutnet id set."""
         return str(self.member_no) if self.member_no is not None else str(self.key.id())
 
-    def getmembernumber(self):
-        return self.member_no
+    def getmembernumber(self) -> int:
+        if self.member_no is None:
+            return 0
+        return int(self.member_no)
 
     def setpatrol(self, patrolname):
         self.patrool = patrolname # TODO: fix spelling error
@@ -404,17 +410,15 @@ class Meeting(ndb.Model):
         return endtime.strftime('%H:%M')
     def getishike(self):
         return self.ishike
-    def get_short_key(self, troop):
+    def get_short_key(self, troop) -> str:
         """
-        get_short_key returns a unique key for the meeting that will fit into a 32-bit signed integer.
-        It is based on the date and troop id. Only one meeting per day is unique.
+        get_short_key returns a unique string for this meeting.
+        It does not have to be an signed int as before (bug fixed in Gothenburg kommun)
+        It is a string with the max length of 50 chars (see DAK 2.2 specification) and should be unique for each meeting.
+        It should also be deterministic, so the same meeting will always get the same short key, even if the meeting is deleted and recreated.
         """
-        # MAX ID: 2147483647 (max signed 32 bit int)
-        # Example:1231zzyyxx
-        # where zzyyxx is the troop id (to avoid collisions on the same day)
         toopid = troop.get_unique_id()
-        troopstr = ("%d" % toopid)[:6]
-        return self.datetime.strftime("%m%d") + troopstr
+        return str(toopid) + "-" + self.datetime.strftime("%m%d")
 
     
     def uppdateOldPersonKeys(self, oldToNewDict):
