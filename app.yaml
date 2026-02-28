@@ -1,4 +1,4 @@
-runtime: python311
+runtime: python314
 # https://github.com/GoogleCloudPlatform/appengine-python-standard
 app_engine_apis: true
 

@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
+
+# Shim for the removed 'imp' module (Python 3.12+).
+# The appengine-python-standard fork imports imp unconditionally in
+# default_api_stub.py, but it is only used in a PY2 code path.
+if sys.version_info >= (3, 12):
+    import types as _types
+    _imp_shim = _types.ModuleType('imp')
+    _imp_shim.lock_held = lambda: False
+    sys.modules.setdefault('imp', _imp_shim)
+
 from data import ScoutGroup, UserPrefs
 from flask import Flask, redirect, render_template, request
 from google.appengine.api import app_identity
@@ -130,7 +140,10 @@ def groupaccess(user_name=None):
 
     users = []
     if user_name != None:
-        candidate = UserPrefs().query(UserPrefs.name == user_name).fetch(1)[0]
+        candidates = UserPrefs().query(UserPrefs.name == user_name).fetch(1)
+        if len(candidates) == 0:
+            return f"User {user_name} not found", 404
+        candidate = candidates[0]
         groupaccessurl = request.args["accept_user"]
         if groupaccessurl == '1':
             candidate.groupaccess = user.groupaccess
