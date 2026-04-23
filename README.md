@@ -1,5 +1,9 @@
 # Skojjt
-## Närvarorapportering för scouter. 
+
+OBS: Det här projektet underhålls inte längre.
+Se nytt projekt [https://github.com/Scouterna/skojjt-v2](https://github.com/Scouterna/skojjt-v2)
+
+## Närvarorapportering för scouter.
 
 *av Martin Green/Tynnereds scoutkår.*
 
