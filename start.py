@@ -585,6 +585,13 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                     age_problem_desc_str += "..."
                 allowance.append({'name': '', 'value': age_problem_desc_str})
 
+            v2_url = None
+            if scoutgroup.scoutnetID and troop.scoutnetID:
+                v2_url = "https://skojjt.scouterna.net/sk/%s/t/%d/%d" % (
+                    scoutgroup.scoutnetID,
+                    semester.get_v2_id(),
+                    int(troop.scoutnetID))
+
             return render_template('troop.html',
                                    heading=section_title,
                                    semestername=semester.getname(),
@@ -598,5 +605,6 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
                                    troop=troop,
                                    user=user,
                                    semester=semester,
-                                   lagerplats=scoutgroup.default_lagerplats
+                                   lagerplats=scoutgroup.default_lagerplats,
+                                   v2_url=v2_url
                                    )

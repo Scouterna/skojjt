@@ -85,6 +85,10 @@ class Semester(ndb.Model):
         s = 1 if self.ht else 0
         return y * 10 + s
 
+    def get_v2_id(self) -> int:
+        s = 1 if self.ht else 0
+        return int(self.year) * 10 + s
+
 # kår
 class ScoutGroup(ndb.Model):
     name = ndb.StringProperty(required=True)
@@ -174,7 +178,7 @@ class Troop(ndb.Model):
 
     @staticmethod
     def create(name, troop_id, scoutgroup_key, semester_key):
-        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key, scoutnetID=troop_id)
+        return Troop(id=Troop.getid(troop_id, scoutgroup_key, semester_key), name=name, scoutgroup=scoutgroup_key, semester_key=semester_key, scoutnetID=int(troop_id))
 
     @staticmethod
     def getTroopsForUser(sgroup_key, user):
