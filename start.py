@@ -454,8 +454,11 @@ def show(sgroup_url=None, troop_url=None, key_url=None):
             for m in meetings:
                 if (not scoutgroup.attendance_incl_hike) and m.ishike:
                     continue
-                
-                sammankomst = Sammankomst(m.get_short_key(troop), m.datetime, m.duration, m.getname())
+
+                meeting_name = m.getname()
+                if m.ishike:
+                    meeting_name += " #hike"
+                sammankomst = Sammankomst(m.get_short_key(troop), m.datetime, m.duration, meeting_name)
                 for troop_person in troop_persons:
                     is_attending = troop_person.person in m.attendingPersons
                     if is_attending:
